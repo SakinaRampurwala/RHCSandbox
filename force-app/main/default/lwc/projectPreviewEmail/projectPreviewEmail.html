@@ -1,0 +1,344 @@
+<template>
+
+    <lightning-modal-header label={headerTitle} size="large">
+        <lightning-button-icon icon-name="utility:close" variant="bare-inverse" onclick={closeModal} alternative-text="Close" class="slds-modal__close"></lightning-button-icon>
+    </lightning-modal-header>
+
+    <lightning-modal-body>
+        <template if:true={showSpinner}>
+            <div class="slds-spinner_container" style="position:fixed;">
+                <div class="slds-spinner--brand slds-spinner slds-spinner--large slds-is-relative" role="alert">
+                    <span class="slds-assistive-text">Loading</span>
+                    <div class="slds-spinner__dot-a"></div>
+                    <div class="slds-spinner__dot-b"></div>
+                    <div class="custom-loading-text">
+                        <b>Processing, Please Wait...</b>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <div class="email-composer-container" style={gridStyle}>
+                <div class="left-panel">
+                    <div class="slds-form-element slds-m-bottom_medium">
+                        <label class="slds-form-element__label">
+                            <abbr class="slds-required" title="required">*</abbr>Select Email Template
+                        </label>
+                        <lightning-combobox
+                            name="emailTemplate"
+                            label="Select Email Template"
+                            variant="label-hidden"
+                            value={selectedTemplateId}
+                            placeholder="Choose Email Template"
+                            options={templateOptions}
+                            onchange={handleTemplateChange}>
+                        </lightning-combobox>
+                    </div>
+
+                    <div class="slds-form-element slds-m-bottom_medium">
+                        <label class="slds-form-element__label">
+                            <abbr class="slds-required" title="required">*</abbr>From Address (Org-Wide Email)
+                        </label>
+                        <lightning-combobox
+                            name="fromAddress"
+                            label="From Address"
+                            variant="label-hidden"
+                            value={selectedFromAddress}
+                            placeholder="Select Org-Wide Email Address"
+                            options={orgWideEmailOptions}
+                            onchange={handleFromAddressChange}>
+                        </lightning-combobox>
+                    </div>
+
+                    <div class="slds-form-element slds-m-bottom_medium">
+                        <label class="slds-form-element__label">
+                            <abbr class="slds-required" title="required">*</abbr>To
+                        </label>
+                        <c-generic-lookup 
+                            objectname="Contact" 
+                            field-names="Id, Name, Email"
+                            search-condition="Email != null"
+                            first-field-to-display="Name" 
+                            second-field-to-display="Email"
+                            icon-name="standard:contact" 
+                            placeholder="Search Contact..."
+                            is-multi-select="true"
+                            default-selected-records={toContactList}
+                            onselected={handleToLookupChange}>
+                        </c-generic-lookup>
+                    </div>
+
+                    <div class="slds-form-element slds-m-bottom_medium">
+                        <label class="slds-form-element__label">CC</label>
+                        <c-generic-lookup 
+                            objectname="Contact" 
+                            field-names="Id, Name, Email"
+                            search-condition="Email != null"
+                            first-field-to-display="Name" 
+                            second-field-to-display="Email"
+                            icon-name="standard:contact" 
+                            placeholder="Search Contact..."
+                            is-multi-select="true"
+                            onselected={handleCCLookupChange}>
+                        </c-generic-lookup>
+                    </div>
+
+                    <div>
+                        <lightning-input type="checkbox" label="CC Current User" onchange={handleCcCurrentUser}></lightning-input>
+                    </div>
+
+                    <div class="slds-form-element slds-m-bottom_medium">
+                        <label class="slds-form-element__label">BCC</label>
+                        <c-generic-lookup 
+                            objectname="Contact" 
+                            field-names="Id, Name, Email"
+                            search-condition="Email != null"
+                            first-field-to-display="Name" 
+                            second-field-to-display="Email"
+                            icon-name="standard:contact" 
+                            placeholder="Search Contact..."
+                            is-multi-select="true"
+                            onselected={handleBCCLookupChange}>
+                        </c-generic-lookup>
+                    </div>
+
+                    <div class="slds-form-element slds-m-bottom_medium">
+                        <label class="slds-form-element__label">Additional Emails (comma-separated emails)</label>
+                        <lightning-input
+                            class="additional-email-input-cls"
+                            variant="label-hidden"
+                            type="text"
+                            value={additionalEmailsInput}
+                            placeholder="Enter CC email addresses separated by commas"
+                            onchange={handleAdditionalEmailsChange}>
+                        </lightning-input>
+
+                        <div class="selected-contacts slds-m-top_x-small">
+                            <template for:each={additionalEmailsList} for:item="email" for:index="index">
+                                <lightning-pill key={email} label={email} name={index} onremove={handleRemoveAdditionalEmail}>
+                                    <lightning-icon slot="media" icon-name="utility:email" size="x-small"></lightning-icon>
+                                </lightning-pill>
+                            </template>
+                        </div>
+                    </div>
+
+                    <div class="slds-form-element slds-m-bottom_medium">
+                        <label class="slds-form-element__label">
+                            <abbr class="slds-required" title="required">*</abbr>Subject
+                        </label>
+                        <lightning-input
+                            variant="label-hidden"
+                            type="text"
+                            value={emailSubject}
+                            placeholder="Enter subject"
+                            onchange={handleSubjectChange}>
+                        </lightning-input>
+                    </div>
+
+                    <div class="slds-form-element slds-m-bottom_medium">
+                        <label class="slds-form-element__label">
+                            <template if:true={isBodyRequired}>
+                                <abbr class="slds-required" title="required">*</abbr>
+                            </template>
+                            Body
+                        </label>
+                        <lightning-input-rich-text
+                            class="rich-body-div"
+                            value={emailEditBody}
+                            placeholder="Enter email body"
+                            onchange={handleBodyChange}
+                            formats={richTextFormats}>
+                        </lightning-input-rich-text>
+                    </div>
+
+                    <div class="flex-top-data">
+                        <lightning-input type="checkbox" label="Use Your Custom Email Signature" onchange={handleEmailSignatureChange} checked={useEmailSignature}></lightning-input>
+                        <lightning-helptext content="You can change your default email signature by going to: Top Right Avatar → Settings → Email → My Email Settings → Email Signature"></lightning-helptext>
+                    </div>
+
+                    <template if:true={showFileUpload}>
+                        <div class="slds-form-element slds-m-bottom_medium">
+                            <label class="slds-form-element__label">Attachments</label>
+                            <div class="flex-bottom-data">
+                                <lightning-file-upload
+                                    label="Upload Files"
+                                    name="fileUploader"
+                                    record-id={recordId}
+                                    multiple="true"
+                                    onuploadfinished={handleUploadFinished}>
+                                </lightning-file-upload>
+
+                                <lightning-button class="custom-m-botton-5" variant="neutral" label="Select File From Record" onclick={openRecordFileModal}></lightning-button>
+                            </div>
+        
+                            <div class="attached-files slds-m-top_x-small">
+                                <template for:each={attachedFiles} for:item="file" for:index="index">
+                                    <lightning-pill key={file.Id} label={file.name} name={file.Id} onremove={handleRemoveFile}>
+                                        <lightning-icon icon-name="standard:file" alternative-text="File icon" size="x-small"></lightning-icon>
+                                    </lightning-pill>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template if:true={showSignaturePad}>
+                        <div class="slds-form-element slds-m-bottom_medium">
+                            <label class="slds-form-element__label">
+                                <abbr class="slds-required" title="required">*</abbr>Signature
+                            </label>
+                            <div class="signature-container">
+                                <canvas class="signature-pad"
+                                        width="400"
+                                        height="200"
+                                        onmousedown={startDrawing}
+                                        onmousemove={draw}
+                                        onmouseup={stopDrawing}
+                                        ontouchstart={startDrawing}
+                                        ontouchmove={draw}
+                                        ontouchend={stopDrawing}>
+                                </canvas>
+                                <div class="signature-controls slds-m-top_x-small">
+                                    <lightning-button variant="neutral" label="Clear Signature" onclick={clearSignature}></lightning-button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="divider"
+                    role="separator"
+                    tabindex="0"
+                    aria-orientation="vertical"
+                    aria-valuemin="15"
+                    aria-valuemax="85"
+                    aria-valuenow={leftWidth}
+                    onmousedown={startSplitDrag}
+                    ontouchstart={startSplitDragTouch}
+                    onkeydown={onSplitKey}
+                    title="Drag to resize (Shift+Arrow for larger steps)">
+                </div>
+
+                <div class="right-panel">
+                    <div class="shadow-div slds-m-bottom_large">
+                        <div class="email-preview-header-div">
+                            <h3>Email Body Preview</h3>
+                            <button class="accordion-button" onclick={handleBodyToggle}>
+                                <template if:false={isBodyPreviewExpanded}>
+                                    <svg viewBox="0 0 16 16" class="expanded-icon" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M3.13523 6.15803C3.3241 5.95657 3.64052 5.94637 3.84197 6.13523L7.5 9.56464L11.158 6.13523C11.3595 5.94637 11.6759 5.95657 11.8648 6.15803C12.0536 6.35949 12.0434 6.67591 11.842 6.86477L7.84197 10.6148C7.64964 10.7951 7.35036 10.7951 7.15803 10.6148L3.15803 6.86477C2.95657 6.67591 2.94637 6.35949 3.13523 6.15803Z"/>
+                                    </svg>
+                                </template>
+                                <template if:true={isBodyPreviewExpanded}>
+                                    <svg viewBox="0 0 16 16" class="collapsed-icon" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M3.13523 9.842C3.3241 10.0435 3.64052 10.0537 3.84197 9.86477L7.5 6.43536L11.158 9.86477C11.3595 10.0536 11.6759 10.0434 11.8648 9.842C12.0536 9.64052 12.0434 9.3241 11.842 9.13523L7.84197 5.38523C7.64964 5.20489 7.35036 5.20489 7.15803 5.38523L3.15803 9.13523C2.95657 9.3241 2.94637 9.64052 3.13523 9.842Z"/>
+                                    </svg>
+                                </template>
+                            </button>
+                        </div>
+                        
+                        <template if:true={isBodyPreviewExpanded}>
+                            <div class="email-body-preview-div">
+                                <div class="email-body-preview" lwc:dom="manual"></div>
+                                <template if:true={useEmailSignature}>
+                                    <template lwc:if={userData.Signature}>
+                                        <br>
+                                        <lightning-formatted-text value={userData.Signature} linkify></lightning-formatted-text>
+                                    </template>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+
+                    <div class="shadow-div slds-m-bottom_small">
+                        <div class="email-preview-header-div">
+                            <h3>Selected Template Preview</h3>
+                            <button class="accordion-button" onclick={handleAttachmentToggle}>
+                                <template if:false={isAttachmentPreviewExpanded}>
+                                    <svg viewBox="0 0 16 16" class="expanded-icon" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M3.13523 6.15803C3.3241 5.95657 3.64052 5.94637 3.84197 6.13523L7.5 9.56464L11.158 6.13523C11.3595 5.94637 11.6759 5.95657 11.8648 6.15803C12.0536 6.35949 12.0434 6.67591 11.842 6.86477L7.84197 10.6148C7.64964 10.7951 7.35036 10.7951 7.15803 10.6148L3.15803 6.86477C2.95657 6.67591 2.94637 6.35949 3.13523 6.15803Z"/>
+                                    </svg>
+                                </template>
+                                <template if:true={isAttachmentPreviewExpanded}>
+                                    <svg viewBox="0 0 16 16" class="collapsed-icon" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M3.13523 9.842C3.3241 10.0435 3.64052 10.0537 3.84197 9.86477L7.5 6.43536L11.158 9.86477C11.3595 10.0536 11.6759 10.0434 11.8648 9.842C12.0536 9.64052 12.0434 9.3241 11.842 9.13523L7.84197 5.38523C7.64964 5.20489 7.35036 5.20489 7.15803 5.38523L3.15803 9.13523C2.95657 9.3241 2.94637 9.64052 3.13523 9.842Z"/>
+                                    </svg>
+                                </template>
+                            </button>
+                        </div>
+                        <template if:true={isAttachmentPreviewExpanded}>
+                            <div class="email-Attachment-preview-div">
+                                <template if:true={hasSelectedTemplate}>
+                                    <iframe
+                                        class="template-preview-frame"
+                                        src={selectedTemplatePreviewUrl}
+                                        title="Selected template preview"
+                                        frameborder="0"
+                                        sandbox="allow-same-origin allow-scripts allow-forms"
+                                        scrolling="yes">
+                                    </iframe>
+                                </template>
+                                <template if:false={hasSelectedTemplate}>
+                                    <div class="template-preview-placeholder">
+                                        Select an email template to preview it here.
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+        </div>
+
+        <!-- Modal for Related Files -->
+        <template if:true={showRecordFileModal}>
+            <section role="dialog" class="slds-modal slds-fade-in-open" aria-labelledby="modal-heading-2">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <h2 id="modal-heading-2" class="slds-modal__title">Select Files</h2>
+                    </header>
+
+                    <div class="slds-modal__content slds-p-around_medium second-modal-container">
+                        <div class="file-modal-table">
+                            <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">
+                                            <lightning-input type="checkbox" variant="label-hidden" class="checkbox-cls" onchange={handleAllFileSelect}></lightning-input>
+                                        </th>
+                                        <th scope="col">File Name</th>
+                                        <th scope="col">Size</th>
+                                        <th scope="col">File Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={relatedFileList} for:item="file">
+                                        <tr key={file.Id}>
+                                            <td>
+                                                <lightning-input type="checkbox" variant="label-hidden" class="checkbox-cls" checked={file.isChecked} data-id={file.ContentDocumentId} onchange={handleFileCheckboxChange}></lightning-input>
+                                            </td>
+                                            <td>{file.Title}</td>
+                                            <td>{file.FormattedSize}</td> 
+                                            <td>{file.FileType}</td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <footer class="slds-modal__footer">
+                        <lightning-button variant="neutral" label="Cancel" class="slds-p-right_small" onclick={closeRelatedFileModal}></lightning-button>
+                        <lightning-button variant="brand" label="Attach Selected Files" onclick={addSelectedFiles}></lightning-button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open second-modal"></div>
+
+        </template>
+    </lightning-modal-body>
+
+    <lightning-modal-footer>
+        <lightning-button class="slds-m-right_small" variant="brand" label="Send Email" disabled={isSendDisabled} onclick={handleSendEmail}></lightning-button>
+        <lightning-button variant="neutral" label="Cancel" class="slds-p-right_small" onclick={closeModal}></lightning-button>
+    </lightning-modal-footer>
+
+</template>

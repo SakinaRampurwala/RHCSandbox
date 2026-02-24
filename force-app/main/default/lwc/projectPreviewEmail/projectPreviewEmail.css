@@ -1,0 +1,394 @@
+:host {
+    --brand-primary: #0070d2;
+    --brand-primary-dark: #005fb2;
+    --brand-secondary: #e8f2ff;
+    --border-color: #d8dde6;
+    --slds-c-modal-header-color-background: var(--brand-primary);
+    --slds-c-modal-header-text-color: #ffffff;
+    --slds-c-modal-radius-border: 0px;
+
+    /* Splitter colors */
+    --divider-color: var(--lwc-colorBorder, #d8dde6);
+    --divider-color-active: var(--lwc-brandAccessible, #0176d3);
+}
+
+/* Spinner styles */
+.custom-loading-text {
+    transform: rotate(-90deg);
+    position: absolute;
+    top: -0.5rem;
+    white-space: nowrap;
+    font-size: 18px;
+}
+
+/* Loading state */
+lightning-spinner {
+    --slds-c-spinner-color-foreground: var(--brand-primary);
+    --slds-c-spinner-color-background: rgba(0, 112, 210, 0.1);
+}
+
+.email-composer-container {
+    display: grid;
+    grid-template-columns: 2fr 3fr; /* fallback; inline style overrides */
+    height: 80vh;
+    max-height: calc(100vh - 280px);
+    gap: 1rem;
+}
+
+@supports (height: 100dvh) {
+    .email-composer-container {
+        max-height: calc(100dvh - 280px);
+    }
+}
+
+.left-panel {
+    flex: 1;
+    padding: 1rem;
+    background-color: #f3f3f3;
+    border-radius: 4px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+}
+
+/* let content shrink when resizing */
+.left-panel, .right-panel { min-width: 0; }
+
+.right-panel {
+    flex: 1;
+    padding: 1rem;
+    background-color: white;
+    border-radius: 4px;
+    overflow-y: auto;          /* scrolling container */
+    border: 1px solid var(--border-color);
+    position: relative;        /* for sticky stacking */
+}
+
+/* Form elements styling */
+.slds-form-element {
+    margin-bottom: 1rem;
+}
+
+.slds-form-element__label {
+    font-weight: 600;
+    color: #080707;
+    margin-bottom: 3px;
+    display: block;
+}
+
+.additional-email-input-cls {
+    margin-bottom: 0;
+}
+
+/* Selected contacts styling */
+.selected-contacts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.flex-top-data {
+    display: flex;
+    align-items: flex-start;
+}
+
+.flex-bottom-data {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.custom-m-botton-5 {
+    margin-bottom: 5px;
+}
+
+.attached-files {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+/* Signature pad styling */
+.signature-container {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.5rem;
+    background-color: white;
+}
+
+.signature-pad {
+    border: 2px dashed var(--border-color);
+    border-radius: 4px;
+    background-color: #fafaf9;
+    cursor: crosshair;
+    width: 100%;
+    touch-action: none;
+}
+
+.signature-pad:hover {
+    border-color: var(--brand-primary);
+}
+
+.signature-controls {
+    text-align: right;
+}
+
+/* Right panel sub-sections */
+.email-preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--brand-primary);
+    margin-bottom: 1rem;
+}
+
+.email-preview-header h3 {
+    color: var(--brand-primary);
+    font-weight: 600;
+    margin: 0;
+}
+
+/* allow sticky headers to work */
+.shadow-div {
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+    border-radius: 7px;
+    overflow: visible; /* was hidden; must be visible for sticky */
+}
+
+/* sticky header for each section */
+.email-preview-header-div {
+    padding: 10px;
+    background-color: var(--brand-secondary);
+    color: var(--brand-primary);
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: -16px;
+    z-index: 5;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.email-body-preview-div {
+    min-height: 100px;
+    padding: 1rem 1rem 1.5rem;
+    background-color: #fafaf9;
+}
+
+.email-Attachment-preview-div {
+    overflow: auto;
+    min-height: 200px;
+    padding: 1.5rem 1rem;
+    background-color: #fafaf9;
+}
+
+.template-preview-frame {
+    width: 100%;
+    min-height: 75em;
+    border: none;
+    overflow: auto;
+}
+
+.template-preview-placeholder {
+    color: #706e6b;
+    font-style: italic;
+    text-align: center;
+    padding: 1rem 0;
+}
+
+/* accordion button */
+.accordion-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.accordion-button svg {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s ease;
+    fill: #706e6b;
+    scale: 2;
+}
+
+.accordion-button.expanded svg {
+    transform: rotate(180deg);
+}
+
+.accordion-button:hover svg {
+    fill: var(--brand-primary);
+}
+
+.email-body-preview p {
+    margin: 1em 0; 
+}
+
+/* Modal styling overrides */
+.slds-modal__header {
+    background-color: var(--brand-primary);
+    color: white;
+}
+
+.slds-modal__close {
+    color: white;
+}
+
+.slds-modal__close:hover {
+    color: #f0f0f0;
+}
+
+.second-modal {
+    width: 500rem;
+    left: -50vh;
+}
+
+.second-modal-container {
+    max-height: 70%;
+}
+
+.file-modal-table {
+    overflow: auto;
+    height: 100%;
+}
+
+.file-modal-table table {
+    border: solid 1px var(--border-color);
+    border-radius: 7px;
+}
+
+.file-modal-table th {
+    padding: 10px;
+    background-color: var(--brand-secondary);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.file-modal-table td {
+    padding: 7px 10px;
+}
+
+.file-modal-table tr>th:first-child {
+    padding: 10px 10px 10px 25px;
+}
+
+.file-modal-table tr>td:first-child {
+    padding: 7px 10px 7px 25px;
+}
+
+.file-modal-table tbody tr:nth-child(odd) {
+    background-color: #ffffff; 
+}
+
+.file-modal-table tbody tr:nth-child(even) {
+    background-color: #f8f9fa;  
+}
+
+.checkbox-cls {
+    margin-bottom: 0 !important;
+}
+
+.invalid-stage-txt {
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    padding: 1rem;
+}
+
+/* Lightning component overrides */
+lightning-combobox,
+lightning-input,
+lightning-input-rich-text {
+    --slds-c-combobox-color-border: var(--border-color);
+    --slds-c-combobox-color-border-focus: var(--brand-primary);
+}
+
+lightning-button[variant="brand"] {
+    --slds-c-button-brand-color-background: var(--brand-primary);
+    --slds-c-button-brand-color-background-hover: var(--brand-primary-dark);
+}
+
+/* Focus states */
+lightning-input:focus-within,
+lightning-combobox:focus-within,
+lightning-input-rich-text:focus-within {
+    --slds-c-input-shadow-focus: 0 0 0 2px var(--brand-primary);
+}
+
+/* Draggable divider styles */
+.divider {
+    cursor: col-resize;
+    background: var(--divider-color);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+}
+
+.divider:focus {
+    outline: 0;
+    box-shadow: 0 0 0 2px var(--divider-color-active);
+}
+
+:host(.dragging) .divider {
+    background: var(--divider-color-active);
+}
+
+:host(.dragging) .pane,
+:host(.dragging) .divider {
+    user-select: none;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .email-composer-container {
+        grid-template-columns: 1fr !important;
+        height: auto;
+        gap: 1rem !important;
+    }
+    .divider { display: none; }
+
+    .left-panel,
+    .right-panel {
+        min-width: auto;
+        max-width: none;
+    }
+}
+
+/* Scrollbar styling */
+.left-panel::-webkit-scrollbar,
+.right-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.left-panel::-webkit-scrollbar-track,
+.right-panel::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.left-panel::-webkit-scrollbar-thumb,
+.right-panel::-webkit-scrollbar-thumb {
+    background: #a9a9a9;
+    border-radius: 3px;
+}
+
+.left-panel::-webkit-scrollbar-thumb:hover,
+.right-panel::-webkit-scrollbar-thumb:hover {
+    background: #a9a9a9;
+}
+
+/* Animation for smooth interactions */
+lightning-pill {
+    transition: all 0.2s ease;
+}
+
+lightning-pill:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.signature-pad {
+    transition: border-color 0.2s ease;
+}

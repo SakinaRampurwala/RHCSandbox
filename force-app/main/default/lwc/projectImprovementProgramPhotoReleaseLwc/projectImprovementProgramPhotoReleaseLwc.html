@@ -1,0 +1,114 @@
+<template>
+    <template if:true={isLoading}>
+        <div class="slds-spinner_container" style="position:fixed;">
+            <div class="slds-spinner--brand slds-spinner slds-spinner--large slds-is-relative" role="alert">
+                <span class="slds-assistive-text">Loading</span>
+                <div class="slds-spinner__dot-a"></div>
+                <div class="slds-spinner__dot-b"></div>
+            </div>
+        </div>
+    </template>
+
+    <div class="main-wrapper">
+        <div class="slds-container_large slds-container_center">
+            
+            <template if:true={isSubmitted}>
+                <div class="content-inner success-container">
+                    <lightning-icon icon-name="action:approval" size="large" alternative-text="Success"></lightning-icon>
+                    <template if:false={isAlreadySubmitted}>
+                        <h2 class="slds-text-heading_large slds-m-top_medium">Thank You!</h2>
+                        <p class="slds-text-heading_small slds-m-top_medium">Your Application Attestation has been successfully submitted.</p>
+                    </template>
+                    <template if:true={isAlreadySubmitted}>
+                        <h2 class="slds-text-heading_large slds-m-top_medium">Already Submitted</h2>
+                        <p class="slds-text-heading_small slds-m-top_medium">Application Attestation has already been submitted for this record.</p>
+                    </template>
+                </div>
+            </template>
+
+            <template if:false={isSubmitted}>
+                <div class="slds-grid slds-wrap slds-m-bottom_xx-large slds-p-horizontal_medium">
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-align-middle">
+                        <div class="slds-text-body_regular"><b>{displayDate}</b></div>
+                    </div>
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-text-align_right">
+                        <template if:true={logoURL}>
+                            <img class="header-logo" src={logoURL} alt="Logo" />
+                        </template>
+                    </div>
+                </div>
+
+                <div class="content-inner">
+                    <div class="slds-text-heading_medium slds-text-align_center slds-m-bottom_xx-large">
+                        <b style="letter-spacing: 0.1em;">APPLICATION ATTESTATION</b>
+                    </div>
+
+                    <template if:true={submitError}>
+                        <div class="slds-notify slds-notify_alert slds-alert_error slds-m-bottom_large" role="alert">
+                            <h2>{submitError}</h2>
+                        </div>
+                    </template>
+
+                    <div class="slds-m-bottom_xx-large">
+                        <template for:each={attestations} for:item="item">
+                            <div key={item.id} class="attestation-row">
+                                <div class="checkbox-wrap">
+                                    <label class="custom-checkbox-container">
+                                        <input type="checkbox" data-id={item.id} onchange={handleCheckboxChange} disabled={isReadOnly} />
+                                        <span class="checkmark"></span>
+                                    </label>
+                                </div>
+                                <div class="slds-col">
+                                    <span class="slds-text-body_regular" style="line-height: 1.5; color: #3e3e3c;">{item.label}</span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+
+                    <div class="slds-m-top_xx-large">
+                        <div class="name-underline-container">
+                            <span class="name-label-text">NAME</span>
+                            <span class="name-label-text">:</span>
+                            <input type="text" 
+                                   class="underline-input" 
+                                   value={signerName} 
+                                   oninput={handleNameChange}
+                                   disabled={isReadOnly} />
+                        </div>
+                    </div>
+
+                    <div class="slds-m-top_xx-large">
+                        <label class="slds-form-element__label label-spacing"><b>SIGNATURE</b></label>
+                        <div class="signature-container">
+                            <canvas class={canvasClass} 
+                                onmousedown={handleMouseDown}
+                                onmousemove={handleMouseMove}
+                                onmouseup={handleMouseUp}
+                                onmouseout={handleMouseUp}
+                                ontouchstart={handleTouchStart}
+                                ontouchmove={handleTouchMove}
+                                ontouchend={handleTouchEnd}>
+                            </canvas>
+                        </div>
+                        <template if:false={isReadOnly}>
+                            <div class="signature-buttons">
+                                <button class="clear-link" onclick={clearSignature}>Clear Signature</button>
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="slds-m-top_xx-large slds-text-align_center">
+                        <lightning-button 
+                            variant="brand" 
+                            label="Submit" 
+                            onclick={handleSubmit} 
+                            disabled={isSubmitDisabled}
+                            style="--slds-c-button-brand-color-background: #0070d2;"
+                        ></lightning-button>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+</template>

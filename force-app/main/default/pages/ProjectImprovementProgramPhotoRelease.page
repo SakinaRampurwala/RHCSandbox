@@ -1,0 +1,24 @@
+<apex:page sidebar="false" showHeader="false" standardStylesheets="false" controller="ProjectImprovementProgramPhotoCtrl">
+    <apex:slds />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <apex:includeLightning />
+
+    <div id="lightning"></div>
+
+    <script>
+        $Lightning.use("c:ApplicationAttestationApp", function () {
+            $Lightning.createComponent("c:projectImprovementProgramPhotoReleaseLwc",
+                {
+                    isPreview: "{!isPreview}",
+                    recordId: "{!recordId}",
+                    senderId: "{!senderId}",
+                    sendDate: "{!sendDate}"
+                },
+                "lightning",
+                function (cmp) {
+                    console.log("LWC component was created");
+                }
+            );
+        });
+    </script>
+</apex:page>
