@@ -253,19 +253,19 @@
                         <div class="email-preview-header-div">
                             <h3>Selected Template Preview</h3>
                             <button class="accordion-button" onclick={handleAttachmentToggle}>
-                                <template if:false={isAttachmentPreviewExpanded}>
+                                <template if:false={isProjectImprovementExpanded}>
                                     <svg viewBox="0 0 16 16" class="expanded-icon" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M3.13523 6.15803C3.3241 5.95657 3.64052 5.94637 3.84197 6.13523L7.5 9.56464L11.158 6.13523C11.3595 5.94637 11.6759 5.95657 11.8648 6.15803C12.0536 6.35949 12.0434 6.67591 11.842 6.86477L7.84197 10.6148C7.64964 10.7951 7.35036 10.7951 7.15803 10.6148L3.15803 6.86477C2.95657 6.67591 2.94637 6.35949 3.13523 6.15803Z"/>
                                     </svg>
                                 </template>
-                                <template if:true={isAttachmentPreviewExpanded}>
+                                <template if:true={isProjectImprovementExpanded}>
                                     <svg viewBox="0 0 16 16" class="collapsed-icon" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M3.13523 9.842C3.3241 10.0435 3.64052 10.0537 3.84197 9.86477L7.5 6.43536L11.158 9.86477C11.3595 10.0536 11.6759 10.0434 11.8648 9.842C12.0536 9.64052 12.0434 9.3241 11.842 9.13523L7.84197 5.38523C7.64964 5.20489 7.35036 5.20489 7.15803 5.38523L3.15803 9.13523C2.95657 9.3241 2.94637 9.64052 3.13523 9.842Z"/>
                                     </svg>
                                 </template>
                             </button>
                         </div>
-                        <template if:true={isAttachmentPreviewExpanded}>
+                        <template if:true={isProjectImprovementExpanded}>
                             <div class="email-Attachment-preview-div">
                                 <template if:true={hasSelectedTemplate}>
                                     <iframe

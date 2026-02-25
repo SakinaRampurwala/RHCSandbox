@@ -1,6 +1,11 @@
 public without sharing class ProjectImprovementProgramPhotoCtrl {
 
     @AuraEnabled(cacheable=true)
+    public static Organization getOrgInfo() {
+        return [SELECT Id, Name FROM Organization LIMIT 1];
+    }
+    
+    @AuraEnabled(cacheable=true)
     public static String getLogoUrl() {
         try {
             buildertek__ConfirmationSiteURL__c sitesUrl = buildertek__ConfirmationSiteURL__c.getOrgDefaults();

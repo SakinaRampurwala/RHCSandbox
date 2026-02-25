@@ -63,7 +63,7 @@ export default class ProjectPreviewEmail extends LightningElement {
     signDocumentId = '';
 
     @track isBodyPreviewExpanded = true;
-    @track isAttachmentPreviewExpanded = true;
+    @track isProjectImprovementExpanded = true;
 
     @track showRecordFileModal = false;
     @track relatedFileList = [];
@@ -826,7 +826,7 @@ export default class ProjectPreviewEmail extends LightningElement {
     }
 
     handleAttachmentToggle() {
-        this.isAttachmentPreviewExpanded = !this.isAttachmentPreviewExpanded;
+        this.isProjectImprovementExpanded = !this.isProjectImprovementExpanded;
     }
 
     openRecordFileModal() {

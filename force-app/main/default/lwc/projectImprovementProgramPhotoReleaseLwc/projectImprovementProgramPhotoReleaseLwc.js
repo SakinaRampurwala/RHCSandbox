@@ -2,9 +2,28 @@ import { LightningElement, api, wire, track } from 'lwc';
 import getLogoUrl from '@salesforce/apex/ProjectImprovementProgramPhotoCtrl.getLogoUrl';
 import getSenderInfo from '@salesforce/apex/ProjectImprovementProgramPhotoCtrl.getSenderInfo';
 import saveSignature from '@salesforce/apex/ProjectImprovementProgramPhotoCtrl.saveSignature';
+import getOrgInfo from '@salesforce/apex/ProjectImprovementProgramPhotoCtrl.getOrgInfo';
+
 // import savePdf from '@salesforce/apex/ProjectImprovementProgramPhotoCtrl.savePdf';
 // import getApplicationStatus from '@salesforce/apex/ProjectImprovementProgramPhotoCtrl.getApplicationStatus';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import { getRecord } from 'lightning/uiRecordApi';
+import ADDRESS_FIELD from '@salesforce/schema/buildertek__Project__c.buildertek__Address__c';
+import CITY_FIELD from '@salesforce/schema/buildertek__Project__c.buildertek__City_Text__c';
+import STATE_FIELD from '@salesforce/schema/buildertek__Project__c.buildertek__State__c';
+import ZIP_FIELD from '@salesforce/schema/buildertek__Project__c.buildertek__Zip__c';
+import COUNTRY_FIELD from '@salesforce/schema/buildertek__Project__c.buildertek__Country__c';
+import CUSTOMER_NAME_FIELD from '@salesforce/schema/buildertek__Project__c.buildertek__Customer__r.Name';
+
+const FIELDS = [
+    ADDRESS_FIELD,
+    CITY_FIELD,
+    STATE_FIELD,
+    ZIP_FIELD,
+    COUNTRY_FIELD,
+    CUSTOMER_NAME_FIELD
+];
+
 
 export default class ProjectImprovementProgramPhotoReleaseLwc extends LightningElement {
     @api isPreview; 
@@ -12,7 +31,7 @@ export default class ProjectImprovementProgramPhotoReleaseLwc extends LightningE
     @api senderId;
     @api sendDate;
 
-    @track isLoading = true;
+    @track isLoading = false;
     @track logoURL;
     @track senderInfo;
     @track signerName = '';
@@ -44,6 +63,43 @@ export default class ProjectImprovementProgramPhotoReleaseLwc extends LightningE
     ctx;
     isDrawing = false;
     isSigned = false;
+    orgName;
+
+    
+    address;
+    city;
+    state;
+    zip;
+    country;
+    customerName;
+
+    @wire(getRecord, { recordId: '$recordId', fields: FIELDS })
+    wiredProject({ data, error }) {
+        if (data) {
+            this.address = data.fields.buildertek__Address__c.value;
+            this.city = data.fields.buildertek__City_Text__c.value;
+            this.state = data.fields.buildertek__State__c.value;
+            this.zip = data.fields.buildertek__Zip__c.value;
+            this.country = data.fields.buildertek__Country__c.value;
+            this.customerName = data.fields.buildertek__Customer__r.displayValue || data.fields.buildertek__Customer__r.value.fields.Name.value;
+        } else if (error) {
+            console.error(error);
+        }
+    }
+
+    get projectAddress() {
+        return `${this.address || ''}, ${this.city || ''} ${this.state || ''} -  ${this.zip || ''}, ${this.country || ''}`;
+    }
+
+
+    @wire(getOrgInfo)
+    wiredOrg({ error, data }) {
+        if (data) {
+            this.orgName = data.Name;
+        } else if (error) {
+            this.error = error;
+        }
+    }
 
     @wire(getLogoUrl)
     wiredLogoUrl({ error, data }) {
@@ -76,6 +132,10 @@ export default class ProjectImprovementProgramPhotoReleaseLwc extends LightningE
     //         this.isLoading = false;
     //     }
     // }
+
+    get isReadOnly() {
+        return this.isPreview === true || this.isPreview === 'true' || this.isSubmitted;
+    }
 
     get displayDate() {
         if (this.sendDate) {
@@ -122,13 +182,9 @@ export default class ProjectImprovementProgramPhotoReleaseLwc extends LightningE
         return this.senderInfo?.email || '';
     }
 
-    get canvasClass() {
-        return `signature-pad ${this.isReadOnly ? 'read-only' : ''}`;
-    }
-
-    get isReadOnly() {
-        return this.isPreview === 'true' || this.isPreview === true;
-    }
+    // get signatureCanvasClass() {
+    //     return `signature-pad${this.isReadOnly ? ' read-only' : ''}`;
+    // }
 
     get isSubmitDisabled() {
         return this.isReadOnly || !(this.checkedItems.size === this.attestations.length && this.isSigned && this.signerName.trim() !== '');

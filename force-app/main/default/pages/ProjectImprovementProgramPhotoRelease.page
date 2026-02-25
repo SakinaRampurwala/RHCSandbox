@@ -6,7 +6,7 @@
     <div id="lightning"></div>
 
     <script>
-        $Lightning.use("c:ApplicationAttestationApp", function () {
+        $Lightning.use("c:ProjectImprovementProgramPhotoReleaseApp", function () {
             $Lightning.createComponent("c:projectImprovementProgramPhotoReleaseLwc",
                 {
                     isPreview: "{!isPreview}",

@@ -1,0 +1,258 @@
+/* Spinner styles */
+.custom-loading-text {
+    transform: rotate(-90deg);
+    position: absolute;
+    top: -0.5rem;
+    white-space: nowrap;
+    font-size: 18px;
+}
+
+.main-wrapper {
+    background-color: #f4f6f9;
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+
+.content-inner {
+    background: #fff;
+    border: 1px solid #d4d4d4;
+    border-radius: 4px;
+    padding: 3rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.success-container {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.header-logo {
+    width: 420px;
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+
+.header-container {
+    padding: 24px 24px 8px;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.main-container {
+    max-width: 1200px;
+    margin: 24px auto 48px;
+    padding: 1.5rem;
+    background-color: #ffffff;
+}
+
+.letter-block {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 20px;
+    line-height: 1.5;
+    color: #000;
+}
+
+.letter-line {
+    margin-bottom: 6px;
+}
+
+.letter-line.spacer {
+    margin-bottom: 14px;
+}
+
+.logo-col {
+    display: flex;
+    justify-content: center;
+}
+
+.logo-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+    padding-top: 8px;
+}
+
+.doc-title {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 20px;
+    line-height: 1.4;
+    text-align: center;
+    margin: 24px 16px 0;
+    color: #000;
+    font-weight: bold;
+}
+
+.customer-block {
+    margin: 48px 24px 0;
+}
+
+.letter-body {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 20px;
+    line-height: 1.6;
+    color: #000;
+    margin: 24px 24px 0;
+}
+
+.letter-body p {
+    margin: 0 0 24px;
+}
+
+.statement {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    margin: 36px 0 56px;
+}
+
+.statement-text {
+    flex: 1;
+}
+
+.checkbox-wrap {
+    margin-right: 0;
+    flex-shrink: 0;
+    width: 32px;
+    margin-top: 8px;
+}
+
+.custom-checkbox-container {
+    display: block;
+    position: relative;
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+}
+
+.custom-checkbox-container input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 22px;
+    width: 22px;
+    background-color: #fff;
+    border: 2px solid #000;
+}
+
+.custom-checkbox-container input:checked ~ .checkmark {
+    background-color: #fff;
+}
+
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+.custom-checkbox-container input:checked ~ .checkmark:after {
+    display: block;
+    left: 7px;
+    top: 3px;
+    width: 6px;
+    height: 12px;
+    border: solid #000;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.signature-section {
+    margin-top: 48px;
+}
+
+.signature-label {
+    display: block;
+}
+
+.signature-container {
+    height: 12rem;
+    border: 1px solid #000;
+    background: #fff;
+}
+
+.signature-image-container {
+    margin-bottom: 16px;
+}
+
+.signature-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.signature-pad {
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+}
+
+.signature-pad.read-only {
+    cursor: default;
+    background-color: #f3f3f3;
+}
+
+.signature-buttons {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 5px;
+}
+
+.clear-link {
+    text-decoration: none;
+    color: #000;
+    font-size: 0.875rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.clear-link:hover {
+    text-decoration: underline;
+}
+
+.submit-row {
+    margin-top: 36px;
+    margin-bottom: 48px;
+    text-align: center;
+}
+
+.submit-button {
+    --slds-c-button-brand-color-background: #0070d2;
+    --slds-c-button-brand-color-background-hover: #005fb2;
+    --slds-c-button-brand-color-border: #0070d2;
+    --slds-c-button-brand-text-color: #ffffff;
+}
+
+@media (max-width: 48rem) {
+    .header-container {
+        padding: 16px 12px;
+    }
+
+    .header-logo {
+        margin-top: 12px;
+        width: 280px;
+    }
+
+    .statement {
+        gap: 16px;
+        margin: 28px 0 44px;
+    }
+
+    .custom-checkbox-container {
+        width: 20px;
+        height: 20px;
+    }
+
+    .checkmark {
+        height: 20px;
+        width: 20px;
+    }
+}
