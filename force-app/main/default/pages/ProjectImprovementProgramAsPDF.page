@@ -70,7 +70,7 @@
         <div>
            <p>
                 I/We, <span>{!vfCustomerName}</span> who reside at <span>{!vfProjectAddress}</span>,
-                grant <b>{!vfOrgName}</b> my permission to use any photographs taken in regards
+                grant <span>{!vfOrgName}</span> my permission to use any photographs taken in regards
                 to the Home Improvement Program for any legal use, including but not limited to:
                 publicity, promotion, advertising, social media, web content, etc.
             </p>
