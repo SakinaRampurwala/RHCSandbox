@@ -1,0 +1,120 @@
+<template>
+    <template if:true={isLoading}>
+        <div class="slds-spinner_container" style="position:fixed;">
+            <div class="slds-spinner--brand slds-spinner slds-spinner--large slds-is-relative" role="alert">
+                <span class="slds-assistive-text">Loading</span>
+                <div class="slds-spinner__dot-a"></div>
+                <div class="slds-spinner__dot-b"></div>
+            </div>
+        </div>
+    </template>
+
+    <div class="main-wrapper">
+        <div class="slds-container_large slds-container_center">
+            <template if:true={isSubmitted}>
+                <div class="content-inner success-container">
+                    <lightning-icon icon-name="action:approval" size="large" alternative-text="Success"></lightning-icon>
+                    <h2 class="slds-text-heading_large slds-m-top_medium">Thank You!</h2>
+                    <p class="slds-text-heading_small slds-m-top_medium">Notice To Proceed has been submitted successfully.</p>
+                </div>
+            </template>
+
+            <template if:false={isSubmitted}>
+                <div class="main-container">
+                    <div class="header-container slds-grid slds-wrap">
+                        <div class="slds-col slds-size_1-of-2 slds-text-align_left">
+                            <template if:true={logoURL}>
+                                <img class="header-logo" src={logoURL} alt="Logo" />
+                            </template>
+                        </div>
+                    </div>
+
+                    <div class="doc-sub-title">Home Improvement Program</div>
+                    <div class="doc-title">NOTICE TO PROCEED</div>
+
+                    <table class="notice-table" cellspacing="0" cellpadding="0">
+                        <tr>
+                            <td class="label-cell">Project Location:</td>
+                            <td>{noticeData.projectLocation}</td>
+                            <td class="label-cell small">Case No.</td>
+                            <td>{noticeData.caseNumber}</td>
+                        </tr>
+                        <tr>
+                            <td class="label-cell">Property Owner:</td>
+                            <td colspan="3">{noticeData.propertyOwner}</td>
+                        </tr>
+                        <tr class="empty-row">
+                            <td colspan="4"></td>
+                        </tr>
+                        <tr>
+                            <td class="label-cell">Contractor:</td>
+                            <td>{noticeData.contractor}</td>
+                            <td class="label-cell small">Telephone:</td>
+                            <td>{noticeData.telephone}</td>
+                        </tr>
+                        <tr>
+                            <td class="label-cell">Address:</td>
+                            <td colspan="3">{noticeData.contractorAddress}</td>
+                        </tr>
+                        <tr>
+                            <td class="label-cell">Contract Dated:</td>
+                            <td colspan="3">{noticeData.contractDated}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="paragraph-cell">
+                                You are hereby authorized to proceed with the work listed in our Construction Contract. We have agreed that you will begin work and complete all improvements within the time periods listed below. It is understood that failure to complete this work in a timely manner may be grounds for termination of our contract.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">All work will begin not later than this date:</td>
+                            <td colspan="2">{noticeData.projectedStartDate}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">All work will be completed not later than this date:</td>
+                            <td colspan="2">{noticeData.projectedCompletionDate}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="paragraph-cell">
+                                According to the terms of our contract, progress payments can be made for work items that are completed in place. Such payments will be considered after receipt of your written claim subject to inspection by the Rehabilitation Specialist and approval by the grantee or its designee.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="paragraph-cell">
+                                No deviation from the Work Write-up will be permitted without specific authorization and a Change Order which must be approved by the grantee. It is understood that changes will generally not be considered except for unforeseen problems that must be addressed in order to complete work items included in this project.
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div class="signature-section">
+                        <label class="signature-label">Signed:</label>
+                        <div class="signature-container">
+                            <canvas class={signatureCanvasClass}
+                                onmousedown={handleMouseDown}
+                                onmousemove={handleMouseMove}
+                                onmouseup={handleMouseUp}
+                                onmouseout={handleMouseUp}
+                                ontouchstart={handleTouchStart}
+                                ontouchmove={handleTouchMove}
+                                ontouchend={handleTouchEnd}>
+                            </canvas>
+                        </div>
+                        <div class="signature-buttons">
+                            <button class="clear-link" onclick={clearSignature} disabled={isReadOnly}>Clear Signature</button>
+                        </div>
+
+                    </div>
+
+                    <div class="submit-row">
+                        <lightning-button
+                            class="submit-button"
+                            variant="brand"
+                            label="Submit"
+                            onclick={handleSubmit}
+                            disabled={isSubmitDisabled}>
+                        </lightning-button>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+</template>

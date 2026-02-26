@@ -1,0 +1,115 @@
+<apex:page controller="ProjectImprovementProgramPhotoCtrl" action="{!initPdf}" renderAs="pdf" sidebar="false" showHeader="false" applyHtmlTag="false" applyBodyTag="false" standardStylesheets="false">
+    <html>
+    <head>
+        <style type="text/css">
+            @page {
+                margin: 0.5in;
+                size: letter;
+            }
+            body {
+                font-family: "Times New Roman", Times, serif;
+                font-size: 20px;
+                color: #000;
+                line-height: 1.6;
+            }
+            .header-logo {
+                width: 220px;
+                max-width: 100%;
+                height: auto;
+                margin-bottom: 16px;
+            }
+            .doc-title {
+                text-align: center;
+                font-size: 20px;
+                font-weight: bold;
+                margin: 6px 0 24px;
+                color: #000;
+            }
+            .signature-section {
+                margin-top: 28px;
+                page-break-inside: avoid;
+            }
+            .signature-title {
+                font-size: 20px;
+                margin-bottom: 8px;
+            }
+            .signature-box {
+                height: 120px;
+                border: 1px solid #000;
+            }
+            .signature-box img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+            }
+            .name-row {
+                margin-top: 12px;
+            }
+            .date-row {
+                margin-top: 8px;
+            }
+            .name-label {
+                font-weight: bold;
+                margin-right: 10px;
+                font-size: 16px;
+            }
+            .name-value {
+                border-bottom: 1px solid #000;
+                display: inline-block;
+                min-width: 420px;
+                padding: 0 6px 2px;
+                font-size: 16px;
+            }
+        </style>
+    </head>
+    <body>
+        <apex:image value="{!logoUrl}" rendered="{!logoUrl != null}" styleClass="header-logo"/>
+
+        <div class="doc-title">Home Improvement Program Photo Release</div>
+
+        <div>
+           <p>
+                I/We, <span>{!vfCustomerName}</span> who reside at <span>{!vfProjectAddress}</span>,
+                grant <b>{!vfOrgName}</b> my permission to use any photographs taken in regards
+                to the Home Improvement Program for any legal use, including but not limited to:
+                publicity, promotion, advertising, social media, web content, etc.
+            </p>
+
+            <p> 
+                Furthermore, I understand that no royalty, fee or compensation shall become
+                payable to me by reason of such use.
+            </p>
+        </div>
+
+        <div class="signature-section">
+            <div class="signature-title">Home Owner Signature</div>
+            <div class="signature-box">
+                <apex:image value="{!vfImgUrl}" rendered="{!NOT(ISBLANK(vfImgUrl))}"/>
+            </div>
+            <div class="name-row">
+                <span class="name-label">NAME:</span>
+                <span class="name-value">{!vfSignerName}</span>
+            </div>
+            <div class="date-row">
+                <span class="name-label">DATE SIGNED:</span>
+                <span class="name-value">{!currentRecordDate}</span>
+            </div>
+        </div>
+
+        <div class="signature-section">
+            <div class="signature-title">Home Owner Signature</div>
+            <div class="signature-box">
+                <apex:image value="{!vfCoSignerImgUrl}" rendered="{!NOT(ISBLANK(vfCoSignerImgUrl))}"/>
+            </div>
+            <div class="name-row">
+                <span class="name-label">NAME:</span>
+                <span class="name-value">{!vfCoSignerName}</span>
+            </div>
+            <div class="date-row">
+                <span class="name-label">DATE SIGNED:</span>
+                <span class="name-value">{!currentRecordDate}</span>
+            </div>
+        </div>
+    </body>
+    </html>
+</apex:page>

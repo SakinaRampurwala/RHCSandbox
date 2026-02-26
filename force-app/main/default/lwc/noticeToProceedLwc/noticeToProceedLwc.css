@@ -1,0 +1,190 @@
+.main-wrapper {
+    background-color: #f4f6f9;
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+
+.content-inner {
+    background: #fff;
+    border: 1px solid #d4d4d4;
+    border-radius: 4px;
+    padding: 3rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.success-container {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.main-container {
+    max-width: 1000px;
+    margin: 24px auto 48px;
+    padding: 1.5rem;
+    background-color: #ffffff;
+    font-family: "Times New Roman", Times, serif;
+    color: #000;
+}
+
+.header-logo {
+    width: 320px;
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+
+.header-container {
+    padding: 24px 24px 8px;
+}
+
+.doc-sub-title {
+    font-size: 26px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.doc-title {
+    font-size: 30px;
+    text-align: center;
+    margin: 8px 0 20px;
+    font-weight: bold;
+}
+
+.notice-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 20px;
+}
+
+.notice-table td {
+    border: 1px solid #000;
+    padding: 6px 8px;
+    vertical-align: top;
+}
+
+.notice-table .empty-row td {
+    height: 14px;
+    padding: 0;
+}
+
+.label-cell {
+    font-weight: bold;
+    width: 22%;
+}
+
+.label-cell.small {
+    width: 12%;
+}
+
+.paragraph-cell {
+    padding: 14px 8px;
+    line-height: 1.35;
+}
+
+.signature-section {
+    margin-top: 24px;
+}
+
+.signature-label {
+    display: block;
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 6px;
+}
+
+.signature-container {
+    height: 10rem;
+    border: 1px solid #000;
+    background: #fff;
+}
+
+.signature-pad {
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+}
+
+.signature-pad.read-only {
+    cursor: default;
+    background-color: #f3f3f3;
+}
+
+.signature-buttons {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 4px;
+}
+
+.clear-link {
+    text-decoration: none;
+    color: #000;
+    font-size: 0.875rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.clear-link:hover {
+    text-decoration: underline;
+}
+
+.name-row {
+    display: flex;
+    gap: 18px;
+    margin-top: 18px;
+}
+
+.name-line {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.name-label {
+    min-width: 120px;
+    font-weight: bold;
+}
+
+.underline-input {
+    border: none;
+    border-bottom: 1px solid #000;
+    font-size: 18px;
+    flex: 1;
+    min-height: 36px;
+}
+
+.underline-input:focus {
+    outline: none;
+}
+
+.date-value {
+    border-bottom: 1px solid #000;
+    min-height: 30px;
+    flex: 1;
+    padding-top: 4px;
+}
+
+.submit-row {
+    margin-top: 24px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+@media only screen and (max-width: 900px) {
+    .doc-sub-title {
+        font-size: 20px;
+    }
+
+    .doc-title {
+        font-size: 24px;
+    }
+
+    .notice-table {
+        font-size: 16px;
+    }
+
+    .name-row {
+        flex-direction: column;
+    }
+}

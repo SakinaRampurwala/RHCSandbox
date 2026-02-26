@@ -4,8 +4,8 @@ import getSenderInfo from '@salesforce/apex/ProjectImprovementProgramPhotoCtrl.g
 import saveSignature from '@salesforce/apex/ProjectImprovementProgramPhotoCtrl.saveSignature';
 import getOrgInfo from '@salesforce/apex/ProjectImprovementProgramPhotoCtrl.getOrgInfo';
 
-// import savePdf from '@salesforce/apex/ProjectImprovementProgramPhotoCtrl.savePdf';
-// import getApplicationStatus from '@salesforce/apex/ProjectImprovementProgramPhotoCtrl.getApplicationStatus';
+import savePdf from '@salesforce/apex/ProjectImprovementProgramPhotoCtrl.savePdf';
+import getApplicationStatus from '@salesforce/apex/ProjectImprovementProgramPhotoCtrl.getApplicationStatus';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { getRecord } from 'lightning/uiRecordApi';
 import ADDRESS_FIELD from '@salesforce/schema/buildertek__Project__c.buildertek__Address__c';
@@ -31,38 +31,18 @@ export default class ProjectImprovementProgramPhotoReleaseLwc extends LightningE
     @api senderId;
     @api sendDate;
 
-    @track isLoading = false;
+    @track isLoading = true;
     @track logoURL;
     @track senderInfo;
     @track signerName = '';
+    @track coSignerName = '';
     @track isSubmitted = false;
     @track isAlreadySubmitted = false;
     @track submitError = '';
-    
     @track checkedItems = new Set();
-    
-    attestations = [
-        { id: 1, label: 'I acknowledge that a lien will be placed on my property for a period of 2, 5, or 10 years. I must reside in the house for that period or pay the grant back.' },
-        { id: 2, label: 'I understand that any changes to the scope of work are my responsibility to pay for.' },
-        { id: 3, label: 'I understand that I must promptly reply to any requests for additional or missing documentation or I will be removed from the program.' },
-        { id: 4, label: 'I agree to provide access to my home for contractors to work from 8am to 5pm, Monday through Friday, for the duration of the contract.' },
-        { id: 5, label: 'I acknowledge that I may be required to contribute a portion of the project cost based on my income.' },
-        { id: 6, label: 'I understand that all individuals listed on the deed must sign all necessary paperwork and liens for this project.' },
-        { id: 7, label: 'I acknowledge that failure to attend scheduled appointments will result in dismissal from the grant program and rescission of funding.' },
-        { id: 8, label: 'I will provide full access to the entire property to the construction manager, inspectors, contractor, and staff during both the application and construction processes.' },
-        { id: 9, label: 'I understand that I am responsible for the behavior of myself, residents, visitors, and agents. Aggression, intimidation, or harassment from any of these parties will result in my termination from the program.' },
-        { id: 10, label: 'All pets must be secured during appointments and construction. Failure to do so will result in removal from the program.' },
-        { id: 11, label: 'I will maintain my property in a clean, safe, and sanitary condition throughout the application and construction processes, as well as during the regulatory period, or I will be removed from the program.' },
-        { id: 12, label: 'I acknowledge that not all deficiencies in my property may be addressed, and my home may not be eligible for any repairs due to the type or extent of repairs required.' },
-        { id: 13, label: 'I agree to take financial literacy training provided by The Housing Council at PathStone prior to final acceptance into the program.' },
-        { id: 14, label: 'I acknowledge my taxes and mortgage have been paid on time for the last 3 months and will continue to be paid on time during the application and construction process.' }
-    ];
 
     // Canvas properties
-    canvasElement;
-    ctx;
-    isDrawing = false;
-    isSigned = false;
+    signaturePads = {};
     orgName;
 
     
@@ -119,19 +99,19 @@ export default class ProjectImprovementProgramPhotoReleaseLwc extends LightningE
         }
     }
 
-    // @wire(getApplicationStatus, { recordId: '$recordId' })
-    // wiredAppStatus({ error, data }) {
-    //     if (data) {
-    //         if (data.Attestation_Submitted__c) {
-    //             this.isSubmitted = true;
-    //             this.isAlreadySubmitted = true;
-    //         }
-    //         this.isLoading = false;
-    //     } else if (error) {
-    //         console.error('Failed to load application status', error);
-    //         this.isLoading = false;
-    //     }
-    // }
+    @wire(getApplicationStatus, { recordId: '$recordId' })
+    wiredAppStatus({ error, data }) {
+        if (data) {
+            if (data.Home_Improvement_Submitted_Date__c) {
+                this.isSubmitted = true;
+                this.isAlreadySubmitted = true;
+            }
+            this.isLoading = false;
+        } else if (error) {
+            console.error('Failed to load application status', error);
+            this.isLoading = false;
+        }
+    }
 
     get isReadOnly() {
         return this.isPreview === true || this.isPreview === 'true' || this.isSubmitted;
@@ -182,12 +162,17 @@ export default class ProjectImprovementProgramPhotoReleaseLwc extends LightningE
         return this.senderInfo?.email || '';
     }
 
-    // get signatureCanvasClass() {
-    //     return `signature-pad${this.isReadOnly ? ' read-only' : ''}`;
-    // }
+    get signatureCanvasClass() {
+        return `signature-pad${this.isReadOnly ? ' read-only' : ''}`;
+    }
 
     get isSubmitDisabled() {
-        return this.isReadOnly || !(this.checkedItems.size === this.attestations.length && this.isSigned && this.signerName.trim() !== '');
+        const ownerPad = this.signaturePads.primary;
+        const coOwnerPad = this.signaturePads.secondary;
+        const hasOwnerName = this.signerName.trim() !== '';
+        const hasCoOwnerName = this.coSignerName.trim() !== '';
+
+        return this.isReadOnly || !ownerPad?.isSigned || !coOwnerPad?.isSigned || !hasOwnerName || !hasCoOwnerName;
     }
 
     connectedCallback() {
@@ -197,19 +182,34 @@ export default class ProjectImprovementProgramPhotoReleaseLwc extends LightningE
     }
 
     renderedCallback() {
-        if (!this.canvasElement) {
-            this.canvasElement = this.template.querySelector('canvas');
-            this.ctx = this.canvasElement.getContext('2d');
-            this.setCanvasSize();
-        }
+        this.initializeCanvas('primary');
+        this.initializeCanvas('secondary');
     }
 
-    setCanvasSize() {
-        this.canvasElement.width = this.canvasElement.offsetWidth;
-        this.canvasElement.height = this.canvasElement.offsetHeight;
-        this.ctx.lineWidth = 2;
-        this.ctx.lineCap = 'round';
-        this.ctx.strokeStyle = '#000';
+    initializeCanvas(signatureId) {
+        const canvasElement = this.template.querySelector(`canvas[data-signature-id="${signatureId}"]`);
+        if (!canvasElement || this.signaturePads[signatureId]?.initialized) return;
+
+        const ctx = canvasElement.getContext('2d');
+        this.signaturePads[signatureId] = {
+            canvasElement,
+            ctx,
+            isDrawing: false,
+            isSigned: false,
+            initialized: true
+        };
+        this.setCanvasSize(signatureId);
+    }
+
+    setCanvasSize(signatureId) {
+        const pad = this.signaturePads[signatureId];
+        if (!pad) return;
+
+        pad.canvasElement.width = pad.canvasElement.offsetWidth;
+        pad.canvasElement.height = pad.canvasElement.offsetHeight;
+        pad.ctx.lineWidth = 2;
+        pad.ctx.lineCap = 'round';
+        pad.ctx.strokeStyle = '#000';
     }
 
     handleCheckboxChange(event) {
@@ -227,25 +227,41 @@ export default class ProjectImprovementProgramPhotoReleaseLwc extends LightningE
         this.signerName = event.target.value;
     }
 
+    handleCoSignerNameChange(event) {
+        if (this.isReadOnly) return;
+        this.coSignerName = event.target.value;
+    }
+
     // Signature Pad logic
     handleMouseDown(event) {
         if (this.isReadOnly) return;
-        this.isDrawing = true;
-        this.isSigned = true;
-        const { offsetX, offsetY } = this.getCoordinates(event);
-        this.ctx.beginPath();
-        this.ctx.moveTo(offsetX, offsetY);
+        const signatureId = event.currentTarget.dataset.signatureId;
+        const pad = this.signaturePads[signatureId];
+        if (!pad) return;
+
+        pad.isDrawing = true;
+        pad.isSigned = true;
+        const { offsetX, offsetY } = this.getCoordinates(pad.canvasElement, event);
+        pad.ctx.beginPath();
+        pad.ctx.moveTo(offsetX, offsetY);
     }
 
     handleMouseMove(event) {
-        if (!this.isDrawing || this.isReadOnly) return;
-        const { offsetX, offsetY } = this.getCoordinates(event);
-        this.ctx.lineTo(offsetX, offsetY);
-        this.ctx.stroke();
+        if (this.isReadOnly) return;
+        const signatureId = event.currentTarget.dataset.signatureId;
+        const pad = this.signaturePads[signatureId];
+        if (!pad || !pad.isDrawing) return;
+
+        const { offsetX, offsetY } = this.getCoordinates(pad.canvasElement, event);
+        pad.ctx.lineTo(offsetX, offsetY);
+        pad.ctx.stroke();
     }
 
-    handleMouseUp() {
-        this.isDrawing = false;
+    handleMouseUp(event) {
+        const signatureId = event.currentTarget.dataset.signatureId;
+        const pad = this.signaturePads[signatureId];
+        if (!pad) return;
+        pad.isDrawing = false;
     }
 
     handleTouchStart(event) {
@@ -256,7 +272,7 @@ export default class ProjectImprovementProgramPhotoReleaseLwc extends LightningE
             clientX: touch.clientX,
             clientY: touch.clientY
         });
-        this.canvasElement.dispatchEvent(mouseEvent);
+        event.currentTarget.dispatchEvent(mouseEvent);
     }
 
     handleTouchMove(event) {
@@ -266,17 +282,17 @@ export default class ProjectImprovementProgramPhotoReleaseLwc extends LightningE
             clientX: touch.clientX,
             clientY: touch.clientY
         });
-        this.canvasElement.dispatchEvent(mouseEvent);
+        event.currentTarget.dispatchEvent(mouseEvent);
     }
 
     handleTouchEnd(event) {
         event.preventDefault();
         const mouseEvent = new MouseEvent('mouseup', {});
-        this.canvasElement.dispatchEvent(mouseEvent);
+        event.currentTarget.dispatchEvent(mouseEvent);
     }
 
-    getCoordinates(event) {
-        const rect = this.canvasElement.getBoundingClientRect();
+    getCoordinates(canvasElement, event) {
+        const rect = canvasElement.getBoundingClientRect();
         const clientX = event.clientX || event.touches?.[0].clientX;
         const clientY = event.clientY || event.touches?.[0].clientY;
         return {
@@ -285,62 +301,90 @@ export default class ProjectImprovementProgramPhotoReleaseLwc extends LightningE
         };
     }
 
-    clearSignature() {
+    clearSignature(event) {
         if (this.isReadOnly) return;
-        this.ctx.clearRect(0, 0, this.canvasElement.width, this.canvasElement.height);
-        this.isSigned = false;
+        const signatureId = event.currentTarget.dataset.signatureId;
+        const pad = this.signaturePads[signatureId];
+        if (!pad) return;
+
+        pad.ctx.clearRect(0, 0, pad.canvasElement.width, pad.canvasElement.height);
+        pad.isSigned = false;
     }
 
     handleSubmit() {
+        console.log('handleSubmit');
+        
         this.isLoading = true;
         this.submitError = '';
-        const signatureBody = this.canvasElement.toDataURL('image/png').replace(/^data:image\/(png|jpg);base64,/, "");
-        
-        // saveSignature({
-        //     recordId: this.recordId,
-        //     signatureBody: signatureBody
-        // })
-        // .then((result) => {
-        //     if (typeof result === 'string') {
-        //         // This means the backward compatibility wrapper was called
-        //         this.isSubmitted = true;
-        //         this.submitError = result; // Show the cache warning
-        //         return null;
-        //     }
-        //     return savePdf({
-        //         recordId: this.recordId,
-        //         senderId: this.senderId,
-        //         sendDate: this.sendDate,
-        //         imgUrl: result.imgUrl || '',
-        //         signerName: this.signerName,
-        //         signatureId: result.cvId || ''
-        //     });
-        // })
-        // .then((pdfResult) => {
-        //     if (pdfResult === 'Success') {
-        //         this.isSubmitted = true;
-        //         this.dispatchEvent(
-        //             new ShowToastEvent({
-        //                 title: 'Success',
-        //                 message: 'Attestation submitted successfully.',
-        //                 variant: 'success'
-        //             })
-        //         );
-        //     }
-        // })
-        // .catch(error => {
-        //     console.error('Error submitting attestation', error);
-        //     this.submitError = error.body?.message || error.message || 'An unknown error occurred';
-        //     this.dispatchEvent(
-        //         new ShowToastEvent({
-        //             title: 'Error',
-        //             message: this.submitError,
-        //             variant: 'error'
-        //         })
-        //     );
-        // })
-        // .finally(() => {
-        //     this.isLoading = false;
-        // });
+        const primaryPad = this.signaturePads.primary;
+        const secondaryPad = this.signaturePads.secondary;
+        if (!primaryPad?.canvasElement || !secondaryPad?.canvasElement) {
+            this.isLoading = false;
+            return;
+        }
+        const ownerSignatureBody = primaryPad.canvasElement.toDataURL('image/png').replace(/^data:image\/(png|jpg);base64,/, "");
+        const coOwnerSignatureBody = secondaryPad.canvasElement.toDataURL('image/png').replace(/^data:image\/(png|jpg);base64,/, "");
+
+        Promise.all([
+            saveSignature({
+                recordId: this.recordId,
+                signatureBody: ownerSignatureBody
+            }),
+            saveSignature({
+                recordId: this.recordId,
+                signatureBody: coOwnerSignatureBody
+            })
+        ])
+        .then(([ownerSignatureResult, coOwnerSignatureResult]) => {
+            console.log(ownerSignatureResult, coOwnerSignatureResult);
+
+            if (typeof ownerSignatureResult === 'string' || typeof coOwnerSignatureResult === 'string') {
+                this.isSubmitted = true;
+                this.submitError = typeof ownerSignatureResult === 'string'
+                    ? ownerSignatureResult
+                    : coOwnerSignatureResult;
+                return null;
+            }
+
+            return savePdf({
+                recordId: this.recordId,
+                senderId: this.senderId,
+                sendDate: this.sendDate,
+                imgUrl: ownerSignatureResult.imgUrl || '',
+                signerName: this.signerName,
+                signatureId: ownerSignatureResult.cvId || '',
+                coSignerImgUrl: coOwnerSignatureResult.imgUrl || '',
+                coSignerName: this.coSignerName,
+                coSignatureId: coOwnerSignatureResult.cvId || ''
+            });
+        })
+        .then((pdfResult) => {
+            console.log(pdfResult);
+            
+            if (pdfResult === 'Success') {
+                this.isSubmitted = true;
+                this.dispatchEvent(
+                    new ShowToastEvent({
+                        title: 'Success',
+                        message: 'Attestation submitted successfully.',
+                        variant: 'success'
+                    })
+                );
+            }
+        })
+        .catch(error => {
+            console.error('Error submitting attestation', error);
+            this.submitError = error.body?.message || error.message || 'An unknown error occurred';
+            this.dispatchEvent(
+                new ShowToastEvent({
+                    title: 'Error',
+                    message: this.submitError,
+                    variant: 'error'
+                })
+            );
+        })
+        .finally(() => {
+            this.isLoading = false;
+        });
     }
 }

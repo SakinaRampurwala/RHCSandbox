@@ -167,6 +167,10 @@
     margin-top: 48px;
 }
 
+.signature-section + .signature-section {
+    margin-top: 32px;
+}
+
 .signature-label {
     display: block;
 }

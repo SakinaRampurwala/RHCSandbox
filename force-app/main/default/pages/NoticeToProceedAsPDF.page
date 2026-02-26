@@ -1,0 +1,158 @@
+<apex:page controller="NoticeToProceedCtrl" action="{!initPdf}" renderAs="pdf" sidebar="false" showHeader="false" applyHtmlTag="false" applyBodyTag="false" standardStylesheets="false">
+    <html>
+    <head>
+        <style type="text/css">
+            @page {
+                margin: 0.4in;
+                size: letter;
+            }
+            body {
+                font-family: "Times New Roman", Times, serif;
+                font-size: 12pt;
+                color: #000;
+                line-height: 1.25;
+            }
+            .header-logo {
+                width: 190px;
+                max-width: 100%;
+                height: auto;
+                margin-bottom: 10px;
+            }
+            .doc-sub-title {
+                text-align: center;
+                font-size: 15pt;
+                font-weight: bold;
+            }
+            .doc-title {
+                text-align: center;
+                font-size: 17pt;
+                font-weight: bold;
+                margin: 6px 0 10px;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 11pt;
+            }
+            td {
+                border: 1px solid #000;
+                padding: 4px 6px;
+                vertical-align: top;
+            }
+            .label-cell {
+                font-weight: bold;
+                background-color: #f3e256;
+            }
+            .paragraph-cell {
+                line-height: 1.25;
+                padding: 8px 6px;
+            }
+            .empty-row td {
+                height: 12px;
+                padding: 0;
+            }
+            .signature-wrap {
+                margin-top: 12px;
+                border: 1px solid #000;
+                background-color: #f3e256;
+                padding: 8px 8px 10px;
+            }
+            .signature-title {
+                font-weight: bold;
+                margin-bottom: 4px;
+            }
+            .signature-line {
+                margin-top: 10px;
+            }
+            .line {
+                display: inline-block;
+                border-bottom: 1px solid #000;
+                min-width: 240px;
+                margin: 0 10px 0 6px;
+                padding-bottom: 1px;
+            }
+            .signature-image {
+                max-height: 50px;
+                max-width: 260px;
+                vertical-align: middle;
+            }
+            .caption {
+                font-size: 10pt;
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+        <apex:image value="{!logoUrl}" rendered="{!logoUrl != null}" styleClass="header-logo"/>
+
+        <div class="doc-sub-title">Home Improvement Program</div>
+        <div class="doc-title">NOTICE TO PROCEED</div>
+
+        <table cellspacing="0" cellpadding="0">
+            <tr>
+                <td class="label-cell">Project Location:</td>
+                <td>{!vfNoticeData.projectLocation}</td>
+                <td class="label-cell">Case No.</td>
+                <td>{!vfNoticeData.caseNumber}</td>
+            </tr>
+            <tr>
+                <td class="label-cell">Property Owner:</td>
+                <td colspan="3">{!vfNoticeData.propertyOwner}</td>
+            </tr>
+            <tr class="empty-row">
+                <td colspan="4"></td>
+            </tr>
+            <tr>
+                <td class="label-cell">Contractor:</td>
+                <td>{!vfNoticeData.contractor}</td>
+                <td class="label-cell">Telephone:</td>
+                <td>{!vfNoticeData.telephone}</td>
+            </tr>
+            <tr>
+                <td class="label-cell">Address:</td>
+                <td colspan="3">{!vfNoticeData.contractorAddress}</td>
+            </tr>
+            <tr>
+                <td class="label-cell">Contract Dated:</td>
+                <td colspan="3">{!vfNoticeData.contractDated}</td>
+            </tr>
+            <tr>
+                <td colspan="4" class="paragraph-cell">
+                    You are hereby authorized to proceed with the work listed in our Construction Contract. We have agreed that you will begin work and complete all improvements within the time periods listed below. It is understood that failure to complete this work in a timely manner may be grounds for termination of our contract.
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">All work will begin not later than this date:</td>
+                <td colspan="2">{!vfNoticeData.projectedStartDate}</td>
+            </tr>
+            <tr>
+                <td colspan="2">All work will be completed not later than this date:</td>
+                <td colspan="2">{!vfNoticeData.projectedCompletionDate}</td>
+            </tr>
+            <tr>
+                <td colspan="4" class="paragraph-cell">
+                    According to the terms of our contract, progress payments can be made for work items that are completed in place. Such payments will be considered after receipt of your written claim subject to inspection by the Rehabilitation Specialist and approval by the grantee or its designee.
+                </td>
+            </tr>
+            <tr>
+                <td colspan="4" class="paragraph-cell">
+                    No deviation from the Work Write-up will be permitted without specific authorization and a Change Order which must be approved by the grantee. It is understood that changes will generally not be considered except for unforeseen problems that must be addressed in order to complete work items included in this project.
+                </td>
+            </tr>
+        </table>
+
+        <div class="signature-wrap">
+            <div class="signature-title">Signed:</div>
+            <div>
+                <apex:image value="{!vfImgUrl}" rendered="{!NOT(ISBLANK(vfImgUrl))}" styleClass="signature-image"/>
+            </div>
+            <div class="signature-line">
+                <span class="line">{!currentRecordDate}</span>
+            </div>
+            <div>
+                <span class="caption" style="display:inline-block; width:260px;">Date</span>
+            </div>
+        </div>
+    </body>
+    </html>
+</apex:page>

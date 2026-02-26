@@ -82,14 +82,14 @@ public without sharing class ProjectImprovementProgramPhotoCtrl {
     public static Map<String, String> saveSignature(Id recordId, String signatureBody) {
         try {
             ContentVersion cv = new ContentVersion();
-            cv.Title = 'Application Attestation Signature';
+            cv.Title = 'Home Improvement Signature';
             cv.PathOnClient = 'Signature.png';
             cv.VersionData = EncodingUtil.base64Decode(signatureBody);
             cv.IsMajorVersion = true;
             insert cv;
 
             ContentDistribution cd = new ContentDistribution();
-            cd.Name = 'Attestation Signature';
+            cd.Name = 'Home Improvement Signature';
             cd.ContentVersionId = cv.Id;
             cd.PreferencesAllowViewInBrowser = true;
             try {
@@ -133,73 +133,80 @@ public without sharing class ProjectImprovementProgramPhotoCtrl {
         };
     }
 
-    // @AuraEnabled(cacheable=true)
-    // public static buildertek__Project__c getApplicationStatus(Id recordId) {
-    //     if (recordId == null) return null;
-    //     try {
-    //         return [
-    //             SELECT Id, Attestation_Submitted__c, Attestation_Submitted_By__c, Attestation_Submitted_Date__c 
-    //             FROM buildertek__Project__c 
-    //             WHERE Id = :recordId 
-    //             LIMIT 1
-    //         ];
-    //     } catch (Exception e) {
-    //         return null;
-    //     }
-    // }
+    @AuraEnabled(cacheable=true)
+    public static buildertek__Project__c getApplicationStatus(Id recordId) {
+        if (recordId == null) return null;
+        try {
+            return [
+                SELECT Id, Home_Improvement_Submitted__c, Home_Improvement_Submitted_Date__c
+                FROM buildertek__Project__c
+                WHERE Id = :recordId
+                LIMIT 1
+            ];
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
-    // @AuraEnabled
-    // public static String savePdf(Id recordId, String senderId, String sendDate, String imgUrl, String signerName, String signatureId) {
-    //     try {
-    //         PageReference pdfPage = Page.ApplicationAttestationAsPDF;
-    //         pdfPage.getParameters().put('recordId', recordId);
-    //         pdfPage.getParameters().put('senderId', senderId);
-    //         pdfPage.getParameters().put('sendDate', sendDate);
-    //         pdfPage.getParameters().put('imgUrl', imgUrl);
-    //         pdfPage.getParameters().put('signerName', signerName);
+    @AuraEnabled
+    public static String savePdf(
+        Id recordId,
+        String senderId,
+        String sendDate,
+        String imgUrl,
+        String signerName,
+        String signatureId,
+        String coSignerImgUrl,
+        String coSignerName,
+        String coSignatureId
+    ) {
+        try {
+            PageReference pdfPage = Page.ProjectImprovementProgramAsPDF;
+            pdfPage.getParameters().put('recordId', recordId);
+            pdfPage.getParameters().put('senderId', senderId);
+            pdfPage.getParameters().put('sendDate', sendDate);
+            pdfPage.getParameters().put('imgUrl', imgUrl);
+            pdfPage.getParameters().put('signerName', signerName);
+            pdfPage.getParameters().put('coSignerImgUrl', coSignerImgUrl);
+            pdfPage.getParameters().put('coSignerName', coSignerName);
             
-    //         Blob pdfBlob;
-    //         if (Test.isRunningTest()) {
-    //             pdfBlob = Blob.valueOf('Test PDF');
-    //         } else {
-    //             pdfBlob = pdfPage.getContentAsPDF();
-    //         }
+            Blob pdfBlob;
+            if (Test.isRunningTest()) {
+                pdfBlob = Blob.valueOf('Test PDF');
+            } else {
+                pdfBlob = pdfPage.getContentAsPDF();
+            }
 
-    //         ContentVersion pdfCv = new ContentVersion();
-    //         pdfCv.Title = 'Application Attestation ' + system.now().format('MM-dd-yyyy') + '.pdf';
-    //         pdfCv.PathOnClient = 'ApplicationAttestation.pdf';
-    //         pdfCv.VersionData = pdfBlob;
-    //         pdfCv.IsMajorVersion = true;
-    //         insert pdfCv;
+            ContentVersion pdfCv = new ContentVersion();
+            pdfCv.Title = 'Home Improvement ' + system.now().format('MM-dd-yyyy') + '.pdf';
+            pdfCv.PathOnClient = 'HomeImprovement.pdf';
+            pdfCv.VersionData = pdfBlob;
+            pdfCv.IsMajorVersion = true;
+            insert pdfCv;
 
-    //         Id pdfDocId = [SELECT ContentDocumentId FROM ContentVersion WHERE Id = :pdfCv.Id].ContentDocumentId;
+            Id pdfDocId = [SELECT ContentDocumentId FROM ContentVersion WHERE Id = :pdfCv.Id].ContentDocumentId;
 
-    //         ContentDocumentLink pdfCdl = new ContentDocumentLink();
-    //         pdfCdl.ContentDocumentId = pdfDocId;
-    //         pdfCdl.LinkedEntityId = recordId;
-    //         pdfCdl.ShareType = 'V';
-    //         insert pdfCdl;
+            ContentDocumentLink pdfCdl = new ContentDocumentLink();
+            pdfCdl.ContentDocumentId = pdfDocId;
+            pdfCdl.LinkedEntityId = recordId;
+            pdfCdl.ShareType = 'V';
+            insert pdfCdl;
 
-    //         // Update Project fields
-    //         buildertek__Project__c proj = new buildertek__Project__c(Id = recordId);
-    //         proj.Attestation_Submitted__c = true;
-    //         proj.Attestation_Submitted_By__c = signerName;
-    //         proj.Attestation_Submitted_Date__c = Date.today();
-    //         update proj;
+            // Update Project fields
+            buildertek__Project__c proj = new buildertek__Project__c(Id = recordId);
+            proj.Home_Improvement_Submitted__c = true;
+            proj.Home_Improvement_Submitted_Date__c = Date.today();
+            update proj;
 
-    //         // Cleanup signature file if it exists
-    //         if (!String.isBlank(signatureId)) {
-    //             List<ContentVersion> cvs = [SELECT ContentDocumentId FROM ContentVersion WHERE Id = :signatureId LIMIT 1];
-    //             if (!cvs.isEmpty()) {
-    //                 Database.delete(cvs[0].ContentDocumentId, false);
-    //             }
-    //         }
+            // Cleanup signature files if they exist
+            cleanupSignatureFile(signatureId);
+            cleanupSignatureFile(coSignatureId);
 
-    //         return 'Success';
-    //     } catch (Exception e) {
-    //         throw new AuraHandledException(e.getMessage());
-    //     }
-    // }
+            return 'Success';
+        } catch (Exception e) {
+            throw new AuraHandledException(e.getMessage());
+        }
+    }
 
     // Wrapper for backward compatibility (in case LWC JS is cached)
     @AuraEnabled
@@ -237,6 +244,11 @@ public without sharing class ProjectImprovementProgramPhotoCtrl {
     public String vfSendDate { get; set; }
     public String vfImgUrl { get; set; }
     public String vfSignerName { get; set; }
+    public String vfCoSignerImgUrl { get; set; }
+    public String vfCoSignerName { get; set; }
+    public String vfCustomerName { get; set; }
+    public String vfProjectAddress { get; set; }
+    public String vfOrgName { get; set; }
     public SenderInfo senderDetails { get; set; }
     public String logoUrl { get; set; }
     public String currentRecordDate {get;set;}
@@ -247,13 +259,61 @@ public without sharing class ProjectImprovementProgramPhotoCtrl {
         vfSendDate = ApexPages.currentPage().getParameters().get('sendDate');
         vfImgUrl = ApexPages.currentPage().getParameters().get('imgUrl');
         vfSignerName = ApexPages.currentPage().getParameters().get('signerName');
+        vfCoSignerImgUrl = ApexPages.currentPage().getParameters().get('coSignerImgUrl');
+        vfCoSignerName = ApexPages.currentPage().getParameters().get('coSignerName');
         
         attestationList = getAttestationItems();
         
         if (vfSenderId != null) {
             senderDetails = getSenderInfo(vfSenderId);
         }
+        if (vfRecordId != null) {
+            loadProjectDetails(vfRecordId);
+        }
+        try {
+            vfOrgName = [SELECT Name FROM Organization LIMIT 1].Name;
+        } catch (Exception e) {
+            vfOrgName = '';
+        }
         logoUrl = getLogoUrl();
         currentRecordDate = System.now().format('MM-dd-yyyy');
+    }
+
+    private static void cleanupSignatureFile(String signatureId) {
+        if (String.isBlank(signatureId)) {
+            return;
+        }
+
+        List<ContentVersion> cvs = [SELECT ContentDocumentId FROM ContentVersion WHERE Id = :signatureId LIMIT 1];
+        if (!cvs.isEmpty()) {
+            Database.delete(cvs[0].ContentDocumentId, false);
+        }
+    }
+
+    private void loadProjectDetails(String projectId) {
+        try {
+            buildertek__Project__c projectRecord = [
+                SELECT buildertek__Address__c,
+                       buildertek__City_Text__c,
+                       buildertek__State__c,
+                       buildertek__Zip__c,
+                       buildertek__Country__c,
+                       buildertek__Customer__r.Name
+                FROM buildertek__Project__c
+                WHERE Id = :projectId
+                LIMIT 1
+            ];
+
+            vfCustomerName = projectRecord.buildertek__Customer__r != null ? projectRecord.buildertek__Customer__r.Name : '';
+            vfProjectAddress =
+                String.valueOf(projectRecord.buildertek__Address__c == null ? '' : projectRecord.buildertek__Address__c) + ', ' +
+                String.valueOf(projectRecord.buildertek__City_Text__c == null ? '' : projectRecord.buildertek__City_Text__c) + ' ' +
+                String.valueOf(projectRecord.buildertek__State__c == null ? '' : projectRecord.buildertek__State__c) + ' -  ' +
+                String.valueOf(projectRecord.buildertek__Zip__c == null ? '' : projectRecord.buildertek__Zip__c) + ', ' +
+                String.valueOf(projectRecord.buildertek__Country__c == null ? '' : projectRecord.buildertek__Country__c);
+        } catch (Exception e) {
+            vfCustomerName = '';
+            vfProjectAddress = '';
+        }
     }
 }

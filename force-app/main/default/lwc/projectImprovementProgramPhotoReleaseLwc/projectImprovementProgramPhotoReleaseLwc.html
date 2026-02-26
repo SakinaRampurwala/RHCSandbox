@@ -17,11 +17,11 @@
                     <lightning-icon icon-name="action:approval" size="large" alternative-text="Success"></lightning-icon>
                     <template if:false={isAlreadySubmitted}>
                         <h2 class="slds-text-heading_large slds-m-top_medium">Thank You!</h2>
-                        <p class="slds-text-heading_small slds-m-top_medium">Your Application Attestation has been successfully submitted.</p>
+                        <p class="slds-text-heading_small slds-m-top_medium">Your Home Improvement Program Photo Release Form has been successfully submitted.</p>
                     </template>
                     <template if:true={isAlreadySubmitted}>
                         <h2 class="slds-text-heading_large slds-m-top_medium">Already Submitted</h2>
-                        <p class="slds-text-heading_small slds-m-top_medium">Application Attestation has already been submitted for this record.</p>
+                        <p class="slds-text-heading_small slds-m-top_medium">Home Improvement Program Photo Release Form has already been submitted for this record.</p>
                     </template>
                 </div>
             </template>
@@ -55,6 +55,7 @@
                             <label class="signature-label">Home Owner Signature</label>
                             <div class="signature-container">
                                 <canvas class={signatureCanvasClass}
+                                    data-signature-id="primary"
                                     onmousedown={handleMouseDown}
                                     onmousemove={handleMouseMove}
                                     onmouseup={handleMouseUp}
@@ -65,7 +66,7 @@
                                 </canvas>
                             </div>
                             <div class="signature-buttons">
-                                <button class="clear-link" onclick={clearSignature} disabled={isReadOnly}>Clear Signature</button>
+                                <button class="clear-link" data-signature-id="primary" onclick={clearSignature} disabled={isReadOnly}>Clear Signature</button>
                             </div>
 
                             <div class="slds-m-top_xx-large">
@@ -81,10 +82,11 @@
                             </div>
                         </div>
 
-                        <!-- <div class="signature-section">
+                        <div class="signature-section">
                             <label class="signature-label">Home Owner Signature</label>
                             <div class="signature-container">
                                 <canvas class={signatureCanvasClass}
+                                    data-signature-id="secondary"
                                     onmousedown={handleMouseDown}
                                     onmousemove={handleMouseMove}
                                     onmouseup={handleMouseUp}
@@ -95,7 +97,7 @@
                                 </canvas>
                             </div>
                             <div class="signature-buttons">
-                                <button class="clear-link" onclick={clearSignature} disabled={isReadOnly}>Clear Signature</button>
+                                <button class="clear-link" data-signature-id="secondary" onclick={clearSignature} disabled={isReadOnly}>Clear Signature</button>
                             </div>
 
                             <div class="slds-m-top_xx-large">
@@ -104,12 +106,12 @@
                                     <span class="name-label-text">:</span>
                                     <input type="text" 
                                         class="underline-input" 
-                                        value={signerName} 
-                                        oninput={handleNameChange}
+                                        value={coSignerName} 
+                                        oninput={handleCoSignerNameChange}
                                         disabled={isReadOnly} />
                                 </div>
                             </div>
-                        </div> -->
+                        </div>
 
                         <div class="submit-row">
                             <lightning-button

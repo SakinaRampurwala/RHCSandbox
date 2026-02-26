@@ -35,8 +35,8 @@ export default class ProjectPreviewEmail extends LightningElement {
             value: 'ProjectImprovementProgramPhotoRelease'
         }, 
         {
-            label: 'Annual Certification',
-            value: 'AnnualCertification'
+            label: 'Notice To Proceed',
+            value: 'NoticeToProceed'
         }
     ];
     @track orgWideEmailOptions = [];
