@@ -1,7 +1,10 @@
 .main-wrapper {
-    background-color: #f4f6f9;
+    background:
+        radial-gradient(circle at 12% 10%, #e9f3ff 0%, transparent 45%),
+        radial-gradient(circle at 90% 12%, #eff8ee 0%, transparent 42%),
+        #f6f8fb;
     min-height: 100vh;
-    padding: 2rem 0;
+    padding: 2.5rem 0;
 }
 
 .content-inner {
@@ -18,16 +21,19 @@
 }
 
 .main-container {
-    max-width: 1000px;
+    max-width: 1060px;
     margin: 24px auto 48px;
-    padding: 1.5rem;
+    padding: 1.75rem;
     background-color: #ffffff;
     font-family: "Times New Roman", Times, serif;
-    color: #000;
+    color: #112a46;
+    border: 1px solid #d8e1eb;
+    border-radius: 16px;
+    box-shadow: 0 10px 28px rgba(13, 37, 63, 0.08);
 }
 
 .header-logo {
-    width: 320px;
+    width: 300px;
     max-width: 100%;
     height: auto;
     object-fit: contain;
@@ -38,26 +44,32 @@
 }
 
 .doc-sub-title {
-    font-size: 26px;
+    font-size: 24px;
     text-align: center;
     font-weight: bold;
+    color: #173a5e;
 }
 
 .doc-title {
-    font-size: 30px;
+    font-size: 28px;
     text-align: center;
-    margin: 8px 0 20px;
+    margin: 6px 0 18px;
     font-weight: bold;
+    color: #112a46;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-bottom: 1px solid #d8e4f0;
+    padding-bottom: 8px;
 }
 
 .notice-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 20px;
+    font-size: 19px;
 }
 
 .notice-table td {
-    border: 1px solid #000;
+    border: 1px solid #6f849a;
     padding: 6px 8px;
     vertical-align: top;
 }
@@ -70,6 +82,8 @@
 .label-cell {
     font-weight: bold;
     width: 22%;
+    color: #0f2d4a;
+    background: #eef4fb;
 }
 
 .label-cell.small {
@@ -79,23 +93,31 @@
 .paragraph-cell {
     padding: 14px 8px;
     line-height: 1.35;
+    color: #173a5e;
 }
 
 .signature-section {
-    margin-top: 24px;
+    margin-top: 22px;
+    padding: 14px;
+    border: 1px solid #dbe4ef;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #fbfcfe 0%, #f4f8fc 100%);
 }
 
 .signature-label {
     display: block;
-    font-size: 20px;
+    font-size: 22px;
     font-weight: bold;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    color: #102a43;
 }
 
 .signature-container {
     height: 10rem;
-    border: 1px solid #000;
+    border: 1px dashed #5c728a;
+    border-radius: 8px;
     background: #fff;
+    box-shadow: inset 0 0 0 1px #e8eff6;
 }
 
 .signature-pad {
@@ -112,16 +134,17 @@
 .signature-buttons {
     display: flex;
     justify-content: flex-end;
-    margin-top: 4px;
+    margin-top: 8px;
 }
 
 .clear-link {
     text-decoration: none;
-    color: #000;
+    color: #2a5885;
     font-size: 0.875rem;
     background: transparent;
     border: none;
     cursor: pointer;
+    font-weight: 600;
 }
 
 .clear-link:hover {
@@ -166,9 +189,17 @@
 }
 
 .submit-row {
-    margin-top: 24px;
+    margin-top: 26px;
     display: flex;
     justify-content: flex-end;
+}
+
+.submit-button {
+    --slds-c-button-brand-color-background: #0f5cab;
+    --slds-c-button-brand-color-background-hover: #0b4e93;
+    --slds-c-button-brand-color-border: #0f5cab;
+    --slds-c-button-brand-text-color: #ffffff;
+    --slds-c-button-radius-border: 8px;
 }
 
 @media only screen and (max-width: 900px) {
@@ -177,7 +208,7 @@
     }
 
     .doc-title {
-        font-size: 24px;
+        font-size: 22px;
     }
 
     .notice-table {

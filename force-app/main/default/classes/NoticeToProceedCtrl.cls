@@ -61,6 +61,18 @@ public without sharing class NoticeToProceedCtrl {
                 'buildertek__Case_No__c',
                 'General_Contractor__r.Name',
                 'buildertek__General_Contractor__r.Name',
+                'General_Contractor__r.Phone',
+                'buildertek__General_Contractor__r.Phone',
+                'General_Contractor__r.BillingStreet',
+                'buildertek__General_Contractor__r.BillingStreet',
+                'General_Contractor__r.BillingCity',
+                'buildertek__General_Contractor__r.BillingCity',
+                'General_Contractor__r.BillingState',
+                'buildertek__General_Contractor__r.BillingState',
+                'General_Contractor__r.BillingPostalCode',
+                'buildertek__General_Contractor__r.BillingPostalCode',
+                'General_Contractor__r.BillingCountry',
+                'buildertek__General_Contractor__r.BillingCountry',
                 'General_Contractor__c',
                 'buildertek__General_Contractor__c',
                 'Contractor__c',
@@ -85,7 +97,7 @@ public without sharing class NoticeToProceedCtrl {
             };
 
             for (String optionalField : optionalFields) {
-                if ((optionalField != null && optionalField.contains('.')) || fieldMap.containsKey(optionalField)) {
+                if (isQueryableField(fieldMap, optionalField)) {
                     queryFields.add(optionalField);
                 }
             }
@@ -117,8 +129,47 @@ public without sharing class NoticeToProceedCtrl {
                 'Contractor__c',
                 'buildertek__Contractor__c'
             });
-            data.telephone = firstAvailableValue(recordSObj, new List<String>{'General_Contractor_Phone__c', 'buildertek__General_Contractor_Phone__c', 'Contractor_Phone__c', 'buildertek__Contractor_Phone__c'});
-            data.contractorAddress = firstAvailableValue(recordSObj, new List<String>{'General_Contractor_Address__c', 'buildertek__General_Contractor_Address__c', 'Contractor_Address__c', 'buildertek__Contractor_Address__c'});
+            data.telephone = firstAvailableValue(recordSObj, new List<String>{
+                'General_Contractor__r.Phone',
+                'buildertek__General_Contractor__r.Phone',
+                'General_Contractor_Phone__c',
+                'buildertek__General_Contractor_Phone__c',
+                'Contractor_Phone__c',
+                'buildertek__Contractor_Phone__c'
+            });
+
+            String billingStreet = firstAvailableValue(recordSObj, new List<String>{
+                'General_Contractor__r.BillingStreet',
+                'buildertek__General_Contractor__r.BillingStreet'
+            });
+            String billingCity = firstAvailableValue(recordSObj, new List<String>{
+                'General_Contractor__r.BillingCity',
+                'buildertek__General_Contractor__r.BillingCity'
+            });
+            String billingState = firstAvailableValue(recordSObj, new List<String>{
+                'General_Contractor__r.BillingState',
+                'buildertek__General_Contractor__r.BillingState'
+            });
+            String billingPostal = firstAvailableValue(recordSObj, new List<String>{
+                'General_Contractor__r.BillingPostalCode',
+                'buildertek__General_Contractor__r.BillingPostalCode'
+            });
+            String billingCountry = firstAvailableValue(recordSObj, new List<String>{
+                'General_Contractor__r.BillingCountry',
+                'buildertek__General_Contractor__r.BillingCountry'
+            });
+
+            String cityStatePostal = joinNonBlank(new List<String>{billingCity, billingState, billingPostal}, ' ');
+            String relationshipAddress = joinNonBlank(new List<String>{billingStreet, cityStatePostal, billingCountry}, ', ');
+
+            data.contractorAddress = String.isNotBlank(relationshipAddress)
+                ? relationshipAddress
+                : firstAvailableValue(recordSObj, new List<String>{
+                    'General_Contractor_Address__c',
+                    'buildertek__General_Contractor_Address__c',
+                    'Contractor_Address__c',
+                    'buildertek__Contractor_Address__c'
+                });
 
             Object contractDate = firstAvailableObject(recordSObj, new List<String>{
                 'buildertek__Contract_Date__c',
@@ -265,6 +316,28 @@ public without sharing class NoticeToProceedCtrl {
         return null;
     }
 
+    private static Boolean isQueryableField(Map<String, Schema.SObjectField> fieldMap, String fieldPath) {
+        if (String.isBlank(fieldPath)) {
+            return false;
+        }
+        if (!fieldPath.contains('.')) {
+            return fieldMap.containsKey(fieldPath);
+        }
+
+        List<String> parts = fieldPath.split('\\.');
+        if (parts.size() != 2) {
+            return false;
+        }
+
+        String relationshipToken = parts[0];
+        if (relationshipToken.endsWith('__r')) {
+            String lookupField = relationshipToken.substring(0, relationshipToken.length() - 3) + '__c';
+            return fieldMap.containsKey(lookupField);
+        }
+
+        return true;
+    }
+
     private static String formatDateValue(Object dateValue) {
         if (dateValue == null) {
             return '';
@@ -281,6 +354,16 @@ public without sharing class NoticeToProceedCtrl {
 
     private static String safe(String input) {
         return input == null ? '' : input;
+    }
+
+    private static String joinNonBlank(List<String> parts, String separator) {
+        List<String> cleaned = new List<String>();
+        for (String part : parts) {
+            if (String.isNotBlank(part)) {
+                cleaned.add(part);
+            }
+        }
+        return String.join(cleaned, separator);
     }
 
     public String isPreview { get; set; }

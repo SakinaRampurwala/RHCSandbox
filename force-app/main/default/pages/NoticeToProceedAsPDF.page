@@ -33,6 +33,7 @@
                 width: 100%;
                 border-collapse: collapse;
                 font-size: 11pt;
+                table-layout: fixed;
             }
             td {
                 border: 1px solid #000;
@@ -95,6 +96,12 @@
         <div class="doc-title">NOTICE TO PROCEED</div>
 
         <table cellspacing="0" cellpadding="0">
+            <colgroup>
+                <col style="width: 28%;" />
+                <col style="width: 42%;" />
+                <col style="width: 16%;" />
+                <col style="width: 14%;" />
+            </colgroup>
             <tr>
                 <td class="label-cell">Project Location:</td>
                 <td>{!vfNoticeData.projectLocation}</td>
