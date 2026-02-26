@@ -20,6 +20,12 @@ import CONTRACTOR_BILLING_POSTAL_FIELD from '@salesforce/schema/buildertek__Proj
 import CONTRACTOR_BILLING_COUNTRY_FIELD from '@salesforce/schema/buildertek__Project__c.General_Contractor__r.BillingCountry';
 import NOTICE_SUBMITTED_FIELD from '@salesforce/schema/buildertek__Project__c.Notice_To_Proceed_Submitted__c';
 import NOTICE_SUBMITTED_DATE_FIELD from '@salesforce/schema/buildertek__Project__c.Notice_To_Proceed_Submitted_Date__c';
+import PROJECT_COMPLETION_DATE from '@salesforce/schema/buildertek__Project__c.buildertek__Project_Completion_Date__c';
+import PROJECT_START_DATE from '@salesforce/schema/buildertek__Project__c.buildertek__Project_Start_Date__c';
+import CONTRACT_DATE_FIELD from '@salesforce/schema/buildertek__Project__c.buildertek__Contract_Date__c';
+
+
+
 
 const FIELDS = [
     CASE_NO_FIELD,
@@ -37,7 +43,10 @@ const FIELDS = [
     CONTRACTOR_BILLING_POSTAL_FIELD,
     CONTRACTOR_BILLING_COUNTRY_FIELD,
     NOTICE_SUBMITTED_FIELD,
-    NOTICE_SUBMITTED_DATE_FIELD
+    NOTICE_SUBMITTED_DATE_FIELD,
+    PROJECT_COMPLETION_DATE,
+    PROJECT_START_DATE,
+    CONTRACT_DATE_FIELD
 ];
 
 export default class NoticeToProceedLwc extends LightningElement {
@@ -81,7 +90,10 @@ export default class NoticeToProceedLwc extends LightningElement {
                 propertyOwner: getFieldValue(data, CUSTOMER_NAME_FIELD) || '',
                 contractor: getFieldValue(data, CONTRACTOR_NAME_FIELD) || '',
                 telephone: getFieldValue(data, CONTRACTOR_PHONE_FIELD) || '',
-                contractorAddress: contractorAddress
+                contractorAddress: contractorAddress,
+                contractDated: getFieldValue(data, CONTRACT_DATE_FIELD) ? new Date(getFieldValue(data, CONTRACT_DATE_FIELD)).toLocaleDateString() : '',
+                projectedStartDate: getFieldValue(data, PROJECT_START_DATE) ? new Date(getFieldValue(data, PROJECT_START_DATE)).toLocaleDateString() : '',
+                projectedCompletionDate: getFieldValue(data, PROJECT_COMPLETION_DATE) ? new Date(getFieldValue(data, PROJECT_COMPLETION_DATE)).toLocaleDateString() : ''
             };
 
             if (isNoticeSubmitted && submittedDate) {

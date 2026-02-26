@@ -52,7 +52,6 @@
             }
             .signature-wrap {
                 margin-top: 12px;
-                border: 1px solid #000;
                 padding: 8px 8px 12px;
             }
             .signature-title {
@@ -74,8 +73,8 @@
                 padding-bottom: 1px;
             }
             .signature-image {
-                max-height: 95px;
-                max-width: 100%;
+                width: 100%;
+                height: 100%;
                 display: block;
             }
             .signature-box {
@@ -84,9 +83,8 @@
                 padding: 6px;
                 box-sizing: border-box;
                 width: 100%;
-            }
-            .signature-box .signature-image {
-                max-height: 95px;
+                overflow: hidden;
+                line-height: 0;
             }
         </style>
     </head>

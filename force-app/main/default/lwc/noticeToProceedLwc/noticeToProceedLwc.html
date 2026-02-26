@@ -9,24 +9,25 @@
         </div>
     </template>
 
-    <div class="main-wrapper">
-        <div class="slds-container_large slds-container_center">
-            <template if:true={isSubmitted}>
-                <div class="content-inner success-container">
-                    <lightning-icon icon-name="action:approval" size="large" alternative-text="Success"></lightning-icon>
-                    <template if:false={isAlreadySubmitted}>
-                        <h2 class="slds-text-heading_large slds-m-top_medium">Thank You!</h2>
-                        <p class="slds-text-heading_small slds-m-top_medium">Notice To Proceed has been submitted successfully.</p>
-                    </template>
-                    <template if:true={isAlreadySubmitted}>
-                        <h2 class="slds-text-heading_large slds-m-top_medium">Already Submitted</h2>
-                        <p class="slds-text-heading_small slds-m-top_medium">Notice To Proceed has already been submitted for this record.</p>
-                    </template>
-                </div>
-            </template>
+    <template if:false={isLoading}>
+        <div class="main-wrapper">
+            <div class="slds-container_large slds-container_center">
+                <template if:true={isSubmitted}>
+                    <div class="content-inner success-container">
+                        <lightning-icon icon-name="action:approval" size="large" alternative-text="Success"></lightning-icon>
+                        <template if:false={isAlreadySubmitted}>
+                            <h2 class="slds-text-heading_large slds-m-top_medium">Thank You!</h2>
+                            <p class="slds-text-heading_small slds-m-top_medium">Notice To Proceed has been submitted successfully.</p>
+                        </template>
+                        <template if:true={isAlreadySubmitted}>
+                            <h2 class="slds-text-heading_large slds-m-top_medium">Already Submitted</h2>
+                            <p class="slds-text-heading_small slds-m-top_medium">Notice To Proceed has already been submitted for this record.</p>
+                        </template>
+                    </div>
+                </template>
 
-            <template if:false={isSubmitted}>
-                <div class="main-container">
+                <template if:false={isSubmitted}>
+                    <div class="main-container">
                     <div class="header-container slds-grid slds-wrap">
                         <div class="slds-col slds-size_1-of-2 slds-text-align_left">
                             <template if:true={logoURL}>
@@ -119,8 +120,9 @@
                             disabled={isSubmitDisabled}>
                         </lightning-button>
                     </div>
-                </div>
-            </template>
+                    </div>
+                </template>
+            </div>
         </div>
-    </div>
+    </template>
 </template>

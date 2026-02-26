@@ -73,10 +73,13 @@ public without sharing class NoticeToProceedCtrl {
                 'buildertek__General_Contractor_Address__c',
                 'Contractor_Address__c',
                 'buildertek__Contractor_Address__c',
+                'buildertek__Project_Start_Date__c',
+                'buildertek__Project_Completion_Date__c',
                 'Projected_Start_Date__c',
                 'buildertek__Projected_Start_Date__c',
                 'Projected_Completion_Date__c',
                 'buildertek__Projected_Completion_Date__c',
+                'buildertek__Contract_Date__c',
                 'Contract_Dated__c',
                 'buildertek__Contract_Dated__c'
             };
@@ -117,13 +120,25 @@ public without sharing class NoticeToProceedCtrl {
             data.telephone = firstAvailableValue(recordSObj, new List<String>{'General_Contractor_Phone__c', 'buildertek__General_Contractor_Phone__c', 'Contractor_Phone__c', 'buildertek__Contractor_Phone__c'});
             data.contractorAddress = firstAvailableValue(recordSObj, new List<String>{'General_Contractor_Address__c', 'buildertek__General_Contractor_Address__c', 'Contractor_Address__c', 'buildertek__Contractor_Address__c'});
 
-            Object contractDate = firstAvailableObject(recordSObj, new List<String>{'Contract_Dated__c', 'buildertek__Contract_Dated__c'});
+            Object contractDate = firstAvailableObject(recordSObj, new List<String>{
+                'buildertek__Contract_Date__c',
+                'Contract_Dated__c',
+                'buildertek__Contract_Dated__c'
+            });
             data.contractDated = formatDateValue(contractDate);
 
-            Object startDate = firstAvailableObject(recordSObj, new List<String>{'Projected_Start_Date__c', 'buildertek__Projected_Start_Date__c'});
+            Object startDate = firstAvailableObject(recordSObj, new List<String>{
+                'buildertek__Project_Start_Date__c',
+                'Projected_Start_Date__c',
+                'buildertek__Projected_Start_Date__c'
+            });
             data.projectedStartDate = formatDateValue(startDate);
 
-            Object completionDate = firstAvailableObject(recordSObj, new List<String>{'Projected_Completion_Date__c', 'buildertek__Projected_Completion_Date__c'});
+            Object completionDate = firstAvailableObject(recordSObj, new List<String>{
+                'buildertek__Project_Completion_Date__c',
+                'Projected_Completion_Date__c',
+                'buildertek__Projected_Completion_Date__c'
+            });
             data.projectedCompletionDate = formatDateValue(completionDate);
 
             data.organizationName = [SELECT Name FROM Organization LIMIT 1].Name;
