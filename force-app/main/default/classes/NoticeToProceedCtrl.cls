@@ -59,6 +59,8 @@ public without sharing class NoticeToProceedCtrl {
             List<String> optionalFields = new List<String>{
                 'Case_No__c',
                 'buildertek__Case_No__c',
+                'General_Contractor__r.Name',
+                'buildertek__General_Contractor__r.Name',
                 'General_Contractor__c',
                 'buildertek__General_Contractor__c',
                 'Contractor__c',
@@ -80,7 +82,7 @@ public without sharing class NoticeToProceedCtrl {
             };
 
             for (String optionalField : optionalFields) {
-                if (fieldMap.containsKey(optionalField)) {
+                if ((optionalField != null && optionalField.contains('.')) || fieldMap.containsKey(optionalField)) {
                     queryFields.add(optionalField);
                 }
             }
@@ -104,7 +106,14 @@ public without sharing class NoticeToProceedCtrl {
             data.propertyOwner = customerRef != null ? safe((String) customerRef.get('Name')) : '';
 
             data.caseNumber = firstAvailableValue(recordSObj, new List<String>{'Case_No__c', 'buildertek__Case_No__c'});
-            data.contractor = firstAvailableValue(recordSObj, new List<String>{'General_Contractor__c', 'buildertek__General_Contractor__c', 'Contractor__c', 'buildertek__Contractor__c'});
+            data.contractor = firstAvailableValue(recordSObj, new List<String>{
+                'General_Contractor__r.Name',
+                'buildertek__General_Contractor__r.Name',
+                'General_Contractor__c',
+                'buildertek__General_Contractor__c',
+                'Contractor__c',
+                'buildertek__Contractor__c'
+            });
             data.telephone = firstAvailableValue(recordSObj, new List<String>{'General_Contractor_Phone__c', 'buildertek__General_Contractor_Phone__c', 'Contractor_Phone__c', 'buildertek__Contractor_Phone__c'});
             data.contractorAddress = firstAvailableValue(recordSObj, new List<String>{'General_Contractor_Address__c', 'buildertek__General_Contractor_Address__c', 'Contractor_Address__c', 'buildertek__Contractor_Address__c'});
 
@@ -186,6 +195,11 @@ public without sharing class NoticeToProceedCtrl {
             pdfCdl.ShareType = 'V';
             insert pdfCdl;
 
+            buildertek__Project__c proj = new buildertek__Project__c(Id = recordId);
+            proj.Notice_To_Proceed_Submitted__c = true;
+            proj.Notice_To_Proceed_Submitted_Date__c = Date.today();
+            update proj;
+
             cleanupSignatureFile(signatureId);
             return 'Success';
         } catch (Exception e) {
@@ -216,6 +230,19 @@ public without sharing class NoticeToProceedCtrl {
 
         Map<String, Object> values = source.getPopulatedFieldsAsMap();
         for (String apiName : candidates) {
+            if (apiName != null && apiName.contains('.')) {
+                List<String> parts = apiName.split('\\.');
+                if (parts.size() == 2) {
+                    SObject parentObj = source.getSObject(parts[0]);
+                    if (parentObj != null) {
+                        Object nestedValue = parentObj.get(parts[1]);
+                        if (nestedValue != null) {
+                            return nestedValue;
+                        }
+                    }
+                }
+                continue;
+            }
             if (values.containsKey(apiName)) {
                 return values.get(apiName);
             }

@@ -18,6 +18,8 @@ import CONTRACTOR_BILLING_CITY_FIELD from '@salesforce/schema/buildertek__Projec
 import CONTRACTOR_BILLING_STATE_FIELD from '@salesforce/schema/buildertek__Project__c.General_Contractor__r.BillingState';
 import CONTRACTOR_BILLING_POSTAL_FIELD from '@salesforce/schema/buildertek__Project__c.General_Contractor__r.BillingPostalCode';
 import CONTRACTOR_BILLING_COUNTRY_FIELD from '@salesforce/schema/buildertek__Project__c.General_Contractor__r.BillingCountry';
+import NOTICE_SUBMITTED_FIELD from '@salesforce/schema/buildertek__Project__c.Notice_To_Proceed_Submitted__c';
+import NOTICE_SUBMITTED_DATE_FIELD from '@salesforce/schema/buildertek__Project__c.Notice_To_Proceed_Submitted_Date__c';
 
 const FIELDS = [
     CASE_NO_FIELD,
@@ -33,7 +35,9 @@ const FIELDS = [
     CONTRACTOR_BILLING_CITY_FIELD,
     CONTRACTOR_BILLING_STATE_FIELD,
     CONTRACTOR_BILLING_POSTAL_FIELD,
-    CONTRACTOR_BILLING_COUNTRY_FIELD
+    CONTRACTOR_BILLING_COUNTRY_FIELD,
+    NOTICE_SUBMITTED_FIELD,
+    NOTICE_SUBMITTED_DATE_FIELD
 ];
 
 export default class NoticeToProceedLwc extends LightningElement {
@@ -44,6 +48,7 @@ export default class NoticeToProceedLwc extends LightningElement {
 
     @track isLoading = true;
     @track isSubmitted = false;
+    @track isAlreadySubmitted = false;
     @track logoURL;
     @track noticeData = {};
 
@@ -66,6 +71,8 @@ export default class NoticeToProceedLwc extends LightningElement {
         if (data) {
             const projectAddress = this.buildProjectLocation(data);
             const contractorAddress = this.buildContractorAddress(data);
+            const isNoticeSubmitted = !!getFieldValue(data, NOTICE_SUBMITTED_FIELD);
+            const submittedDate = getFieldValue(data, NOTICE_SUBMITTED_DATE_FIELD);
 
             this.noticeData = {
                 ...this.noticeData,
@@ -76,6 +83,11 @@ export default class NoticeToProceedLwc extends LightningElement {
                 telephone: getFieldValue(data, CONTRACTOR_PHONE_FIELD) || '',
                 contractorAddress: contractorAddress
             };
+
+            if (isNoticeSubmitted && submittedDate) {
+                this.isSubmitted = true;
+                this.isAlreadySubmitted = true;
+            }
         } else if (error) {
             this.noticeData = {};
         }

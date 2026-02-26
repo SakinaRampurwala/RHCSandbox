@@ -14,8 +14,14 @@
             <template if:true={isSubmitted}>
                 <div class="content-inner success-container">
                     <lightning-icon icon-name="action:approval" size="large" alternative-text="Success"></lightning-icon>
-                    <h2 class="slds-text-heading_large slds-m-top_medium">Thank You!</h2>
-                    <p class="slds-text-heading_small slds-m-top_medium">Notice To Proceed has been submitted successfully.</p>
+                    <template if:false={isAlreadySubmitted}>
+                        <h2 class="slds-text-heading_large slds-m-top_medium">Thank You!</h2>
+                        <p class="slds-text-heading_small slds-m-top_medium">Notice To Proceed has been submitted successfully.</p>
+                    </template>
+                    <template if:true={isAlreadySubmitted}>
+                        <h2 class="slds-text-heading_large slds-m-top_medium">Already Submitted</h2>
+                        <p class="slds-text-heading_small slds-m-top_medium">Notice To Proceed has already been submitted for this record.</p>
+                    </template>
                 </div>
             </template>
 
