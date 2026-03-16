@@ -82,7 +82,7 @@
         </div>
 
         <div class="signature-section">
-            <div class="signature-title">Home Owner Signature</div>
+            <div class="signature-title">Home Owner Signature 1</div>
             <div class="signature-box">
                 <apex:image value="{!vfImgUrl}" rendered="{!NOT(ISBLANK(vfImgUrl))}"/>
             </div>
@@ -97,7 +97,7 @@
         </div>
 
         <div class="signature-section">
-            <div class="signature-title">Home Owner Signature</div>
+            <div class="signature-title">Home Owner Signature 2</div>
             <div class="signature-box">
                 <apex:image value="{!vfCoSignerImgUrl}" rendered="{!NOT(ISBLANK(vfCoSignerImgUrl))}"/>
             </div>
