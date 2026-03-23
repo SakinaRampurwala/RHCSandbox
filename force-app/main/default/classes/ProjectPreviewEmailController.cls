@@ -37,7 +37,8 @@ public without sharing class ProjectPreviewEmailController {
         }
         Map<String, String> templateMap = new Map<String, String>{
             'ProjectImprovementProgramPhotoRelease' => 'Project_Improvement_Program_Photo_Release',
-            'NoticeToProceed' => 'Notice_To_Proceed'
+            'NoticeToProceed' => 'Notice_To_Proceed',
+            'FinalInspectionForm' => 'Final_Inspection_Form'
         };
         String resolvedTemplateApiName = templateMap.containsKey(vfApiName) ? templateMap.get(vfApiName) : vfApiName;
 

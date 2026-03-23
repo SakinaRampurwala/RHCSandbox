@@ -1,0 +1,129 @@
+<template>
+    <template if:true={isLoading}>
+        <div class="slds-spinner_container" style="position:fixed;">
+            <div class="slds-spinner--brand slds-spinner slds-spinner--large slds-is-relative" role="alert">
+                <span class="slds-assistive-text">Loading</span>
+                <div class="slds-spinner__dot-a"></div>
+                <div class="slds-spinner__dot-b"></div>
+            </div>
+        </div>
+    </template>
+
+    <template if:false={isLoading}>
+        <div class="main-wrapper">
+            <div class="slds-container_large slds-container_center">
+                <template if:true={isSubmitted}>
+                    <div class="content-inner success-container">
+                        <lightning-icon icon-name="action:approval" size="large" alternative-text="Success"></lightning-icon>
+                        <template if:false={isAlreadySubmitted}>
+                            <h2 class="slds-text-heading_large slds-m-top_medium">Thank You!</h2>
+                            <p class="slds-text-heading_small slds-m-top_medium">Final Inspection Form has been submitted successfully.</p>
+                        </template>
+                        <template if:true={isAlreadySubmitted}>
+                            <h2 class="slds-text-heading_large slds-m-top_medium">Already Submitted</h2>
+                            <p class="slds-text-heading_small slds-m-top_medium">Final Inspection Form has already been submitted for this record.</p>
+                        </template>
+                    </div>
+                </template>
+
+                <template if:false={isSubmitted}>
+                    <div class="main-container">
+                        <div class="header-container slds-grid slds-wrap">
+                            <div class="slds-col slds-size_1-of-2 slds-text-align_left">
+                                <template if:true={logoURL}>
+                                    <img class="header-logo" src={logoURL} alt="Logo" />
+                                </template>
+                            </div>
+                        </div>
+
+                        <div class="doc-title">CERTIFICATION OF COMPLETION/FINAL INSPECTION</div>
+
+                        <div class="info-block">
+                            <div class="info-row">
+                                <span class="info-label">Homeowner Name:</span>
+                                <span class="info-value">{inspectionData.homeownerName}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Homeowner Address:</span>
+                                <span class="info-value">{inspectionData.homeownerAddress}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Final Inspection Date:</span>
+                                <span class="info-value">{inspectionData.finalInspectionDate}</span>
+                            </div>
+                        </div>
+
+                        <div class="section-title">HOMEOWNER'S CERTIFICATION</div>
+                        <p class="section-paragraph">
+                            I understand that the warranty lasts one year from today and that it only covers
+                            materials and work performed under this contract. Construction work for my
+                            property has been satisfactorily completed in accordance with my contract.
+                        </p>
+
+                        <div class="signature-section">
+                            <label class="signature-label">Homeowner Signature</label>
+                            <div class="signature-container">
+                                <canvas class={signatureCanvasClass}
+                                    data-signature-id="homeowner"
+                                    onmousedown={handleMouseDown}
+                                    onmousemove={handleMouseMove}
+                                    onmouseup={handleMouseUp}
+                                    onmouseout={handleMouseUp}
+                                    ontouchstart={handleTouchStart}
+                                    ontouchmove={handleTouchMove}
+                                    ontouchend={handleTouchEnd}>
+                                </canvas>
+                            </div>
+                            <div class="signature-buttons">
+                                <button class="clear-link" data-signature-id="homeowner" onclick={clearSignature} disabled={isReadOnly}>Clear Signature</button>
+                            </div>
+
+                        </div>
+
+                        <div class="section-title">CERTIFICATION OF FINAL INSPECTION</div>
+                        <p class="section-paragraph">
+                            The final inspection has been made by the PROGRAM Rehabilitation Specialist of
+                            the property identified above. The construction work has been completed in
+                            accordance with the scope of work and contract*.
+                        </p>
+
+                        <div class="signature-section">
+                            <label class="signature-label">Program Representative Signature</label>
+                            <div class="signature-container">
+                                <canvas class={signatureCanvasClass}
+                                    data-signature-id="representative"
+                                    onmousedown={handleMouseDown}
+                                    onmousemove={handleMouseMove}
+                                    onmouseup={handleMouseUp}
+                                    onmouseout={handleMouseUp}
+                                    ontouchstart={handleTouchStart}
+                                    ontouchmove={handleTouchMove}
+                                    ontouchend={handleTouchEnd}>
+                                </canvas>
+                            </div>
+                            <div class="signature-buttons">
+                                <button class="clear-link" data-signature-id="representative" onclick={clearSignature} disabled={isReadOnly}>Clear Signature</button>
+                            </div>
+
+                        </div>
+
+                        <div class="footer-note">
+                            *Building permit inspections are the responsibility of the issuing municipal entity
+                            and cannot be approved by the Rehabilitation Specialist.
+                        </div>
+
+                        <div class="submit-row">
+                            <lightning-button
+                                class="submit-button"
+                                variant="brand"
+                                label="Submit"
+                                onclick={handleSubmit}
+                                disabled={isSubmitDisabled}>
+                            </lightning-button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </template>
+</template>

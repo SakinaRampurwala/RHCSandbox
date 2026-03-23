@@ -37,6 +37,10 @@ export default class ProjectPreviewEmail extends LightningElement {
         {
             label: 'Notice To Proceed',
             value: 'NoticeToProceed'
+        },
+        {
+            label: 'Final Inspection Form',
+            value: 'FinalInspectionForm'
         }
     ];
     @track orgWideEmailOptions = [];
@@ -987,11 +991,9 @@ export default class ProjectPreviewEmail extends LightningElement {
     }
 
     closeModal() {
-        getRecordNotifyChange([{ recordId: this.recordId }]);
-            
-        setTimeout(() => {
-            eval("$A.get('e.force:refreshView').fire();");
-        }, 500);
+        if (this.recordId) {
+            getRecordNotifyChange([{ recordId: this.recordId }]);
+        }
         
         this.dispatchEvent(new CloseActionScreenEvent());
     }

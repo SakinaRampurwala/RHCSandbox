@@ -1,0 +1,139 @@
+<apex:page controller="FinalInspectionFormCtrl" action="{!initPdf}" renderAs="pdf" sidebar="false" showHeader="false" applyHtmlTag="false" applyBodyTag="false" standardStylesheets="false">
+    <html>
+    <head>
+        <style type="text/css">
+            @page {
+                margin: 0.6in;
+                size: letter;
+            }
+            body {
+                font-family: "Times New Roman", Times, serif;
+                font-size: 12pt;
+                color: #000;
+                line-height: 1.35;
+            }
+            .header-logo {
+                width: 190px;
+                max-width: 100%;
+                height: auto;
+                margin-bottom: 10px;
+            }
+            .doc-title {
+                text-align: center;
+                font-size: 14pt;
+                font-weight: bold;
+                margin: 4px 0 18px;
+                text-transform: uppercase;
+            }
+            .info-row {
+                margin-bottom: 8px;
+            }
+            .info-label {
+                font-weight: bold;
+                display: inline-block;
+                width: 180px;
+            }
+            .line {
+                display: inline-block;
+                border-bottom: 1px solid #000;
+                min-width: 260px;
+                padding-bottom: 1px;
+            }
+            .section-title {
+                font-weight: bold;
+                margin: 16px 0 8px;
+            }
+            .signature-wrap {
+                margin-top: 12px;
+            }
+            .signature-title {
+                font-weight: bold;
+                margin-bottom: 4px;
+            }
+            .signature-box {
+                height: 110px;
+                border: 1px solid #000;
+                padding: 6px;
+                box-sizing: border-box;
+                width: 100%;
+                overflow: hidden;
+                line-height: 0;
+            }
+            .signature-image {
+                width: 100%;
+                height: 100%;
+                display: block;
+            }
+            .signature-line {
+                margin-top: 10px;
+            }
+            .date-label {
+                font-weight: bold;
+                margin-right: 8px;
+            }
+            .footer-note {
+                margin-top: 14px;
+                font-size: 10pt;
+            }
+        </style>
+    </head>
+    <body>
+        <apex:image value="{!logoUrl}" rendered="{!logoUrl != null}" styleClass="header-logo"/>
+
+        <div class="doc-title">CERTIFICATION OF COMPLETION/FINAL INSPECTION</div>
+
+        <div class="info-row">
+            <span class="info-label">Homeowner Name:</span>
+            <span class="line">{!vfInspectionData.homeownerName}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Homeowner Address:</span>
+            <span class="line" style="min-width: 340px;">{!vfInspectionData.homeownerAddress}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Final Inspection Date:</span>
+            <span class="line">{!vfInspectionData.finalInspectionDate}</span>
+        </div>
+
+        <div class="section-title">HOMEOWNER'S CERTIFICATION</div>
+        <div>
+            I understand that the warranty lasts one year from today and that it only covers
+            materials and work performed under this contract. Construction work for my
+            property has been satisfactorily completed in accordance with my contract.
+        </div>
+
+        <div class="signature-wrap">
+            <div class="signature-title">Homeowner</div>
+            <div class="signature-box">
+                <apex:image value="{!vfHomeownerImgUrl}" rendered="{!NOT(ISBLANK(vfHomeownerImgUrl))}" styleClass="signature-image"/>
+            </div>
+            <div class="signature-line">
+                <span class="date-label">Date:</span>
+                <span class="line">{!currentRecordDate}</span>
+            </div>
+        </div>
+
+        <div class="section-title">CERTIFICATION OF FINAL INSPECTION</div>
+        <div>
+            The final inspection has been made by the PROGRAM Rehabilitation Specialist of
+            the property identified above. The construction work has been completed in
+            accordance with the scope of work and contract*.
+        </div>
+
+        <div class="signature-wrap">
+            <div class="signature-title">Program Representative</div>
+            <div class="signature-box">
+                <apex:image value="{!vfRepresentativeImgUrl}" rendered="{!NOT(ISBLANK(vfRepresentativeImgUrl))}" styleClass="signature-image"/>
+            </div>
+            <div class="signature-line">
+                <span class="date-label">Date:</span>
+                <span class="line">{!currentRecordDate}</span>
+            </div>
+        </div>
+
+        <div class="footer-note">
+            *Building permit inspections are the responsibility of the issuing municipal entity and cannot be approved by the Rehabilitation Specialist.
+        </div>
+    </body>
+    </html>
+</apex:page>
