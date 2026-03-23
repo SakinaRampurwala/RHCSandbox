@@ -49,6 +49,8 @@ export default class ProjectPreviewEmail extends LightningElement {
     @track toContactList = [];
     @track ccContactList = [];
     @track bccContactList = [];
+    @track vendorContactList = [];
+    @track companyContactList = [];
     @track additionalEmailsInput = '';
     @track additionalEmailsList = [];
     @track emailBody = '';
@@ -117,6 +119,10 @@ export default class ProjectPreviewEmail extends LightningElement {
 
     get hasSelectedTemplate() {
         return !!this.selectedTemplateId;
+    }
+
+    get isFinalInspectionForm() {
+        return this.selectedTemplateId === 'FinalInspectionForm';
     }
 
     @wire(getEmailSignature)
@@ -259,6 +265,30 @@ export default class ProjectPreviewEmail extends LightningElement {
         if (!didUpdate) {
             this.updateBodyPreview();
         }
+    }
+
+    handleVendorLookupChange(event) {
+        const detail = event?.detail || {};
+        const selectedRecords = detail.selectedRecords
+            ? detail.selectedRecords
+            : (detail.selectedRecord ? [detail.selectedRecord] : []);
+        this.vendorContactList = this.createContactObj(selectedRecords);
+        this.handleBtnEnable();
+
+        const primaryName = this.vendorContactList.length > 0 ? this.vendorContactList[0].Name : null;
+        const didUpdate = this.applyContactNameToBody(primaryName);
+        if (!didUpdate) {
+            this.updateBodyPreview();
+        }
+    }
+
+    handleCompanyLookupChange(event) {
+        const detail = event?.detail || {};
+        const selectedRecords = detail.selectedRecords
+            ? detail.selectedRecords
+            : (detail.selectedRecord ? [detail.selectedRecord] : []);
+        this.companyContactList = this.createContactObj(selectedRecords);
+        this.handleBtnEnable();
     }
 
     handleCCLookupChange(event) {
@@ -534,8 +564,15 @@ export default class ProjectPreviewEmail extends LightningElement {
         if (!this.selectedTemplateId) {
             errors.push('Please select an email template');
         }
-        
-        if (this.toContactList.length == 0) {
+
+        if (this.isFinalInspectionForm) {
+            if (this.vendorContactList.length == 0) {
+                errors.push('Please add at least one homeowner recipient');
+            }
+            if (this.companyContactList.length == 0) {
+                errors.push('Please select a program representative contact');
+            }
+        } else if (this.toContactList.length == 0) {
             errors.push('Please add at least one recipient');
         }
         
@@ -781,6 +818,10 @@ export default class ProjectPreviewEmail extends LightningElement {
         const uniqueToEmails = (this.toContactList ?? []).map(con => con?.Email);
         const uniqueCcEmails = (this.ccContactList ?? []).map(con => con?.Email);
         const uniqueBccEmails = (this.bccContactList ?? []).map(con => con?.Email);
+        const vendorContactIds = (this.vendorContactList ?? []).map(con => con?.Id);
+        const companyContactIds = (this.companyContactList ?? []).map(con => con?.Id);
+        const vendorEmails = (this.vendorContactList ?? []).map(con => con?.Email);
+        const companyEmails = (this.companyContactList ?? []).map(con => con?.Email);
 
         uniqueCcEmails.push(...this.additionalEmailsList);
         if (this.isCcCurrentUser == true) {
@@ -798,8 +839,14 @@ export default class ProjectPreviewEmail extends LightningElement {
             toEmails: uniqueToEmails,
             ccEmails: uniqueCcEmails,
             bccEmails: uniqueBccEmails,
+            vendorContactIds: vendorContactIds,
+            vendorEmails: vendorEmails,
+            companyContactIds: companyContactIds,
+            companyEmails: companyEmails,
             subject: this.emailSubject,
             htmlBody: this.emailBody,
+            contactNameToken: this.contactNamePlaceholder,
+            lastSelectedContactName: this.lastSelectedContactName,
             useEmailSignature: this.useEmailSignature,
             saveAsActivity: this.saveAsActivity,
             fileIds: fileIds

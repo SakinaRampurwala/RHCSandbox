@@ -4,6 +4,7 @@ import getLogoUrl from '@salesforce/apex/FinalInspectionFormCtrl.getLogoUrl';
 import getFinalInspectionData from '@salesforce/apex/FinalInspectionFormCtrl.getFinalInspectionData';
 import saveSignature from '@salesforce/apex/FinalInspectionFormCtrl.saveSignature';
 import savePdf from '@salesforce/apex/FinalInspectionFormCtrl.savePdf';
+import sendCompanyContactEmail from '@salesforce/apex/FinalInspectionFormCtrl.sendCompanyContactEmail';
 
 export default class FinalInspectionFormLwc extends LightningElement {
     @api isPreview;
@@ -14,12 +15,24 @@ export default class FinalInspectionFormLwc extends LightningElement {
     @track isLoading = true;
     @track isSubmitted = false;
     @track isAlreadySubmitted = false;
+    @track submitTitle = 'Thank You!';
+    @track submitMessage = 'Final Inspection Form has been submitted successfully.';
     @track logoURL;
+    @track homeownerSignatureUrl;
+    @track representativeSignatureUrl;
+    @track homeownerSigned = false;
+    @track representativeSigned = false;
     @track inspectionData = {
         homeownerName: '',
         homeownerAddress: '',
         finalInspectionDate: ''
     };
+    @track isVendor = false;
+    @track isCompany = false;
+    companyContactIds = [];
+    companyEmails = [];
+    fromAddressId;
+    fileIds = [];
 
     canvasMap = {};
     ctxMap = {};
@@ -57,6 +70,14 @@ export default class FinalInspectionFormLwc extends LightningElement {
                 homeownerAddress,
                 finalInspectionDate: finalDate || ''
             };
+            this.homeownerSignatureUrl = data.homeownerSignatureUrl || '';
+            this.representativeSignatureUrl = data.representativeSignatureUrl || '';
+            this.homeownerSigned = !!data.homeownerSigned;
+            this.representativeSigned = !!data.representativeSigned;
+            this.signatureState = {
+                homeowner: this.homeownerSigned || !!this.homeownerSignatureUrl,
+                representative: this.representativeSigned || !!this.representativeSignatureUrl
+            };
             if (data.isFinalInspectionSubmitted) {
                 this.isSubmitted = true;
                 this.isAlreadySubmitted = true;
@@ -72,13 +93,80 @@ export default class FinalInspectionFormLwc extends LightningElement {
     }
 
     connectedCallback() {
+        const params = new URLSearchParams(window.location.search);
+        this.isVendor = params.get('isVendor') === 'true';
+        this.isCompany = params.get('isCompany') === 'true';
+        const companyIdsParam = params.get('companyContactIds');
+        if (companyIdsParam) {
+            this.companyContactIds = companyIdsParam
+                .split(',')
+                .map(item => decodeURIComponent(item).trim())
+                .filter(item => item);
+        }
+        const companyEmailsParam = params.get('companyEmails');
+        if (companyEmailsParam) {
+            this.companyEmails = companyEmailsParam
+                .split(',')
+                .map(item => decodeURIComponent(item).trim())
+                .filter(item => item);
+        }
+        const fromAddressIdParam = params.get('fromAddressId');
+        if (fromAddressIdParam) {
+            this.fromAddressId = decodeURIComponent(fromAddressIdParam).trim();
+        }
+        const fileIdsParam = params.get('fileIds');
+        if (fileIdsParam) {
+            this.fileIds = fileIdsParam
+                .split(',')
+                .map(item => decodeURIComponent(item).trim())
+                .filter(item => item);
+        }
         if (!this.recordId) {
             this.isLoading = false;
         }
     }
 
     get isReadOnly() {
-        return this.isPreview === true || this.isPreview === 'true';
+        const previewFlag = this.isPreview === true || this.isPreview === 'true';
+        if (this.isVendor || this.isCompany || this.isRepresentativeStage) {
+            return false;
+        }
+        return previewFlag;
+    }
+
+    get isRepresentativeStage() {
+        return this.hasHomeownerSignature && !this.hasRepresentativeSignature;
+    }
+
+    get showHomeownerSection() {
+        if (this.isReadOnly) {
+            return true;
+        }
+        if (this.isVendor || this.isCompany) {
+            if (this.isVendor) {
+                return true;
+            }
+            if (this.isCompany) {
+                return this.hasHomeownerSignature;
+            }
+        }
+        if (this.isRepresentativeStage) {
+            return true;
+        }
+        return true;
+    }
+
+    get showRepresentativeSection() {
+        if (this.isReadOnly) {
+            return true;
+        }
+        if (this.isRepresentativeStage) {
+            return true;
+        }
+        if (this.isVendor || this.isCompany) {
+            return this.isCompany;
+        }
+        return true;
     }
 
     get signatureCanvasClass() {
@@ -86,7 +174,35 @@ export default class FinalInspectionFormLwc extends LightningElement {
     }
 
     get isSubmitDisabled() {
-        return this.isReadOnly || !this.signatureState.homeowner || !this.signatureState.representative;
+        if (this.isReadOnly) {
+            return true;
+        }
+        if (this.isVendor || this.isCompany) {
+            if (this.isVendor) {
+                if (this.hasHomeownerSignature) {
+                    return true;
+                }
+                return !this.signatureState.homeowner;
+            }
+            if (this.isCompany) {
+                if (this.hasRepresentativeSignature) {
+                    return true;
+                }
+                return !this.signatureState.representative;
+            }
+        }
+        if (this.isRepresentativeStage) {
+            return !this.signatureState.representative;
+        }
+        return !this.signatureState.homeowner || !this.signatureState.representative;
+    }
+
+    get hasHomeownerSignature() {
+        return this.homeownerSigned || !!this.homeownerSignatureUrl;
+    }
+
+    get hasRepresentativeSignature() {
+        return this.representativeSigned || !!this.representativeSignatureUrl;
     }
 
     formatAddress({ street, city, state, postal, country }) {
@@ -136,7 +252,7 @@ export default class FinalInspectionFormLwc extends LightningElement {
 
         this.isDrawing = true;
         this.activeSignatureId = signatureId;
-        this.signatureState[signatureId] = true;
+        this.signatureState = { ...this.signatureState, [signatureId]: true };
 
         const canvas = this.canvasMap[signatureId];
         const ctx = this.ctxMap[signatureId];
@@ -156,8 +272,13 @@ export default class FinalInspectionFormLwc extends LightningElement {
         ctx.stroke();
     }
 
-    handleMouseUp() {
+    handleMouseUp(event) {
         this.isDrawing = false;
+        const signatureId = event?.target?.dataset?.signatureId || this.activeSignatureId;
+        if (signatureId && this.canvasMap[signatureId]) {
+            const hasSignature = this.hasSignatureOnCanvas(this.canvasMap[signatureId]);
+            this.signatureState = { ...this.signatureState, [signatureId]: hasSignature };
+        }
         this.activeSignatureId = null;
     }
 
@@ -205,52 +326,122 @@ export default class FinalInspectionFormLwc extends LightningElement {
         const canvas = this.canvasMap[signatureId];
         const ctx = this.ctxMap[signatureId];
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        this.signatureState[signatureId] = false;
+        this.signatureState = { ...this.signatureState, [signatureId]: false };
+    }
+
+    hasSignatureOnCanvas(canvas) {
+        if (!canvas) {
+            return false;
+        }
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+            return false;
+        }
+        const pixelData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        for (let i = 3; i < pixelData.data.length; i += 4) {
+            if (pixelData.data[i] !== 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     handleSubmit() {
-        this.isLoading = true;
-
-        const homeownerCanvas = this.canvasMap.homeowner;
-        const representativeCanvas = this.canvasMap.representative;
-        if (!homeownerCanvas || !representativeCanvas) {
-            this.isLoading = false;
+        if (this.isReadOnly) {
             return;
         }
 
-        const homeownerSignatureBody = homeownerCanvas
-            .toDataURL('image/png')
-            .replace(/^data:image\/(png|jpg);base64,/, '');
-        const representativeSignatureBody = representativeCanvas
-            .toDataURL('image/png')
-            .replace(/^data:image\/(png|jpg);base64,/, '');
+        const signaturePromises = [];
+        const signatureResults = {};
 
-        Promise.all([
-            saveSignature({
-                recordId: this.recordId,
-                signatureBody: homeownerSignatureBody,
-                signatureLabel: 'Homeowner'
-            }),
-            saveSignature({
-                recordId: this.recordId,
-                signatureBody: representativeSignatureBody,
-                signatureLabel: 'Program Representative'
-            })
-        ])
-            .then(([homeownerResult, repResult]) => {
+        const collectSignature = (signatureId, label, existingUrl, warningMessage) => {
+            const canvas = this.canvasMap[signatureId];
+            if (canvas && this.hasSignatureOnCanvas(canvas)) {
+                const signatureBody = canvas.toDataURL('image/png').replace(/^data:image\/(png|jpg);base64,/, '');
+                signaturePromises.push(
+                    saveSignature({
+                        recordId: this.recordId,
+                        signatureBody,
+                        signatureLabel: label
+                    }).then((result) => {
+                        signatureResults[signatureId] = result;
+                    })
+                );
+                return true;
+            }
+
+            if (existingUrl) {
+                signatureResults[signatureId] = { imgUrl: existingUrl, cvId: '' };
+                return true;
+            }
+
+            this.dispatchEvent(
+                new ShowToastEvent({
+                    title: 'Warning',
+                    message: warningMessage,
+                    variant: 'warning'
+                })
+            );
+            return false;
+        };
+
+        if (this.showHomeownerSection) {
+            const ok = collectSignature(
+                'homeowner',
+                'Homeowner',
+                this.homeownerSignatureUrl,
+                'Please provide the homeowner signature before submitting.'
+            );
+            if (!ok) {
+                return;
+            }
+        }
+
+        if (this.showRepresentativeSection) {
+            const ok = collectSignature(
+                'representative',
+                'Program Representative',
+                this.representativeSignatureUrl,
+                'Please provide the program representative signature before submitting.'
+            );
+            if (!ok) {
+                return;
+            }
+        }
+
+        const hasAnySignature = signaturePromises.length > 0
+            || signatureResults.homeowner
+            || signatureResults.representative;
+        if (!hasAnySignature) {
+            this.dispatchEvent(
+                new ShowToastEvent({
+                    title: 'Warning',
+                    message: 'No signature found to save.',
+                    variant: 'warning'
+                })
+            );
+            return;
+        }
+
+        this.isLoading = true;
+
+        Promise.all(signaturePromises)
+            .then(() => {
                 return savePdf({
                     recordId: this.recordId,
                     senderId: this.senderId,
                     sendDate: this.sendDate,
-                    homeownerImgUrl: homeownerResult?.imgUrl || '',
-                    representativeImgUrl: repResult?.imgUrl || '',
-                    homeownerSignatureId: homeownerResult?.cvId || '',
-                    representativeSignatureId: repResult?.cvId || ''
+                    homeownerImgUrl: signatureResults.homeowner?.imgUrl || this.homeownerSignatureUrl || '',
+                    representativeImgUrl: signatureResults.representative?.imgUrl || this.representativeSignatureUrl || '',
+                    homeownerSignatureId: signatureResults.homeowner?.cvId || '',
+                    representativeSignatureId: signatureResults.representative?.cvId || ''
                 });
             })
             .then((result) => {
                 if (result === 'Success') {
                     this.isSubmitted = true;
+                    this.submitTitle = 'Thank You!';
+                    this.submitMessage = 'Final Inspection Form has been submitted successfully.';
                     this.dispatchEvent(
                         new ShowToastEvent({
                             title: 'Success',
@@ -258,6 +449,60 @@ export default class FinalInspectionFormLwc extends LightningElement {
                             variant: 'success'
                         })
                     );
+                    return;
+                }
+
+                if (result === 'Already Submitted') {
+                    this.isSubmitted = true;
+                    this.isAlreadySubmitted = true;
+                    this.dispatchEvent(
+                        new ShowToastEvent({
+                            title: 'Already Submitted',
+                            message: 'Final Inspection Form has already been submitted for this record.',
+                            variant: 'info'
+                        })
+                    );
+                    return;
+                }
+
+                if (result === 'Missing Signatures') {
+                    if (this.isVendor) {
+                        return sendCompanyContactEmail({
+                            recordId: this.recordId,
+                            companyContactIds: this.companyContactIds,
+                            companyEmails: this.companyEmails,
+                            senderId: this.senderId,
+                            sendDate: this.sendDate,
+                            fromAddressId: this.fromAddressId,
+                            fileIds: this.fileIds
+                        }).then((sendResult) => {
+                            if (sendResult && sendResult !== 'Success') {
+                                throw new Error(sendResult);
+                            }
+                            this.isSubmitted = true;
+                            this.submitTitle = 'Thank You!';
+                            this.submitMessage = 'Your signature has been saved. We will notify the program representative.';
+                            this.dispatchEvent(
+                                new ShowToastEvent({
+                                    title: 'Success',
+                                    message: 'Signature saved. The request has been sent to the program representative.',
+                                    variant: 'success'
+                                })
+                            );
+                        });
+                    }
+
+                    this.isSubmitted = true;
+                    this.submitTitle = 'Thank You!';
+                    this.submitMessage = 'Your signature has been saved. PDF will be generated once all signatures are collected.';
+                    this.dispatchEvent(
+                        new ShowToastEvent({
+                            title: 'Signature Saved',
+                            message: 'Signature saved. PDF will be generated once all signatures are collected.',
+                            variant: 'success'
+                        })
+                    );
+                    return;
                 }
             })
             .catch((error) => {

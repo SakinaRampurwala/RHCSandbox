@@ -1,6 +1,6 @@
 <template>
     <template if:true={isLoading}>
-        <div class="slds-spinner_container" style="position:fixed;">
+        <div class="slds-spinner_container">
             <div class="slds-spinner--brand slds-spinner slds-spinner--large slds-is-relative" role="alert">
                 <span class="slds-assistive-text">Loading</span>
                 <div class="slds-spinner__dot-a"></div>
@@ -16,8 +16,8 @@
                     <div class="content-inner success-container">
                         <lightning-icon icon-name="action:approval" size="large" alternative-text="Success"></lightning-icon>
                         <template if:false={isAlreadySubmitted}>
-                            <h2 class="slds-text-heading_large slds-m-top_medium">Thank You!</h2>
-                            <p class="slds-text-heading_small slds-m-top_medium">Final Inspection Form has been submitted successfully.</p>
+                            <h2 class="slds-text-heading_large slds-m-top_medium">{submitTitle}</h2>
+                            <p class="slds-text-heading_small slds-m-top_medium">{submitMessage}</p>
                         </template>
                         <template if:true={isAlreadySubmitted}>
                             <h2 class="slds-text-heading_large slds-m-top_medium">Already Submitted</h2>
@@ -53,59 +53,75 @@
                             </div>
                         </div>
 
-                        <div class="section-title">HOMEOWNER'S CERTIFICATION</div>
-                        <p class="section-paragraph">
-                            I understand that the warranty lasts one year from today and that it only covers
-                            materials and work performed under this contract. Construction work for my
-                            property has been satisfactorily completed in accordance with my contract.
-                        </p>
+                        <template if:true={showHomeownerSection}>
+                            <div class="section-title">HOMEOWNER'S CERTIFICATION</div>
+                            <p class="section-paragraph">
+                                I understand that the warranty lasts one year from today and that it only covers
+                                materials and work performed under this contract. Construction work for my
+                                property has been satisfactorily completed in accordance with my contract.
+                            </p>
 
-                        <div class="signature-section">
-                            <label class="signature-label">Homeowner Signature</label>
+                            <div class="signature-section">
+                                <label class="signature-label">Homeowner Signature</label>
                             <div class="signature-container">
-                                <canvas class={signatureCanvasClass}
-                                    data-signature-id="homeowner"
-                                    onmousedown={handleMouseDown}
-                                    onmousemove={handleMouseMove}
-                                    onmouseup={handleMouseUp}
-                                    onmouseout={handleMouseUp}
-                                    ontouchstart={handleTouchStart}
-                                    ontouchmove={handleTouchMove}
-                                    ontouchend={handleTouchEnd}>
-                                </canvas>
+                                <template if:true={hasHomeownerSignature}>
+                                    <img src={homeownerSignatureUrl} alt="Homeowner Signature" class="signature-image" />
+                                </template>
+                                <template if:false={hasHomeownerSignature}>
+                                    <canvas class={signatureCanvasClass}
+                                        data-signature-id="homeowner"
+                                        onmousedown={handleMouseDown}
+                                        onmousemove={handleMouseMove}
+                                        onmouseup={handleMouseUp}
+                                        onmouseout={handleMouseUp}
+                                        ontouchstart={handleTouchStart}
+                                        ontouchmove={handleTouchMove}
+                                        ontouchend={handleTouchEnd}>
+                                    </canvas>
+                                </template>
                             </div>
                             <div class="signature-buttons">
-                                <button class="clear-link" data-signature-id="homeowner" onclick={clearSignature} disabled={isReadOnly}>Clear Signature</button>
+                                <template if:false={hasHomeownerSignature}>
+                                    <button class="clear-link" data-signature-id="homeowner" onclick={clearSignature} disabled={isReadOnly}>Clear Signature</button>
+                                </template>
                             </div>
+                            </div>
+                        </template>
 
-                        </div>
+                        <template if:true={showRepresentativeSection}>
+                            <div class="section-title">CERTIFICATION OF FINAL INSPECTION</div>
+                            <p class="section-paragraph">
+                                The final inspection has been made by the PROGRAM Rehabilitation Specialist of
+                                the property identified above. The construction work has been completed in
+                                accordance with the scope of work and contract*.
+                            </p>
 
-                        <div class="section-title">CERTIFICATION OF FINAL INSPECTION</div>
-                        <p class="section-paragraph">
-                            The final inspection has been made by the PROGRAM Rehabilitation Specialist of
-                            the property identified above. The construction work has been completed in
-                            accordance with the scope of work and contract*.
-                        </p>
-
-                        <div class="signature-section">
-                            <label class="signature-label">Program Representative Signature</label>
+                            <div class="signature-section">
+                                <label class="signature-label">Program Representative Signature</label>
                             <div class="signature-container">
-                                <canvas class={signatureCanvasClass}
-                                    data-signature-id="representative"
-                                    onmousedown={handleMouseDown}
-                                    onmousemove={handleMouseMove}
-                                    onmouseup={handleMouseUp}
-                                    onmouseout={handleMouseUp}
-                                    ontouchstart={handleTouchStart}
-                                    ontouchmove={handleTouchMove}
-                                    ontouchend={handleTouchEnd}>
-                                </canvas>
+                                <template if:true={hasRepresentativeSignature}>
+                                    <img src={representativeSignatureUrl} alt="Program Representative Signature" class="signature-image" />
+                                </template>
+                                <template if:false={hasRepresentativeSignature}>
+                                    <canvas class={signatureCanvasClass}
+                                        data-signature-id="representative"
+                                        onmousedown={handleMouseDown}
+                                        onmousemove={handleMouseMove}
+                                        onmouseup={handleMouseUp}
+                                        onmouseout={handleMouseUp}
+                                        ontouchstart={handleTouchStart}
+                                        ontouchmove={handleTouchMove}
+                                        ontouchend={handleTouchEnd}>
+                                    </canvas>
+                                </template>
                             </div>
                             <div class="signature-buttons">
-                                <button class="clear-link" data-signature-id="representative" onclick={clearSignature} disabled={isReadOnly}>Clear Signature</button>
+                                <template if:false={hasRepresentativeSignature}>
+                                    <button class="clear-link" data-signature-id="representative" onclick={clearSignature} disabled={isReadOnly}>Clear Signature</button>
+                                </template>
                             </div>
-
-                        </div>
+                            </div>
+                        </template>
 
                         <div class="footer-note">
                             *Building permit inspections are the responsibility of the issuing municipal entity

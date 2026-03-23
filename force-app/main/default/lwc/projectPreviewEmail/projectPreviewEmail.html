@@ -50,77 +50,117 @@
                         </lightning-combobox>
                     </div>
 
-                    <div class="slds-form-element slds-m-bottom_medium">
-                        <label class="slds-form-element__label">
-                            <abbr class="slds-required" title="required">*</abbr>To
-                        </label>
-                        <c-generic-lookup 
-                            objectname="Contact" 
-                            field-names="Id, Name, Email"
-                            search-condition="Email != null"
-                            first-field-to-display="Name" 
-                            second-field-to-display="Email"
-                            icon-name="standard:contact" 
-                            placeholder="Search Contact..."
-                            is-multi-select="true"
-                            default-selected-records={toContactList}
-                            onselected={handleToLookupChange}>
-                        </c-generic-lookup>
-                    </div>
-
-                    <div class="slds-form-element slds-m-bottom_medium">
-                        <label class="slds-form-element__label">CC</label>
-                        <c-generic-lookup 
-                            objectname="Contact" 
-                            field-names="Id, Name, Email"
-                            search-condition="Email != null"
-                            first-field-to-display="Name" 
-                            second-field-to-display="Email"
-                            icon-name="standard:contact" 
-                            placeholder="Search Contact..."
-                            is-multi-select="true"
-                            onselected={handleCCLookupChange}>
-                        </c-generic-lookup>
-                    </div>
-
-                    <div>
-                        <lightning-input type="checkbox" label="CC Current User" onchange={handleCcCurrentUser}></lightning-input>
-                    </div>
-
-                    <div class="slds-form-element slds-m-bottom_medium">
-                        <label class="slds-form-element__label">BCC</label>
-                        <c-generic-lookup 
-                            objectname="Contact" 
-                            field-names="Id, Name, Email"
-                            search-condition="Email != null"
-                            first-field-to-display="Name" 
-                            second-field-to-display="Email"
-                            icon-name="standard:contact" 
-                            placeholder="Search Contact..."
-                            is-multi-select="true"
-                            onselected={handleBCCLookupChange}>
-                        </c-generic-lookup>
-                    </div>
-
-                    <div class="slds-form-element slds-m-bottom_medium">
-                        <label class="slds-form-element__label">Additional Emails (comma-separated emails)</label>
-                        <lightning-input
-                            class="additional-email-input-cls"
-                            variant="label-hidden"
-                            type="text"
-                            value={additionalEmailsInput}
-                            placeholder="Enter CC email addresses separated by commas"
-                            onchange={handleAdditionalEmailsChange}>
-                        </lightning-input>
-
-                        <div class="selected-contacts slds-m-top_x-small">
-                            <template for:each={additionalEmailsList} for:item="email" for:index="index">
-                                <lightning-pill key={email} label={email} name={index} onremove={handleRemoveAdditionalEmail}>
-                                    <lightning-icon slot="media" icon-name="utility:email" size="x-small"></lightning-icon>
-                                </lightning-pill>
-                            </template>
+                    <template if:true={isFinalInspectionForm}>
+                        <div class="slds-form-element slds-m-bottom_medium">
+                            <label class="slds-form-element__label">
+                            <abbr class="slds-required" title="required">*</abbr>Homeowner
+                            </label>
+                            <c-generic-lookup 
+                                objectname="Contact" 
+                                field-names="Id, Name, Email"
+                                search-condition="Email != null"
+                                first-field-to-display="Name" 
+                                second-field-to-display="Email"
+                                icon-name="standard:contact" 
+                                placeholder="Search Homeowner Contact..."
+                                is-multi-select="true"
+                                default-selected-records={vendorContactList}
+                                onselected={handleVendorLookupChange}>
+                            </c-generic-lookup>
                         </div>
-                    </div>
+
+                        <div class="slds-form-element slds-m-bottom_medium">
+                            <label class="slds-form-element__label">
+                            <abbr class="slds-required" title="required">*</abbr>Program Representative
+                            </label>
+                            <c-generic-lookup 
+                                objectname="Contact" 
+                                field-names="Id, Name, Email"
+                                search-condition="Email != null"
+                                first-field-to-display="Name" 
+                                second-field-to-display="Email"
+                                icon-name="standard:contact" 
+                                placeholder="Search Program Representative..."
+                                is-multi-select="true"
+                                default-selected-records={companyContactList}
+                                onselected={handleCompanyLookupChange}>
+                            </c-generic-lookup>
+                        </div>
+                    </template>
+
+                    <template if:false={isFinalInspectionForm}>
+                        <div class="slds-form-element slds-m-bottom_medium">
+                            <label class="slds-form-element__label">
+                                <abbr class="slds-required" title="required">*</abbr>To
+                            </label>
+                            <c-generic-lookup 
+                                objectname="Contact" 
+                                field-names="Id, Name, Email"
+                                search-condition="Email != null"
+                                first-field-to-display="Name" 
+                                second-field-to-display="Email"
+                                icon-name="standard:contact" 
+                                placeholder="Search Contact..."
+                                is-multi-select="true"
+                                default-selected-records={toContactList}
+                                onselected={handleToLookupChange}>
+                            </c-generic-lookup>
+                        </div>
+
+                        <div class="slds-form-element slds-m-bottom_medium">
+                            <label class="slds-form-element__label">CC</label>
+                            <c-generic-lookup 
+                                objectname="Contact" 
+                                field-names="Id, Name, Email"
+                                search-condition="Email != null"
+                                first-field-to-display="Name" 
+                                second-field-to-display="Email"
+                                icon-name="standard:contact" 
+                                placeholder="Search Contact..."
+                                is-multi-select="true"
+                                onselected={handleCCLookupChange}>
+                            </c-generic-lookup>
+                        </div>
+
+                        <div>
+                            <lightning-input type="checkbox" label="CC Current User" onchange={handleCcCurrentUser}></lightning-input>
+                        </div>
+
+                        <div class="slds-form-element slds-m-bottom_medium">
+                            <label class="slds-form-element__label">BCC</label>
+                            <c-generic-lookup 
+                                objectname="Contact" 
+                                field-names="Id, Name, Email"
+                                search-condition="Email != null"
+                                first-field-to-display="Name" 
+                                second-field-to-display="Email"
+                                icon-name="standard:contact" 
+                                placeholder="Search Contact..."
+                                is-multi-select="true"
+                                onselected={handleBCCLookupChange}>
+                            </c-generic-lookup>
+                        </div>
+
+                        <div class="slds-form-element slds-m-bottom_medium">
+                            <label class="slds-form-element__label">Additional Emails (comma-separated emails)</label>
+                            <lightning-input
+                                class="additional-email-input-cls"
+                                variant="label-hidden"
+                                type="text"
+                                value={additionalEmailsInput}
+                                placeholder="Enter CC email addresses separated by commas"
+                                onchange={handleAdditionalEmailsChange}>
+                            </lightning-input>
+
+                            <div class="selected-contacts slds-m-top_x-small">
+                                <template for:each={additionalEmailsList} for:item="email" for:index="index">
+                                    <lightning-pill key={email} label={email} name={index} onremove={handleRemoveAdditionalEmail}>
+                                        <lightning-icon slot="media" icon-name="utility:email" size="x-small"></lightning-icon>
+                                    </lightning-pill>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
 
                     <div class="slds-form-element slds-m-bottom_medium">
                         <label class="slds-form-element__label">
