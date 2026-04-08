@@ -41,6 +41,10 @@ public without sharing class FinalInspectionFormCtrl {
 
     @AuraEnabled(cacheable=true)
     public static FinalInspectionData getFinalInspectionData(Id recordId) {
+        return getFinalInspectionData(recordId, false);
+    }
+
+    public static FinalInspectionData getFinalInspectionData(Id recordId, Boolean skipSignatureDml) {
         FinalInspectionData data = new FinalInspectionData();
         data.isFinalInspectionSubmitted = false;
         if (recordId == null) {
@@ -123,12 +127,12 @@ public without sharing class FinalInspectionFormCtrl {
             data.representativeSigned = String.isNotBlank(representativeSignId);
 
             String homeownerVersionId = resolveContentVersionId(homeownerSignId);
-            if (String.isNotBlank(homeownerVersionId)) {
+            if (String.isNotBlank(homeownerVersionId) && !skipSignatureDml) {
                 data.homeownerSignatureUrl = getOrCreateDistributionUrl((Id) homeownerVersionId);
             }
 
             String representativeVersionId = resolveContentVersionId(representativeSignId);
-            if (String.isNotBlank(representativeVersionId)) {
+            if (String.isNotBlank(representativeVersionId) && !skipSignatureDml) {
                 data.representativeSignatureUrl = getOrCreateDistributionUrl((Id) representativeVersionId);
             }
 
@@ -179,6 +183,7 @@ public without sharing class FinalInspectionFormCtrl {
             cd.Name = 'Final Inspection ' + safeLabel;
             cd.ContentVersionId = cv.Id;
             cd.PreferencesAllowViewInBrowser = true;
+            cd.PreferencesNotifyOnVisit = false;
             Database.SaveResult cdResult = Database.insert(cd, false);
 
             Map<String, String> result = new Map<String, String>();
@@ -258,6 +263,7 @@ public without sharing class FinalInspectionFormCtrl {
             pdfCdl.ContentDocumentId = pdfDocId;
             pdfCdl.LinkedEntityId = recordId;
             pdfCdl.ShareType = 'V';
+            pdfCdl.Visibility = 'AllUsers';
             insert pdfCdl;
 
             cleanupSignatureFile(resolved.homeownerSignatureId);
@@ -460,6 +466,7 @@ public without sharing class FinalInspectionFormCtrl {
         cd.Name = 'Final Inspection Signature';
         cd.ContentVersionId = contentVersionId;
         cd.PreferencesAllowViewInBrowser = true;
+        cd.PreferencesNotifyOnVisit = false;
         Database.SaveResult sr = Database.insert(cd, false);
         if (sr.isSuccess()) {
             ContentDistribution saved = [
@@ -905,6 +912,7 @@ public without sharing class FinalInspectionFormCtrl {
     public String vfRecordId { get; set; }
     public String vfHomeownerImgUrl { get; set; }
     public String vfRepresentativeImgUrl { get; set; }
+    public String vfHomeownerAddress { get; set; }
     public String logoUrl { get; set; }
     public String currentRecordDate { get; set; }
 
@@ -923,10 +931,32 @@ public without sharing class FinalInspectionFormCtrl {
         vfHomeownerImgUrl = ApexPages.currentPage().getParameters().get('homeownerImgUrl');
         vfRepresentativeImgUrl = ApexPages.currentPage().getParameters().get('representativeImgUrl');
 
-        vfInspectionData = getFinalInspectionData(vfRecordId);
+        vfInspectionData = getFinalInspectionData((Id) vfRecordId, true);
         if (vfInspectionData == null) {
             vfInspectionData = new FinalInspectionData();
         }
+
+        // Assemble the homeowner address string the same way the LWC JS formatAddress() does
+        String safeStreet = safe(vfInspectionData.homeownerStreet);
+        String safeCity   = safe(vfInspectionData.homeownerCity);
+        String safeState  = safe(vfInspectionData.homeownerState);
+        String safePostal = safe(vfInspectionData.homeownerPostal);
+        String safeCountry = safe(vfInspectionData.homeownerCountry);
+
+        List<String> cityStateParts = new List<String>();
+        if (String.isNotBlank(safeCity))  { cityStateParts.add(safeCity); }
+        if (String.isNotBlank(safeState)) { cityStateParts.add(safeState); }
+        String cityState = String.join(cityStateParts, ' ');
+
+        List<String> firstParts = new List<String>();
+        if (String.isNotBlank(safeStreet))  { firstParts.add(safeStreet); }
+        if (String.isNotBlank(cityState))   { firstParts.add(cityState); }
+        String firstPart = String.join(firstParts, ', ');
+
+        String zipPart     = String.isNotBlank(safePostal)  ? ' - ' + safePostal  : '';
+        String countryPart = String.isNotBlank(safeCountry) ? ', ' + safeCountry  : '';
+        vfHomeownerAddress = (firstPart + zipPart + countryPart).trim();
+
         logoUrl = getLogoUrl();
         currentRecordDate = System.now().format('MM-dd-yyyy');
     }

@@ -1,33 +1,26 @@
 <template>
-    <template if:true={isLoading}>
-        <div class="slds-spinner_container" style="position:fixed;">
-            <div class="slds-spinner--brand slds-spinner slds-spinner--large slds-is-relative" role="alert">
-                <span class="slds-assistive-text">Loading</span>
-                <div class="slds-spinner__dot-a"></div>
-                <div class="slds-spinner__dot-b"></div>
-            </div>
-        </div>
-    </template>
+    <div class="main-wrapper slds-is-relative">
+        <template if:true={isLoading}>
+            <lightning-spinner alternative-text="Loading" size="large" variant="brand"></lightning-spinner>
+        </template>
 
-    <template if:false={isLoading}>
-        <div class="main-wrapper">
-            <div class="slds-container_large slds-container_center">
-                <template if:true={isSubmitted}>
-                    <div class="content-inner success-container">
-                        <lightning-icon icon-name="action:approval" size="large" alternative-text="Success"></lightning-icon>
-                        <template if:false={isAlreadySubmitted}>
-                            <h2 class="slds-text-heading_large slds-m-top_medium">Thank You!</h2>
-                            <p class="slds-text-heading_small slds-m-top_medium">Notice To Proceed has been submitted successfully.</p>
-                        </template>
-                        <template if:true={isAlreadySubmitted}>
-                            <h2 class="slds-text-heading_large slds-m-top_medium">Already Submitted</h2>
-                            <p class="slds-text-heading_small slds-m-top_medium">Notice To Proceed has already been submitted for this record.</p>
-                        </template>
-                    </div>
-                </template>
+        <div class="slds-container_large slds-container_center">
+            <template if:true={showThankYouPage}>
+                <div class="content-inner success-container">
+                    <lightning-icon icon-name="action:approval" size="large" alternative-text="Success"></lightning-icon>
+                    <template if:false={isAlreadySubmitted}>
+                        <h2 class="slds-text-heading_large slds-m-top_medium">{submitTitle}</h2>
+                        <p class="slds-text-heading_small slds-m-top_medium">{submitMessage}</p>
+                    </template>
+                    <template if:true={isAlreadySubmitted}>
+                        <h2 class="slds-text-heading_large slds-m-top_medium">Already Submitted</h2>
+                        <p class="slds-text-heading_small slds-m-top_medium">Notice To Proceed has already been submitted for this record.</p>
+                    </template>
+                </div>
+            </template>
 
-                <template if:false={isSubmitted}>
-                    <div class="main-container">
+            <template if:false={showThankYouPage}>
+                <div class="main-container">
                     <div class="header-container slds-grid slds-wrap">
                         <div class="slds-col slds-size_1-of-2 slds-text-align_left">
                             <template if:true={logoURL}>
@@ -92,24 +85,92 @@
                         </tr>
                     </table>
 
-                    <div class="signature-section">
-                        <label class="signature-label">Signed:</label>
-                        <div class="signature-container">
-                            <canvas class={signatureCanvasClass}
-                                onmousedown={handleMouseDown}
-                                onmousemove={handleMouseMove}
-                                onmouseup={handleMouseUp}
-                                onmouseout={handleMouseUp}
-                                ontouchstart={handleTouchStart}
-                                ontouchmove={handleTouchMove}
-                                ontouchend={handleTouchEnd}>
-                            </canvas>
+                    <!-- Property Owner Signature — shown only when isPropertyOwner=true (or admin/preview) -->
+                    <template if:true={showPropertyOwnerSection}>
+                        <div class="signature-section">
+                            <label class="signature-label">Property Owner Signature</label>
+                            <div class="signature-container">
+                                <template if:true={hasPropertyOwnerSignature}>
+                                    <img src={propertyOwnerSignatureUrl} alt="Property Owner Signature" class="signature-image" />
+                                </template>
+                                <template if:false={hasPropertyOwnerSignature}>
+                                    <canvas class={signatureCanvasClass}
+                                        data-signature-id="propertyOwner"
+                                        onmousedown={handleMouseDown}
+                                        onmousemove={handleMouseMove}
+                                        onmouseup={handleMouseUp}
+                                        onmouseout={handleMouseUp}
+                                        ontouchstart={handleTouchStart}
+                                        ontouchmove={handleTouchMove}
+                                        ontouchend={handleTouchEnd}>
+                                    </canvas>
+                                </template>
+                            </div>
+                            <div class="signature-buttons">
+                                <template if:false={hasPropertyOwnerSignature}>
+                                    <button class="clear-link" data-signature-id="propertyOwner" onclick={clearSignature} disabled={isReadOnly}>Clear Signature</button>
+                                </template>
+                            </div>
                         </div>
-                        <div class="signature-buttons">
-                            <button class="clear-link" onclick={clearSignature} disabled={isReadOnly}>Clear Signature</button>
-                        </div>
+                    </template>
 
-                    </div>
+                    <!-- Contractor Representative Signature — shown only when isContractorRep=true (or admin/preview) -->
+                    <template if:true={showContractorRepSection}>
+                        <div class="signature-section">
+                            <label class="signature-label">Contractor Representative Signature</label>
+                            <div class="signature-container">
+                                <template if:true={hasContractorRepSignature}>
+                                    <img src={contractorRepSignatureUrl} alt="Contractor Representative Signature" class="signature-image" />
+                                </template>
+                                <template if:false={hasContractorRepSignature}>
+                                    <canvas class={signatureCanvasClass}
+                                        data-signature-id="contractorRep"
+                                        onmousedown={handleMouseDown}
+                                        onmousemove={handleMouseMove}
+                                        onmouseup={handleMouseUp}
+                                        onmouseout={handleMouseUp}
+                                        ontouchstart={handleTouchStart}
+                                        ontouchmove={handleTouchMove}
+                                        ontouchend={handleTouchEnd}>
+                                    </canvas>
+                                </template>
+                            </div>
+                            <div class="signature-buttons">
+                                <template if:false={hasContractorRepSignature}>
+                                    <button class="clear-link" data-signature-id="contractorRep" onclick={clearSignature} disabled={isReadOnly}>Clear Signature</button>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- Program Representative Signature — shown only when isProgramRep=true (or admin/preview) -->
+                    <template if:true={showProgramRepSection}>
+                        <div class="signature-section">
+                            <label class="signature-label">Home Improvement Program Representative Signature</label>
+                            <div class="signature-container">
+                                <template if:true={hasProgramRepSignature}>
+                                    <img src={programRepSignatureUrl} alt="Program Representative Signature" class="signature-image" />
+                                </template>
+                                <template if:false={hasProgramRepSignature}>
+                                    <canvas class={signatureCanvasClass}
+                                        data-signature-id="programRep"
+                                        onmousedown={handleMouseDown}
+                                        onmousemove={handleMouseMove}
+                                        onmouseup={handleMouseUp}
+                                        onmouseout={handleMouseUp}
+                                        ontouchstart={handleTouchStart}
+                                        ontouchmove={handleTouchMove}
+                                        ontouchend={handleTouchEnd}>
+                                    </canvas>
+                                </template>
+                            </div>
+                            <div class="signature-buttons">
+                                <template if:false={hasProgramRepSignature}>
+                                    <button class="clear-link" data-signature-id="programRep" onclick={clearSignature} disabled={isReadOnly}>Clear Signature</button>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
 
                     <div class="submit-row">
                         <lightning-button
@@ -120,9 +181,8 @@
                             disabled={isSubmitDisabled}>
                         </lightning-button>
                     </div>
-                    </div>
-                </template>
-            </div>
+                </div>
+            </template>
         </div>
-    </template>
+    </div>
 </template>

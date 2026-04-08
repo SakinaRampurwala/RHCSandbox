@@ -51,6 +51,10 @@ export default class ProjectPreviewEmail extends LightningElement {
     @track bccContactList = [];
     @track vendorContactList = [];
     @track companyContactList = [];
+    // Notice To Proceed – 3 separate contact lists
+    @track ntpOwnerContactList = [];
+    @track ntpContractorContactList = [];
+    @track ntpProgramRepContactList = [];
     @track additionalEmailsInput = '';
     @track additionalEmailsList = [];
     @track emailBody = '';
@@ -123,6 +127,15 @@ export default class ProjectPreviewEmail extends LightningElement {
 
     get isFinalInspectionForm() {
         return this.selectedTemplateId === 'FinalInspectionForm';
+    }
+
+    get isNoticeToProceedForm() {
+        return this.selectedTemplateId === 'NoticeToProceed';
+    }
+
+    // True when a template uses its own recipient UI (not the generic To/CC/BCC)
+    get isSpecialForm() {
+        return this.isFinalInspectionForm || this.isNoticeToProceedForm;
     }
 
     @wire(getEmailSignature)
@@ -288,6 +301,33 @@ export default class ProjectPreviewEmail extends LightningElement {
             ? detail.selectedRecords
             : (detail.selectedRecord ? [detail.selectedRecord] : []);
         this.companyContactList = this.createContactObj(selectedRecords);
+        this.handleBtnEnable();
+    }
+
+    handleNtpOwnerLookupChange(event) {
+        const detail = event?.detail || {};
+        const selectedRecords = detail.selectedRecords
+            ? detail.selectedRecords
+            : (detail.selectedRecord ? [detail.selectedRecord] : []);
+        this.ntpOwnerContactList = this.createContactObj(selectedRecords);
+        this.handleBtnEnable();
+    }
+
+    handleNtpContractorLookupChange(event) {
+        const detail = event?.detail || {};
+        const selectedRecords = detail.selectedRecords
+            ? detail.selectedRecords
+            : (detail.selectedRecord ? [detail.selectedRecord] : []);
+        this.ntpContractorContactList = this.createContactObj(selectedRecords);
+        this.handleBtnEnable();
+    }
+
+    handleNtpProgramRepLookupChange(event) {
+        const detail = event?.detail || {};
+        const selectedRecords = detail.selectedRecords
+            ? detail.selectedRecords
+            : (detail.selectedRecord ? [detail.selectedRecord] : []);
+        this.ntpProgramRepContactList = this.createContactObj(selectedRecords);
         this.handleBtnEnable();
     }
 
@@ -572,6 +612,16 @@ export default class ProjectPreviewEmail extends LightningElement {
             if (this.companyContactList.length == 0) {
                 errors.push('Please select a program representative contact');
             }
+        } else if (this.isNoticeToProceedForm) {
+            if (this.ntpOwnerContactList.length == 0) {
+                errors.push('Please select a Property Owner contact');
+            }
+            if (this.ntpContractorContactList.length == 0) {
+                errors.push('Please select a Contractor Representative contact');
+            }
+            if (this.ntpProgramRepContactList.length == 0) {
+                errors.push('Please select a Home Improvement Program Representative contact');
+            }
         } else if (this.toContactList.length == 0) {
             errors.push('Please add at least one recipient');
         }
@@ -822,6 +872,12 @@ export default class ProjectPreviewEmail extends LightningElement {
         const companyContactIds = (this.companyContactList ?? []).map(con => con?.Id);
         const vendorEmails = (this.vendorContactList ?? []).map(con => con?.Email);
         const companyEmails = (this.companyContactList ?? []).map(con => con?.Email);
+        const ntpOwnerContactIds = (this.ntpOwnerContactList ?? []).map(con => con?.Id);
+        const ntpContractorContactIds = (this.ntpContractorContactList ?? []).map(con => con?.Id);
+        const ntpProgramRepContactIds = (this.ntpProgramRepContactList ?? []).map(con => con?.Id);
+        const ntpOwnerEmails = (this.ntpOwnerContactList ?? []).map(con => con?.Email);
+        const ntpContractorEmails = (this.ntpContractorContactList ?? []).map(con => con?.Email);
+        const ntpProgramRepEmails = (this.ntpProgramRepContactList ?? []).map(con => con?.Email);
 
         uniqueCcEmails.push(...this.additionalEmailsList);
         if (this.isCcCurrentUser == true) {
@@ -843,6 +899,12 @@ export default class ProjectPreviewEmail extends LightningElement {
             vendorEmails: vendorEmails,
             companyContactIds: companyContactIds,
             companyEmails: companyEmails,
+            ntpOwnerContactIds: ntpOwnerContactIds,
+            ntpOwnerEmails: ntpOwnerEmails,
+            ntpContractorContactIds: ntpContractorContactIds,
+            ntpContractorEmails: ntpContractorEmails,
+            ntpProgramRepContactIds: ntpProgramRepContactIds,
+            ntpProgramRepEmails: ntpProgramRepEmails,
             subject: this.emailSubject,
             htmlBody: this.emailBody,
             contactNameToken: this.contactNamePlaceholder,

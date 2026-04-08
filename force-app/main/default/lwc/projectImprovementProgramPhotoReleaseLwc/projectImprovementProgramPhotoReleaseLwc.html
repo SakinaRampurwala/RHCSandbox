@@ -12,7 +12,7 @@
     <div class="main-wrapper">
         <div class="slds-container_large slds-container_center">
             
-            <template if:true={isSubmitted}>
+            <template if:true={showThankYouPage}>
                 <div class="content-inner success-container">
                     <lightning-icon icon-name="action:approval" size="large" alternative-text="Success"></lightning-icon>
                     <template if:false={isAlreadySubmitted}>
@@ -26,7 +26,7 @@
                 </div>
             </template>
 
-            <template if:false={isSubmitted}>
+            <template if:false={showThankYouPage}>
                 <div class="main-container">
                     <div class="header-container slds-grid slds-wrap">
                         <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-2 slds-text-align_left">

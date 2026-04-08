@@ -92,6 +92,7 @@ public without sharing class ProjectImprovementProgramPhotoCtrl {
             cd.Name = 'Home Improvement Signature';
             cd.ContentVersionId = cv.Id;
             cd.PreferencesAllowViewInBrowser = true;
+            cd.PreferencesNotifyOnVisit = false;
             try {
                 insert cd;
                 cd = [SELECT ContentDownloadUrl FROM ContentDistribution WHERE Id = :cd.Id];

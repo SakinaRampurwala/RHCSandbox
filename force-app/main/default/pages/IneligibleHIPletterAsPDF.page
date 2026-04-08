@@ -1,0 +1,129 @@
+<apex:page sidebar="false" showHeader="false" applyHtmlTag="false" applyBodyTag="false" standardStylesheets="false" renderAs="pdf" controller="IneligibleHIPletterAsPDFCtrl">
+    <html>
+    <head>
+        <style type="text/css">
+            @page {
+                margin: 0.5in;
+                size: letter;
+            }
+            body {
+                font-family: "Times New Roman", Times, serif;
+                font-size: 12pt;
+                color: #000;
+                line-height: 1.35;
+            }
+            .header {
+                width: 100%;
+                display: table;
+                margin-bottom: 16px;
+            }
+            .header-left,
+            .header-right {
+                display: table-cell;
+                vertical-align: top;
+            }
+            .header-right {
+                text-align: right;
+                width: 45%;
+            }
+            .date {
+                margin-bottom: 6px;
+            }
+            .address {
+                white-space: pre-line;
+            }
+            .header-logo {
+                width: 200px;
+                max-width: 100%;
+                height: auto;
+            }
+            .re-line {
+                margin: 14px 0 16px;
+                font-weight: bold;
+            }
+            p {
+                margin: 0 0 10px 0;
+            }
+            .signature {
+                margin-top: 16px;
+            }
+            .denial-reasons {
+                margin: 10px 0;
+                padding-left: 20px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <div class="header-left">
+                <div class="date">{!todayDate}</div>
+                <div class="address">{!accountName}
+{!accountAddress}</div>
+            </div>
+            <div class="header-right">
+                <apex:image value="{!logoUrl}" rendered="{!logoUrl != null}" styleClass="header-logo"/>
+            </div>
+        </div>
+
+        <div class="re-line">RE: Eligibility for the Home Improvement Program</div>
+
+        <p>Dear {!accountName},</p>
+
+        <p>
+            Thank you for your interest in the Galvan Housing Resources Home Improvement
+            Program. I am sorry to inform you that after careful review of your application
+            and supporting documentation, you have been found to be <b>ineligible</b> for our
+            program at this time due to the following reason(s):
+        </p>
+
+        <apex:outputPanel layout="block" rendered="{!denialReasonsHtml != ''}">
+            <div class="denial-reasons">
+                <apex:outputText value="{!denialReasonsHtml}" escape="false"/>
+            </div>
+        </apex:outputPanel>
+
+        <apex:outputPanel layout="block" rendered="{!incomeUpperLimit != ''}">
+            <p>
+                Our Home Improvement Program is designed to assist low to moderate-income
+                households within specific financial guidelines. Eligibility for this
+                particular grant is based on total household income, which must not exceed
+                <b>{!incomeUpperLimit}</b> for a household of your size. Based on the
+                financial records submitted, your current household income or assets exceeds
+                this threshold.
+            </p>
+        </apex:outputPanel>
+
+        <apex:outputPanel layout="block" rendered="{!incomeUpperLimit == ''}">
+            <p>
+                Our Home Improvement Program is designed to assist low to moderate-income
+                households within specific financial guidelines. Eligibility for this
+                particular grant is based on total household income and asset review.
+                Based on the financial records submitted, your current household income or
+                assets exceeds this threshold.
+            </p>
+        </apex:outputPanel>
+
+        <p>
+            This decision is based solely on the specific eligibility requirements for this
+            grant cycle and is not a reflection of the merit or importance of your needs.
+            Due to the volume of applications and our limited funding resources, we must
+            strictly adhere to these established criteria to ensure assistance is provided
+            to those who meet the grant requirements.
+        </p>
+
+        <p>
+            If you believe there has been an error in our assessment or if your financial
+            situation changes significantly in the future, we encourage you to contact our
+            office at (518) 822-0707 or consider reapplying during a future grant cycle.
+        </p>
+
+        <p>We wish you the best in seeking other avenues of assistance.</p>
+
+        <p class="signature">Sincerely,</p>
+        <div>Susan Petersen</div>
+        <div>Home Improvement Program Manager</div>
+        <div>Galvan Housing Resources</div>
+        <div><a href="mailto:spetersen@galvanfdn.org">spetersen@galvanfdn.org</a></div>
+    </body>
+    </html>
+</apex:page>

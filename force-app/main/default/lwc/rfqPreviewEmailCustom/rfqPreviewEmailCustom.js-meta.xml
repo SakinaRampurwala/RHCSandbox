@@ -2,7 +2,7 @@
 <LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
     <apiVersion>65.0</apiVersion>
     <isExposed>true</isExposed>
-    <masterLabel>Account Email and Preview Custom LWC</masterLabel>
+    <masterLabel>RFQ Preview and Email Custom</masterLabel>
     <targets>
         <target>lightning__RecordAction</target>
     </targets>

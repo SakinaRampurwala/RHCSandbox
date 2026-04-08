@@ -88,7 +88,63 @@
                         </div>
                     </template>
 
-                    <template if:false={isFinalInspectionForm}>
+                    <template if:true={isNoticeToProceedForm}>
+                        <div class="slds-form-element slds-m-bottom_medium">
+                            <label class="slds-form-element__label">
+                            <abbr class="slds-required" title="required">*</abbr>Property Owner
+                            </label>
+                            <c-generic-lookup 
+                                objectname="Contact" 
+                                field-names="Id, Name, Email"
+                                search-condition="Email != null"
+                                first-field-to-display="Name" 
+                                second-field-to-display="Email"
+                                icon-name="standard:contact" 
+                                placeholder="Search Property Owner Contact..."
+                                is-multi-select="true"
+                                default-selected-records={ntpOwnerContactList}
+                                onselected={handleNtpOwnerLookupChange}>
+                            </c-generic-lookup>
+                        </div>
+
+                        <div class="slds-form-element slds-m-bottom_medium">
+                            <label class="slds-form-element__label">
+                            <abbr class="slds-required" title="required">*</abbr>Contractor Representative
+                            </label>
+                            <c-generic-lookup 
+                                objectname="Contact" 
+                                field-names="Id, Name, Email"
+                                search-condition="Email != null"
+                                first-field-to-display="Name" 
+                                second-field-to-display="Email"
+                                icon-name="standard:contact" 
+                                placeholder="Search Contractor Representative..."
+                                is-multi-select="true"
+                                default-selected-records={ntpContractorContactList}
+                                onselected={handleNtpContractorLookupChange}>
+                            </c-generic-lookup>
+                        </div>
+
+                        <div class="slds-form-element slds-m-bottom_medium">
+                            <label class="slds-form-element__label">
+                            <abbr class="slds-required" title="required">*</abbr>Home Improvement Program Representative
+                            </label>
+                            <c-generic-lookup 
+                                objectname="Contact" 
+                                field-names="Id, Name, Email"
+                                search-condition="Email != null"
+                                first-field-to-display="Name" 
+                                second-field-to-display="Email"
+                                icon-name="standard:contact" 
+                                placeholder="Search Program Representative..."
+                                is-multi-select="true"
+                                default-selected-records={ntpProgramRepContactList}
+                                onselected={handleNtpProgramRepLookupChange}>
+                            </c-generic-lookup>
+                        </div>
+                    </template>
+
+                    <template if:false={isSpecialForm}>
                         <div class="slds-form-element slds-m-bottom_medium">
                             <label class="slds-form-element__label">
                                 <abbr class="slds-required" title="required">*</abbr>To

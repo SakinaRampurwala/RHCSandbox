@@ -113,6 +113,14 @@ export default class ProjectImprovementProgramPhotoReleaseLwc extends LightningE
         }
     }
 
+    get showThankYouPage() {
+        const previewFlag = this.isPreview === true || this.isPreview === 'true';
+        if (previewFlag) {
+            return false;
+        }
+        return this.isSubmitted;
+    }
+
     get isReadOnly() {
         return this.isPreview === true || this.isPreview === 'true' || this.isSubmitted;
     }

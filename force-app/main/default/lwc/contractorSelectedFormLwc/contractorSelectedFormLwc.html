@@ -1,0 +1,244 @@
+<template>
+    <template if:true={isLoading}>
+        <div class="slds-spinner_container" style="position:fixed;">
+            <div class="slds-spinner slds-spinner_large slds-spinner_brand slds-is-relative" role="alert">
+                <span class="slds-assistive-text">Loading</span>
+                <div class="slds-spinner__dot-a"></div>
+                <div class="slds-spinner__dot-b"></div>
+            </div>
+        </div>
+    </template>
+
+    <template if:true={showHomeownerCompletePage}>
+        <div class="main-wrapper">
+            <div class="slds-container_large slds-container_center">
+                <div class="content-inner success-container">
+                    <lightning-icon icon-name="action:approval" size="large" alternative-text="Success"></lightning-icon>
+                    <h2 class="slds-text-heading_large slds-m-top_medium">Thank You!</h2>
+                    <p class="slds-text-heading_small slds-m-top_medium">{thankYouMessage}</p>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template if:true={showFormSurface}>
+        <div class="page-shell">
+            <div class="form-card">
+                <template if:true={showCompletedBanner}>
+                    <div class="status-banner success">
+                        Contractor Selected Form Completed
+                        <template if:true={submittedDate}>
+                            <span class="status-detail">Submitted Date: {submittedDate}</span>
+                        </template>
+                    </div>
+                </template>
+
+                <template if:true={showLockedBanner}>
+                    <div class="status-banner info">{infoMessage}</div>
+                </template>
+
+                <template if:true={errorMessage}>
+                    <div class="status-banner error">{errorMessage}</div>
+                </template>
+
+                <div class="program-title">Home Improvement Program</div>
+                <div class="document-title">Bid Submittal and Contractor Selection Form</div>
+
+                <div class="header-grid">
+                    <div class="header-meta">
+                        <div class="meta-label">Date:</div>
+                        <div class="meta-value">{displayDate}</div>
+                    </div>
+                    <template if:true={logoUrl}>
+                        <div class="logo-wrap">
+                            <img src={logoUrl} alt="Program logo" class="logo-image" />
+                        </div>
+                    </template>
+                </div>
+
+                <div class="field-grid property-grid">
+                    <div class="field-block">
+                        <div class="field-label">Property Address</div>
+                        <div class="field-value">{formContext.propertyAddress}</div>
+                    </div>
+                    <div class="field-block">
+                        <div class="field-label">City/Town</div>
+                        <div class="field-value">{formContext.cityTown}</div>
+                    </div>
+                    <div class="field-block small">
+                        <div class="field-label">Zip Code</div>
+                        <div class="field-value">{formContext.zipCode}</div>
+                    </div>
+                </div>
+
+                <div class="field-grid owner-grid">
+                    <div class="field-block">
+                        <div class="field-label">Owner Name(s)</div>
+                        <div class="field-value">{formContext.ownerNames}</div>
+                    </div>
+                    <div class="field-block small">
+                        <div class="field-label">Phone</div>
+                        <div class="field-value">{formContext.phone}</div>
+                    </div>
+                    <div class="field-block">
+                        <div class="field-label">Email</div>
+                        <div class="field-value">{formContext.email}</div>
+                    </div>
+                </div>
+
+                <div class="bid-table-wrap">
+                    <table class="bid-table">
+                        <thead>
+                            <tr>
+                                <th>Contractor</th>
+                                <th>Bid</th>
+                                <th class="selection-col">Homeowner Selection "x"</th>
+                                <th class="initials-col">Owner Initial(s)</th>
+                                <th class="initials-col">Program Staff</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template if:true={hasVendorRows}>
+                                <template for:each={rowsForDisplay} for:item="row">
+                                    <tr key={row.id}>
+                                        <td>{row.contractorName}</td>
+                                        <td>{row.bidAmountDisplay}</td>
+                                        <td class="selection-col">
+                                            <button
+                                                class={row.selectionClass}
+                                                data-row-id={row.id}
+                                                onclick={handleSelectVendor}
+                                                disabled={row.isSelectionLocked}
+                                                title="Select contractor">
+                                                {row.selectionLabel}
+                                            </button>
+                                        </td>
+                                        <td class="initials-col">
+                                            <template if:true={row.showHomeownerInitialInput}>
+                                                <lightning-input
+                                                    variant="label-hidden"
+                                                    type="text"
+                                                    maxlength="10"
+                                                    value={homeownerInitials}
+                                                    onchange={handleHomeownerInitialsChange}>
+                                                </lightning-input>
+                                            </template>
+                                            <template if:true={row.showHomeownerInitialValue}>
+                                                <span class="initials-pill">{row.homeownerInitialsDisplay}</span>
+                                            </template>
+                                        </td>
+                                        <td class="initials-col">
+                                            <template if:true={row.showProgramStaffInitialInput}>
+                                                <lightning-input
+                                                    variant="label-hidden"
+                                                    type="text"
+                                                    maxlength="10"
+                                                    value={programStaffInitials}
+                                                    onchange={handleProgramStaffInitialsChange}>
+                                                </lightning-input>
+                                            </template>
+                                            <template if:true={row.showProgramStaffInitialValue}>
+                                                <span class="initials-pill">{row.programStaffInitialsDisplay}</span>
+                                            </template>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </template>
+                            <template if:false={hasVendorRows}>
+                                <tr>
+                                    <td colspan="5" class="empty-state">No contractor bids were found for this RFQ.</td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="legal-copy">
+                    I/We have reviewed the bids for the work to be done at my/our property and understand that my/our initials above represent the choice that I/we have made for the contractor to be used for this project and have made this choice of my/our own will. I understand that the amount of my grant is based on the lowest reasonable bid and that I may choose a higher bidder by putting the monetary difference in an escrow account.
+                </div>
+
+                <div class="signature-section">
+                    <label class="signature-label">Owner Signature(s)</label>
+                    <template if:true={showHomeownerSignaturePad}>
+                        <div class="signature-container">
+                            <canvas class={primarySignatureCanvasClass}
+                                data-signature="homeowner"
+                                onmousedown={handleMouseDown}
+                                onmousemove={handleMouseMove}
+                                onmouseup={handleMouseUp}
+                                onmouseout={handleMouseUp}
+                                ontouchstart={handleTouchStart}
+                                ontouchmove={handleTouchMove}
+                                ontouchend={handleTouchEnd}>
+                            </canvas>
+                        </div>
+                        <template if:true={showHomeownerSignatureActions}>
+                            <div class="signature-buttons">
+                                <button class="clear-link" data-signature="homeowner" onclick={clearSignature}>Clear Signature</button>
+                            </div>
+                        </template>
+                    </template>
+                    <template if:true={showHomeownerSignatureImage}>
+                        <div class="signature-image-frame">
+                            <img src={homeownerSignatureUrl} alt="Owner Signature(s)" class="signature-image" />
+                        </div>
+                    </template>
+                </div>
+
+                <template if:true={showProgramStaffSection}>
+                    <div class="signature-section">
+                        <label class="signature-label">Program Representative Signature</label>
+                        <template if:true={showProgramStaffSignaturePad}>
+                            <div class="signature-container">
+                                <canvas class={secondarySignatureCanvasClass}
+                                    data-signature="programStaff"
+                                    onmousedown={handleMouseDown}
+                                    onmousemove={handleMouseMove}
+                                    onmouseup={handleMouseUp}
+                                    onmouseout={handleMouseUp}
+                                    ontouchstart={handleTouchStart}
+                                    ontouchmove={handleTouchMove}
+                                    ontouchend={handleTouchEnd}>
+                                </canvas>
+                            </div>
+                            <template if:true={showProgramStaffSignatureActions}>
+                                <div class="signature-buttons">
+                                    <button class="clear-link" data-signature="programStaff" onclick={clearSignature}>Clear Signature</button>
+                                </div>
+                            </template>
+                        </template>
+                        <template if:true={showProgramStaffSignatureImage}>
+                            <div class="signature-image-frame">
+                                <img src={programStaffSignatureUrl} alt="Program Representative Signature" class="signature-image" />
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                <template if:true={isStage1Editable}>
+                    <div class="submit-row">
+                        <lightning-button
+                            class="submit-button"
+                            variant="brand"
+                            label="Submit"
+                            onclick={handleSubmit}
+                            disabled={isSubmitDisabled}>
+                        </lightning-button>
+                    </div>
+                </template>
+
+                <template if:true={isStage2Editable}>
+                    <div class="submit-row">
+                        <lightning-button
+                            class="submit-button"
+                            variant="brand"
+                            label="Submit"
+                            onclick={handleSubmit}
+                            disabled={isSubmitDisabled}>
+                        </lightning-button>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </template>
+</template>

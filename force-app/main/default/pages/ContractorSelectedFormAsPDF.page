@@ -1,0 +1,287 @@
+<apex:page controller="ContractorSelectedFormLwcCtrl" action="{!initPdf}" renderAs="pdf" sidebar="false" showHeader="false" applyHtmlTag="false" applyBodyTag="false" standardStylesheets="false">
+    <html>
+    <head>
+        <style type="text/css">
+            @page {
+                margin: 0.35in;
+                size: letter;
+            }
+            body {
+                font-family: 'Times New Roman', Times, serif;
+                font-size: 13px;
+                color: #193247;
+                line-height: 1.45;
+                margin: 0;
+                padding: 0;
+            }
+            .page-shell {
+                padding: 8px;
+                background: #ffffff;
+            }
+            .form-card {
+                border: 1px solid #d8dee6;
+                padding: 18px;
+                background: #ffffff;
+            }
+            .program-title {
+                text-align: center;
+                font-size: 19px;
+                font-weight: bold;
+                color: #12344d;
+            }
+            .document-title {
+                margin-top: 6px;
+                text-align: center;
+                font-size: 24px;
+                font-weight: bold;
+                color: #1f3f58;
+            }
+            .header-table,
+            .field-table,
+            .bid-table,
+            .signature-meta {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            .header-table {
+                margin-top: 18px;
+            }
+            .header-meta {
+                width: 60%;
+                vertical-align: top;
+                font-size: 15px;
+                font-weight: bold;
+            }
+            .logo-cell {
+                width: 40%;
+                text-align: right;
+                vertical-align: top;
+            }
+            .logo-cell img {
+                width: auto;
+                height: 38px;
+                max-width: 115px;
+            }
+            .field-table {
+                margin-top: 16px;
+            }
+            .field-table td {
+                border: 1px solid #d6dbe1;
+                background: #fafbfc;
+                padding: 10px 12px;
+                vertical-align: top;
+            }
+            .field-label {
+                display: block;
+                font-size: 11px;
+                font-weight: bold;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: #536b80;
+            }
+            .field-value {
+                display: block;
+                margin-top: 5px;
+                min-height: 14px;
+                font-size: 14px;
+                color: #102435;
+            }
+            .bid-table {
+                margin-top: 18px;
+                table-layout: fixed;
+            }
+            .bid-table th,
+            .bid-table td {
+                border: 1px solid #bfc9d4;
+                padding: 10px 9px;
+                vertical-align: middle;
+            }
+            .bid-table th {
+                background: #f1f4f7;
+                color: #193247;
+                font-size: 13px;
+                font-weight: bold;
+                text-align: left;
+            }
+            .center-cell {
+                text-align: center;
+                width: 90px;
+            }
+            .empty-state {
+                text-align: center;
+                color: #4b647a;
+                background: #fbfcfd;
+            }
+            .legal-copy,
+            .notes-section {
+                margin-top: 18px;
+                font-size: 14px;
+                line-height: 1.6;
+                color: #17334a;
+            }
+            .notes-label {
+                display: block;
+                margin-bottom: 6px;
+                font-size: 11px;
+                font-weight: bold;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: #536b80;
+            }
+            .notes-box {
+                border: 1px solid #d9e1ea;
+                background: #f7f9fb;
+                padding: 10px 12px;
+            }
+            .signature-section {
+                margin-top: 22px;
+                padding: 12px;
+                border: 1px solid #d9e1ea;
+                background: #f7f9fb;
+            }
+            .signature-label {
+                display: block;
+                margin-bottom: 7px;
+                font-size: 11px;
+                font-weight: bold;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+                color: #26455e;
+            }
+            .signature-box {
+                height: 84px;
+                border: 1px dashed #7590a8;
+                background: #fff;
+                vertical-align: bottom;
+            }
+            .signature-box img {
+                width: 100%;
+                height: 58px;
+                display: block;
+            }
+            .signature-meta td {
+                font-size: 13px;
+                color: #193247;
+            }
+            .signature-meta .date-cell {
+                text-align: right;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="page-shell">
+            <div class="form-card">
+                <div class="program-title">Home Improvement Program</div>
+                <div class="document-title">Bid Submittal and Contractor Selection Form</div>
+
+                <table class="header-table">
+                    <tr>
+                        <td class="header-meta">Date: {!displayDate}</td>
+                        <td class="logo-cell">
+                            <apex:image value="{!logoUrl}" rendered="{!NOT(ISBLANK(logoUrl))}" />
+                        </td>
+                    </tr>
+                </table>
+
+                <table class="field-table">
+                    <tr>
+                        <td colspan="2">
+                            <span class="field-label">Property Address</span>
+                            <span class="field-value">{!propertyAddress}</span>
+                        </td>
+                        <td>
+                            <span class="field-label">City/Town</span>
+                            <span class="field-value">{!cityTown}</span>
+                        </td>
+                        <td>
+                            <span class="field-label">Zip Code</span>
+                            <span class="field-value">{!zipCode}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <span class="field-label">Owner Name(s)</span>
+                            <span class="field-value">{!ownerNames}</span>
+                        </td>
+                        <td>
+                            <span class="field-label">Phone</span>
+                            <span class="field-value">{!ownerPhone}</span>
+                        </td>
+                        <td>
+                            <span class="field-label">Email</span>
+                            <span class="field-value">{!ownerEmail}</span>
+                        </td>
+                    </tr>
+                </table>
+
+                <table class="bid-table">
+                    <thead>
+                        <tr>
+                            <th>Contractor</th>
+                            <th>Bid</th>
+                            <th class="center-cell">Homeowner Selection "x"</th>
+                            <th class="center-cell">Owner Initial(s)</th>
+                            <th class="center-cell">Program Staff</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <apex:outputPanel rendered="{!hasPdfVendorRows}" layout="none">
+                            <apex:repeat value="{!pdfVendorRows}" var="row">
+                                <tr>
+                                    <td>{!row.contractorName}</td>
+                                    <td>{!row.bidAmount}</td>
+                                    <td class="center-cell">{!row.selectionMark}</td>
+                                    <td class="center-cell">{!row.homeownerInitials}</td>
+                                    <td class="center-cell">{!row.programStaffInitials}</td>
+                                </tr>
+                            </apex:repeat>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!NOT(hasPdfVendorRows)}" layout="none">
+                            <tr>
+                                <td colspan="5" class="empty-state">No contractor bids were found for this RFQ.</td>
+                            </tr>
+                        </apex:outputPanel>
+                    </tbody>
+                </table>
+
+                <div class="legal-copy">
+                    I/We have reviewed the bids for the work to be done at my/our property and understand that my/our initials above represent the choice that I/we have made for the contractor to be used for this project and have made this choice of my/our own will. I understand that the amount of my grant is based on the lowest reasonable bid and that I may choose a higher bidder by putting the monetary difference in an escrow account.
+                </div>
+
+                <apex:outputPanel rendered="{!hasOwnerNotes}">
+                    <div class="notes-section">
+                        <span class="notes-label">Owner Notes</span>
+                        <div class="notes-box">{!ownerNotes}</div>
+                    </div>
+                </apex:outputPanel>
+
+                <div class="signature-section">
+                    <span class="signature-label">Owner Signature(s)</span>
+                    <div class="signature-box">
+                        <apex:image value="{!homeownerSignatureUrl}" rendered="{!hasHomeownerSignature}" />
+                    </div>
+                    <table class="signature-meta">
+                        <tr>
+                            <td>Owner Signature(s)</td>
+                            <td class="date-cell">Date: {!displayDate}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="signature-section">
+                    <span class="signature-label">Program Representative Signature</span>
+                    <div class="signature-box">
+                        <apex:image value="{!programStaffSignatureUrl}" rendered="{!hasProgramStaffSignature}" />
+                    </div>
+                    <table class="signature-meta">
+                        <tr>
+                            <td>Program Representative Signature</td>
+                            <td class="date-cell">Date: {!displayDate}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+</apex:page>

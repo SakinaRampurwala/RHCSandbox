@@ -202,6 +202,17 @@ public without sharing class AccountPreviewEmailController {
             }
         }
 
+        if (data.templateId == 'IneligibleHIPletter' && String.isNotBlank(data.recordId)) {
+            Messaging.EmailFileAttachment ineligibleHipPdf = buildIneligibleHipLetterAttachment(data.recordId);
+            if (ineligibleHipPdf != null && ineligibleHipPdf.getBody() != null) {
+                totalSize += ineligibleHipPdf.getBody().size();
+                if (totalSize > 25 * 1024 * 1024) {
+                    return new EmailResult(false, 'Total attachment size exceeds 25MB limit');
+                }
+                attachmentList.add(ineligibleHipPdf);
+            }
+        }
+
         if (!attachmentList.isEmpty()) {
             mail.setFileAttachments(attachmentList);
         }
@@ -232,6 +243,36 @@ public without sharing class AccountPreviewEmailController {
             attachment.setFileName('HIP Eligible Letter.pdf');
             attachment.setBody(pdfBlob);
             attachment.setContentType('application/pdf');
+            return attachment;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static Messaging.EmailFileAttachment buildIneligibleHipLetterAttachment(String recordId) {
+        if (String.isBlank(recordId)) {
+            return null;
+        }
+
+        try {
+            PageReference pageRef;
+            Blob pdfBlob;
+            Messaging.EmailFileAttachment attachment;
+
+            pageRef = Page.IneligibleHIPletterAsPDF;
+            pageRef.getParameters().put('id', recordId);
+
+            if (Test.isRunningTest()) {
+                pdfBlob = Blob.valueOf('Ineligible HIP Letter');
+            } else {
+                pdfBlob = pageRef.getContentAsPDF();
+            }
+
+            attachment = new Messaging.EmailFileAttachment();
+            attachment.setFileName('Ineligible HIP Letter.pdf');
+            attachment.setBody(pdfBlob);
+            attachment.setContentType('application/pdf');
+
             return attachment;
         } catch (Exception e) {
             return null;
@@ -587,6 +628,7 @@ public without sharing class AccountPreviewEmailController {
         cd.Name = 'PathStone Signature';
         cd.ContentVersionId = conVer.Id;
         cd.PreferencesAllowViewInBrowser = true;
+        cd.PreferencesNotifyOnVisit = false;
         Database.SaveResult cdResult = Database.insert(cd, false);
         if (cdResult.isSuccess()) {
             cd = [SELECT ContentDownloadUrl FROM ContentDistribution WHERE Id = :cdResult.getId()];

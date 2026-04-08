@@ -126,6 +126,14 @@ export default class FinalInspectionFormLwc extends LightningElement {
         }
     }
 
+    get showThankYouPage() {
+        const previewFlag = this.isPreview === true || this.isPreview === 'true';
+        if (previewFlag) {
+            return false;
+        }
+        return this.isSubmitted;
+    }
+
     get isReadOnly() {
         const previewFlag = this.isPreview === true || this.isPreview === 'true';
         if (this.isVendor || this.isCompany || this.isRepresentativeStage) {
