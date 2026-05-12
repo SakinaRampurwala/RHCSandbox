@@ -37,7 +37,8 @@ public without sharing class AccountPreviewEmailController {
         }
         Map<String, String> templateMap = new Map<String, String>{
             'IneligibleHIPletter' => 'IneligibleHIPletterTemplateBody',
-            'HIPEligibleLetter' => 'HIPEligibleLetterTemplateBody'
+            'HIPEligibleLetter' => 'HIPEligibleLetterTemplateBody',
+            'HIPApplication' => 'HIPApplicationTemplateBody'
         };
         String resolvedTemplateApiName = templateMap.containsKey(vfApiName) ? templateMap.get(vfApiName) : vfApiName;
 
@@ -202,6 +203,17 @@ public without sharing class AccountPreviewEmailController {
             }
         }
 
+        if (data.templateId == 'HIPApplication' && String.isNotBlank(data.recordId)) {
+            Messaging.EmailFileAttachment hipApplicationPdf = buildHipApplicationAttachment(data.recordId);
+            if (hipApplicationPdf != null && hipApplicationPdf.getBody() != null) {
+                totalSize += hipApplicationPdf.getBody().size();
+                if (totalSize > 25 * 1024 * 1024) {
+                    return new EmailResult(false, 'Total attachment size exceeds 25MB limit');
+                }
+                attachmentList.add(hipApplicationPdf);
+            }
+        }
+
         if (data.templateId == 'IneligibleHIPletter' && String.isNotBlank(data.recordId)) {
             Messaging.EmailFileAttachment ineligibleHipPdf = buildIneligibleHipLetterAttachment(data.recordId);
             if (ineligibleHipPdf != null && ineligibleHipPdf.getBody() != null) {
@@ -241,6 +253,26 @@ public without sharing class AccountPreviewEmailController {
                 : pageRef.getContentAsPDF();
             Messaging.EmailFileAttachment attachment = new Messaging.EmailFileAttachment();
             attachment.setFileName('HIP Eligible Letter.pdf');
+            attachment.setBody(pdfBlob);
+            attachment.setContentType('application/pdf');
+            return attachment;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static Messaging.EmailFileAttachment buildHipApplicationAttachment(String recordId) {
+        if (String.isBlank(recordId)) {
+            return null;
+        }
+        try {
+            PageReference pageRef = Page.HIPApplicationAsPDF;
+            pageRef.getParameters().put('id', recordId);
+            Blob pdfBlob = Test.isRunningTest()
+                ? Blob.valueOf('HIP Application')
+                : pageRef.getContentAsPDF();
+            Messaging.EmailFileAttachment attachment = new Messaging.EmailFileAttachment();
+            attachment.setFileName('HIP Application.pdf');
             attachment.setBody(pdfBlob);
             attachment.setContentType('application/pdf');
             return attachment;

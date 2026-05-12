@@ -1,0 +1,144 @@
+<template>
+    <div class="page-bg">
+        <article class="sheet">
+            <header class="sheet-header">
+                <template if:true={logoUrl}>
+                    <img class="logo" src={logoUrl} alt="Galvan Housing Resources logo" />
+                </template>
+            </header>
+
+            <section class="letter-section">
+                <p class="salutation">Dear Homeowner,</p>
+
+                <p>
+                    Thank you for your interest in Galvan Housing Resources' Home Improvement Program.
+                    GHR provides matching grants for project costs to assist low to moderate-income
+                    homeowners in completing necessary health and safety-related repairs and improvements
+                    to their homes. Pre-qualified contractors will complete improvements after an open and
+                    competitive bidding process.
+                </p>
+
+                <p>
+                    The primary threshold requirements for participation are that the recipient household
+                    must own the subject property and maintain it as their principal place of residence at
+                    the time of application. Further, the participant household must earn no more than 80%
+                    of the Columbia County median income adjusted by family size according to the most
+                    recently published U.S. Department of Housing and Urban Development (HUD) median
+                    income data:
+                </p>
+
+                <h3>*2025 Income Limits (by family size)</h3>
+
+                <div class="income-grid">
+                    <div>
+                        <div>1 Person: $63,150</div>
+                        <div>2 Person: $72,150</div>
+                        <div>3 Person: $81,150</div>
+                    </div>
+                    <div>
+                        <div>4 Person: $90,150</div>
+                        <div>5 Person: $97,400</div>
+                        <div>6 Person: $104,600</div>
+                    </div>
+                    <div>
+                        <div>7 Person: $111,800</div>
+                        <div>8 Person: $119,000</div>
+                    </div>
+                </div>
+
+                <p>
+                    Examples of work that can be done on a home to bring a structure into compliance with
+                    applicable laws and regulations, include but are not limited to the following:
+                </p>
+
+                <ul class="disc-list">
+                    <li>Installation, replacement or repair of heating, plumbing, electrical, and related systems</li>
+                    <li>Work to improve habitability or prolong the useful life of the home</li>
+                    <li>Roof repairs</li>
+                    <li>Elimination of all hazardous materials and violations</li>
+                    <li>General structural repairs</li>
+                </ul>
+
+                <p>
+                    The Home Improvement Program Grant is a matching grant. Galvan Housing Resources has
+                    executed an agreement with Columbia Opportunities Inc. to provide matching services under
+                    their Weatherization program.
+                </p>
+
+                <p>
+                    Please complete, sign, and date the enclosed application and return it to address below.
+                    Once received, we will contact you to set up a time to review the information.
+                </p>
+            </section>
+        </article>
+
+        <article class="sheet">
+            <header class="sheet-header">
+                <template if:true={logoUrl}>
+                    <img class="logo" src={logoUrl} alt="Galvan Housing Resources logo" />
+                </template>
+            </header>
+            <section class="center-block">
+                <div>Galvan Housing Resources,</div>
+                <div>64 Green Street,</div>
+                <div>Hudson, NY 12534</div>
+                <div>Attn: Susan Petersen</div>
+            </section>
+
+            <p class="footnote">*income limits good until May 2026</p>
+        </article>
+
+        <article class="sheet">
+            <header class="sheet-header">
+                <template if:true={logoUrl}>
+                    <img class="logo" src={logoUrl} alt="Galvan Housing Resources logo" />
+                </template>
+            </header>
+
+            <section class="letter-section">
+                <h2>Recapture/Compliance Requirements:</h2>
+                <p>
+                    Certain occupancy restrictions, secured by a subordinate mortgage, apply to recipients
+                    of Home Improvement Program (HIP) grants. These grant funds will be secured by a note and
+                    mortgage for 2-15 years, depending on the amount of funds, with no required repayment as
+                    long as you remain in and are the owner of the house for the required length of time.
+                </p>
+
+                <h2>The following information MUST be attached to the application:</h2>
+                <ul class="check-list">
+                    <li><span class="box"></span>Proof of Home ownership (legible copy of recorded deed)</li>
+                    <li><span class="box"></span>Proof of Homeowner's insurance (recent declaration page/recent certificate from agent)</li>
+                    <li><span class="box"></span>Copies of most recent paid Property, Town and Village AND School tax receipt</li>
+                    <li><span class="box"></span>Most recent mortgage statement, if applicable. The mortgage must be paid up to date.</li>
+                </ul>
+
+                <p class="red-note">Please use boxes to check off items once attached</p>
+
+                <h2>Plus: For EACH household member 18 years and older:</h2>
+                <ul class="check-list">
+                    <li><span class="box"></span>Proof of income from all sources - 2 months of current and consecutive pay stubs, statements from SS, SSD, SSI, child support, alimony, DSS assistance, etc.</li>
+                    <li><span class="box"></span>Completed, signed and dated copies of the most recent FEDERAL tax returns and W2's (2024 and 2025) OR a notarized statement of non-filing of tax returns, if applicable</li>
+                    <li><span class="box"></span>Three most recent bank statements for each bank account per household member</li>
+                    <li><span class="box"></span>Recent whole life insurance policy (if applicable) statement showing the cash surrender value (term life policies are excluded)</li>
+                </ul>
+            </section>
+        </article>
+
+        <article class="sheet">
+            <header class="sheet-header">
+                <template if:true={logoUrl}>
+                    <img class="logo" src={logoUrl} alt="Galvan Housing Resources logo" />
+                </template>
+            </header>
+
+            <section class="letter-section compact-top">
+                <ul class="check-list">
+                    <li><span class="box"></span>Recent statements showing your name and your balance of ALL peer-to-peer payment apps including but not limited to: VenMo, Zelle, CashApp, Paypal, etc.</li>
+                    <li><span class="box"></span>Copies of most recent utility bills and monthly debt obligations, i.e., electric, phone, etc.</li>
+                    <li><span class="box"></span>Completed Financial Assessment (page 9)</li>
+                </ul>
+                <p class="final-note">Incomplete applications will not be accepted</p>
+            </section>
+        </article>
+    </div>
+</template>

@@ -1,0 +1,150 @@
+.page-bg {
+    background: #e7e7e7;
+    min-height: 100vh;
+    padding: 20px 0 40px;
+}
+
+.sheet {
+    width: 850px;
+    max-width: calc(100% - 28px);
+    margin: 0 auto 24px;
+    background: #fff;
+    border: 1px solid #cfcfcf;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+    font-family: "Times New Roman", Times, serif;
+    color: #222;
+    padding: 28px 56px 42px;
+    font-size: 24px;
+    line-height: 1.34;
+}
+
+.sheet-header {
+    min-height: 88px;
+}
+
+.logo {
+    width: 124px;
+    max-width: 100%;
+    display: block;
+}
+
+.letter-section p {
+    margin: 0 0 24px;
+}
+
+.salutation {
+    font-weight: 700;
+}
+
+h2 {
+    margin: 0 0 14px;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+h3 {
+    margin: 18px 0 22px;
+    text-align: center;
+    text-decoration: underline;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.income-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px 28px;
+    margin: 0 0 24px;
+    font-weight: 700;
+}
+
+.income-grid > div > div {
+    margin: 0 0 8px;
+}
+
+.disc-list {
+    margin: 0 0 24px 32px;
+}
+
+.disc-list li {
+    margin: 0 0 8px;
+}
+
+.center-block {
+    text-align: center;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.24;
+    margin-top: 66px;
+}
+
+.footnote {
+    margin-top: 170px;
+    text-align: center;
+}
+
+.check-list {
+    list-style: none;
+    margin: 0 0 20px 0;
+    padding: 0;
+}
+
+.check-list li {
+    position: relative;
+    margin: 0 0 10px;
+    padding-left: 34px;
+}
+
+.box {
+    position: absolute;
+    left: 0;
+    top: 10px;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #777;
+    box-sizing: border-box;
+}
+
+.red-note {
+    margin: 8px 0 24px;
+    text-align: center;
+    color: #c5261b;
+    font-weight: 700;
+}
+
+.final-note {
+    margin-top: 96px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.compact-top {
+    margin-top: 6px;
+}
+
+@media only screen and (max-width: 900px) {
+    .sheet {
+        padding: 20px 22px 30px;
+        font-size: 18px;
+    }
+
+    h2 {
+        font-size: 24px;
+    }
+
+    h3 {
+        font-size: 22px;
+    }
+
+    .income-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .footnote {
+        margin-top: 70px;
+    }
+
+    .final-note {
+        margin-top: 48px;
+    }
+}

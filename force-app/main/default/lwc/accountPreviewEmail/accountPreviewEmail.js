@@ -37,6 +37,10 @@ export default class AccountPreviewEmail extends LightningElement {
         {
             label: 'HIP Eligible Letter',
             value: 'HIPEligibleLetter'
+        },
+        {
+            label: 'HIP Application',
+            value: 'HIPApplication'
         }
     ];
     @track orgWideEmailOptions = [];
@@ -104,13 +108,14 @@ export default class AccountPreviewEmail extends LightningElement {
         if (!this.selectedTemplateId || !this.recordId) {
             return '';
         }
+        const templatePageName = this.selectedTemplateId;
         const today = new Date();
         const month = String(today.getMonth() + 1).padStart(2, '0');
         const day = String(today.getDate()).padStart(2, '0');
         const year = today.getFullYear();
         const sendDate = this.isAnnualCertification ? `${month}-${day}-${year}` : `${year}-${month}-${day}`;
         const recordParam = this.isAnnualCertification ? 'recordId' : 'id';
-        return `/apex/${this.selectedTemplateId}?${recordParam}=${this.recordId}&isPreview=true&senderId=${this.userData?.Id || ''}&sendDate=${sendDate}`;
+        return `/apex/${templatePageName}?${recordParam}=${this.recordId}&isPreview=true&senderId=${this.userData?.Id || ''}&sendDate=${sendDate}`;
     }
 
     get hasSelectedTemplate() {

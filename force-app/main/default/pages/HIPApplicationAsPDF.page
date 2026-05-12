@@ -1,0 +1,225 @@
+<apex:page sidebar="false" showHeader="false" applyHtmlTag="false" applyBodyTag="false" standardStylesheets="false" renderAs="pdf" controller="HIPApplicationCtrl">
+    <html>
+    <head>
+        <style type="text/css">
+            @page {
+                margin: 0.65in;
+                size: letter;
+            }
+            body {
+                font-family: "Times New Roman", Times, serif;
+                font-size: 13.5pt;
+                color: #222;
+                line-height: 1.34;
+            }
+            .header {
+                min-height: 80px;
+                margin-bottom: 12px;
+            }
+            .logo {
+                width: 96px;
+                height: auto;
+            }
+            p {
+                margin: 0 0 14px;
+            }
+            .salutation {
+                font-weight: bold;
+            }
+            .section-title {
+                margin: 8px 0 10px;
+                font-size: 17pt;
+                font-weight: bold;
+            }
+            .income-title {
+                margin: 12px 0 16px;
+                text-align: center;
+                text-decoration: underline;
+                font-size: 16pt;
+                font-weight: bold;
+            }
+            .income-grid {
+                width: 100%;
+                margin: 0 0 16px;
+            }
+            .income-grid td {
+                width: 33%;
+                vertical-align: top;
+                font-weight: bold;
+                padding-bottom: 6px;
+            }
+            ul {
+                margin: 0 0 14px 22px;
+            }
+            ul li {
+                margin: 0 0 6px;
+            }
+            .center-address {
+                margin-top: 90px;
+                text-align: center;
+                font-size: 18pt;
+                font-weight: bold;
+                line-height: 1.25;
+            }
+            .center-note {
+                margin-top: 170px;
+                text-align: center;
+            }
+            .check-list {
+                list-style: none;
+                margin: 0 0 14px;
+                padding: 0;
+            }
+            .check-list li {
+                margin: 0 0 7px;
+                padding-left: 22px;
+                position: relative;
+            }
+            .check-list li:before {
+                content: "";
+                position: absolute;
+                left: 0;
+                top: 6px;
+                width: 10px;
+                height: 10px;
+                border: 1.5px solid #666;
+            }
+            .red-note {
+                text-align: center;
+                color: #c5261b;
+                font-weight: bold;
+                margin: 10px 0 16px;
+            }
+            .final-note {
+                margin-top: 90px;
+                text-align: center;
+                font-weight: bold;
+            }
+            .page-break {
+                page-break-before: always;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <apex:image value="{!logoUrl}" rendered="{!logoUrl != null}" styleClass="logo"/>
+        </div>
+
+        <p class="salutation">Dear Homeowner,</p>
+
+        <p>
+            Thank you for your interest in Galvan Housing Resources' Home Improvement Program.
+            GHR provides matching grants for project costs to assist low to moderate-income
+            homeowners in completing necessary health and safety-related repairs and improvements
+            to their homes. Pre-qualified contractors will complete improvements after an open and
+            competitive bidding process.
+        </p>
+
+        <p>
+            The primary threshold requirements for participation are that the recipient household
+            must own the subject property and maintain it as their principal place of residence at
+            the time of application. Further, the participant household must earn no more than 80%
+            of the Columbia County median income adjusted by family size according to the most
+            recently published U.S. Department of Housing and Urban Development (HUD) median
+            income data:
+        </p>
+
+        <div class="income-title">*2025 Income Limits (by family size)</div>
+
+        <table class="income-grid" cellspacing="0" cellpadding="0">
+            <tr>
+                <td>1 Person: $63,150</td>
+                <td>4 Person: $90,150</td>
+                <td>7 Person: $111,800</td>
+            </tr>
+            <tr>
+                <td>2 Person: $72,150</td>
+                <td>5 Person: $97,400</td>
+                <td>8 Person: $119,000</td>
+            </tr>
+            <tr>
+                <td>3 Person: $81,150</td>
+                <td>6 Person: $104,600</td>
+                <td></td>
+            </tr>
+        </table>
+
+        <p>
+            Examples of work that can be done on a home to bring a structure into compliance with
+            applicable laws and regulations, include but are not limited to the following:
+        </p>
+
+        <ul>
+            <li>Installation, replacement or repair of heating, plumbing, electrical, and related systems</li>
+            <li>Work to improve habitability or prolong the useful life of the home</li>
+            <li>Roof repairs</li>
+            <li>Elimination of all hazardous materials and violations</li>
+            <li>General structural repairs</li>
+        </ul>
+
+        <p>
+            The Home Improvement Program Grant is a matching grant. Galvan Housing Resources has
+            executed an agreement with Columbia Opportunities Inc. to provide matching services under
+            their Weatherization program.
+        </p>
+
+        <p>
+            Please complete, sign, and date the enclosed application and return it to address below.
+            Once received, we will contact you to set up a time to review the information.
+        </p>
+
+        <div class="page-break"></div>
+        <div class="header">
+            <apex:image value="{!logoUrl}" rendered="{!logoUrl != null}" styleClass="logo"/>
+        </div>
+        <div class="center-address">
+            <div>Galvan Housing Resources,</div>
+            <div>64 Green Street,</div>
+            <div>Hudson, NY 12534</div>
+            <div>Attn: Susan Petersen</div>
+        </div>
+        <p class="center-note">*income limits good until May 2026</p>
+
+        <div class="page-break"></div>
+        <div class="header">
+            <apex:image value="{!logoUrl}" rendered="{!logoUrl != null}" styleClass="logo"/>
+        </div>
+        <div class="section-title">Recapture/Compliance Requirements:</div>
+        <p>
+            Certain occupancy restrictions, secured by a subordinate mortgage, apply to recipients
+            of Home Improvement Program (HIP) grants. These grant funds will be secured by a note and
+            mortgage for 2-15 years, depending on the amount of funds, with no required repayment as
+            long as you remain in and are the owner of the house for the required length of time.
+        </p>
+
+        <div class="section-title">The following information MUST be attached to the application:</div>
+        <ul class="check-list">
+            <li>Proof of Home ownership (legible copy of recorded deed)</li>
+            <li>Proof of Homeowner's insurance (recent declaration page/recent certificate from agent)</li>
+            <li>Copies of most recent paid Property, Town and Village AND School tax receipt</li>
+            <li>Most recent mortgage statement, if applicable. The mortgage must be paid up to date.</li>
+        </ul>
+
+        <p class="red-note">Please use boxes to check off items once attached</p>
+
+        <div class="section-title">Plus: For EACH household member 18 years and older:</div>
+        <ul class="check-list">
+            <li>Proof of income from all sources - 2 months of current and consecutive pay stubs, statements from SS, SSD, SSI, child support, alimony, DSS assistance, etc.</li>
+            <li>Completed, signed and dated copies of the most recent FEDERAL tax returns and W2's (2024 and 2025) OR a notarized statement of non-filing of tax returns, if applicable</li>
+            <li>Three most recent bank statements for each bank account per household member</li>
+            <li>Recent whole life insurance policy (if applicable) statement showing the cash surrender value (term life policies are excluded)</li>
+        </ul>
+
+        <div class="page-break"></div>
+        <div class="header">
+            <apex:image value="{!logoUrl}" rendered="{!logoUrl != null}" styleClass="logo"/>
+        </div>
+        <ul class="check-list">
+            <li>Recent statements showing your name and your balance of ALL peer-to-peer payment apps including but not limited to: VenMo, Zelle, CashApp, Paypal, etc.</li>
+            <li>Copies of most recent utility bills and monthly debt obligations, i.e., electric, phone, etc.</li>
+            <li>Completed Financial Assessment (page 9)</li>
+        </ul>
+        <p class="final-note">Incomplete applications will not be accepted</p>
+    </body>
+    </html>
+</apex:page>
