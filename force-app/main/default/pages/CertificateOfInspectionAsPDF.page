@@ -1,0 +1,272 @@
+<apex:page controller="CertificateOfInspectionCtrl" action="{!initPdf}" renderAs="pdf" sidebar="false" showHeader="false" applyHtmlTag="false" applyBodyTag="false" standardStylesheets="false">
+    <html>
+    <head>
+        <style type="text/css">
+            @page {
+                margin: 0.45in;
+                size: letter;
+            }
+            body {
+                font-family: "Times New Roman", Times, serif;
+                font-size: 12pt;
+                color: #000;
+                line-height: 1.35;
+                margin: 0;
+                padding: 0;
+            }
+            .page-shell {
+                padding: 8px;
+                background: #ffffff;
+            }
+            .form-card {
+                border: 1px solid #d8dee6;
+                background: #ffffff;
+                padding: 18px 20px 20px 20px;
+            }
+            .header-logo {
+                width: 200px;
+                max-width: 100%;
+                height: auto;
+                display: block;
+                margin: 0 auto 12px auto;
+            }
+            .doc-title {
+                text-align: center;
+                font-size: 18pt;
+                font-weight: bold;
+                margin: 0;
+                color: #172f45;
+            }
+            .title-rule {
+                margin: 12px 0 16px 0;
+                border: none;
+                border-top: 1px solid #d8dee6;
+            }
+            .info-block {
+                background: #edf7f5;
+                border: 1px solid #bddbd4;
+                padding: 14px 16px;
+                margin-bottom: 14px;
+            }
+            .info-row {
+                margin-bottom: 8px;
+                font-size: 12px;
+            }
+            .info-row:last-child {
+                margin-bottom: 0;
+            }
+            .info-label {
+                display: inline-block;
+                width: 160px;
+                font-weight: bold;
+                color: #26455e;
+            }
+            .section-title {
+                font-size: 16px;
+                font-weight: bold;
+                color: #17334a;
+                margin: 22px 0 10px;
+            }
+            .body-copy {
+                padding: 0;
+            }
+            .body-copy p {
+                margin: 0 0 12px;
+                font-size: 16px;
+                line-height: 1.4;
+                color: #1a1a1a;
+            }
+            .section-label {
+                margin: 0 0 8px 0;
+                font-size: 10pt;
+                font-weight: bold;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+                color: #536b80;
+            }
+            .signature-panel {
+                margin-top: 12px;
+                page-break-inside: avoid;
+                break-inside: avoid;
+                border: 1px solid #d9e1ea;
+                background: #f9fbfc;
+                padding: 12px 14px 8px;
+            }
+            .signature-panel-table {
+                width: 100%;
+                border-collapse: collapse;
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            .signature-panel-table td {
+                padding: 0;
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            .signature-heading {
+                margin: 0 0 6px 0;
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 12px;
+                line-height: 1.2;
+                text-transform: uppercase;
+                font-weight: bold;
+                color: #26455e;
+            }
+            .signature-image-area {
+                display: block;
+                height: 135px;
+                max-height: 135px;
+                width: 100%;
+                border: 1px solid #7590a8;
+                background: #fff;
+                overflow: hidden;
+                line-height: 0;
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            .signature-image {
+                display: block;
+                max-width: 100%;
+                width: auto;
+                height: 100%;
+                margin: 0 auto;
+            }
+            .signature-footer {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 6px;
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            .signature-footer td {
+                padding: 0;
+            }
+            .sig-label {
+                text-align: left;
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 12px;
+                font-weight: bold;
+                color: #193247;
+            }
+            .sig-date {
+                text-align: right;
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 12px;
+                font-weight: bold;
+                color: #193247;
+                white-space: nowrap;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="page-shell">
+            <div class="form-card">
+                <apex:image value="{!logoUrl}" rendered="{!NOT(ISBLANK(logoUrl))}" styleClass="header-logo"/>
+
+                <div class="doc-title">Certificate of Inspection</div>
+                <hr class="title-rule"/>
+
+                <div class="info-block">
+                    <div class="info-row">
+                        <span class="info-label">Date:</span>
+                        <span><b>{!vfCertificateData.inspectionDate}</b></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Contractor:</span>
+                        <span><b>{!vfCertificateData.contractor}</b></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Project Address:</span>
+                        <span><b>{!vfCertificateData.projectAddress}</b></span>
+                    </div>
+                </div>
+
+                <div class="section-title">Certification Statement</div>
+                <div class="body-copy">
+                    <p>
+                        I have visited the above referenced job site and have verified that work items that Homsite is paying for have been completed and are code compliant.
+                    </p>
+                </div>
+
+                <div class="section-label">Signatures</div>
+
+                <table class="signature-panel-table">
+                    <tr>
+                        <td>
+                            <div class="signature-panel">
+                                <div class="signature-heading">Contractor Signature</div>
+                                <div class="signature-image-area">
+                                    <apex:image value="{!vfContractorImgUrl}" rendered="{!NOT(ISBLANK(vfContractorImgUrl))}" styleClass="signature-image"/>
+                                </div>
+                                <table class="signature-footer">
+                                    <tr>
+                                        <td class="sig-label">Contractor</td>
+                                        <td class="sig-date">Sign Date: {!IF(ISBLANK(vfCertificateData.contractorSignDate), currentRecordDate, vfCertificateData.contractorSignDate)}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <table class="signature-panel-table">
+                    <tr>
+                        <td>
+                            <div class="signature-panel">
+                                <div class="signature-heading">Homeowner Signature</div>
+                                <div class="signature-image-area">
+                                    <apex:image value="{!vfHomeownerImgUrl}" rendered="{!NOT(ISBLANK(vfHomeownerImgUrl))}" styleClass="signature-image"/>
+                                </div>
+                                <table class="signature-footer">
+                                    <tr>
+                                        <td class="sig-label">Homeowner</td>
+                                        <td class="sig-date">Sign Date: {!IF(ISBLANK(vfCertificateData.homeownerSignDate), currentRecordDate, vfCertificateData.homeownerSignDate)}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <table class="signature-panel-table">
+                    <tr>
+                        <td>
+                            <div class="signature-panel">
+                                <div class="signature-heading">Homsite Representative Signature</div>
+                                <div class="signature-image-area">
+                                    <apex:image value="{!vfHomsiteRepImgUrl}" rendered="{!NOT(ISBLANK(vfHomsiteRepImgUrl))}" styleClass="signature-image"/>
+                                </div>
+                                <table class="signature-footer">
+                                    <tr>
+                                        <td class="sig-label">Homsite Representative</td>
+                                        <td class="sig-date">Sign Date: {!IF(ISBLANK(vfCertificateData.homsiteRepSignDate), currentRecordDate, vfCertificateData.homsiteRepSignDate)}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <table class="signature-panel-table">
+                    <tr>
+                        <td>
+                            <div class="signature-panel">
+                                <div class="signature-heading">Code Enforcement Signature</div>
+                                <div class="signature-image-area">
+                                    <apex:image value="{!vfCodeEnforcementImgUrl}" rendered="{!NOT(ISBLANK(vfCodeEnforcementImgUrl))}" styleClass="signature-image"/>
+                                </div>
+                                <table class="signature-footer">
+                                    <tr>
+                                        <td class="sig-label">Code Enforcement</td>
+                                        <td class="sig-date">Sign Date: {!IF(ISBLANK(vfCertificateData.codeEnforcementSignDate), currentRecordDate, vfCertificateData.codeEnforcementSignDate)}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </body>
+    </html>
+</apex:page>

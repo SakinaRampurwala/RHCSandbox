@@ -37,8 +37,7 @@ public without sharing class ProjectPreviewEmailController {
         }
         Map<String, String> templateMap = new Map<String, String>{
             'ProjectImprovementProgramPhotoRelease' => 'Project_Improvement_Program_Photo_Release',
-            'NoticeToProceed' => 'Notice_To_Proceed',
-            'FinalInspectionForm' => 'Final_Inspection_Form'
+            'NoticeToProceed' => 'Notice_To_Proceed'
         };
         String resolvedTemplateApiName = templateMap.containsKey(vfApiName) ? templateMap.get(vfApiName) : vfApiName;
 
@@ -78,7 +77,7 @@ public without sharing class ProjectPreviewEmailController {
         return result;
     }
 
-    private static String getConfirmationSiteUrl() {
+    public static String getConfirmationSiteUrl() {
         buildertek__ConfirmationSiteURL__c settings = buildertek__ConfirmationSiteURL__c.getOrgDefaults();
         if (settings != null && String.isNotBlank(settings.buildertek__Sites_URL__c)) {
             return settings.buildertek__Sites_URL__c;
@@ -86,7 +85,7 @@ public without sharing class ProjectPreviewEmailController {
         return URL.getOrgDomainUrl().toExternalForm();
     }
 
-    private static String applyOrganizationMergeFields(String body) {
+    public static String applyOrganizationMergeFields(String body) {
         if (String.isBlank(body)) {
             return body;
         }
@@ -108,7 +107,7 @@ public without sharing class ProjectPreviewEmailController {
         return body;
     }
 
-    private static String safeValue(String value) {
+    public static String safeValue(String value) {
         return value == null ? '' : value;
     }
 
@@ -118,10 +117,6 @@ public without sharing class ProjectPreviewEmailController {
 
         if (data == null) {
             return new EmailResult(false, 'Invalid email request');
-        }
-
-        if (data.templateId == 'FinalInspectionForm') {
-            return sendFinalInspectionEmail(data);
         }
 
         if (data.templateId == 'NoticeToProceed') {
@@ -212,153 +207,7 @@ public without sharing class ProjectPreviewEmailController {
         return new EmailResult(false, errorMsg);
     }
 
-    private static EmailResult sendFinalInspectionEmail(DataWrap data) {
-        if (String.isBlank(data.recordId)) {
-            return new EmailResult(false, 'Record Id is required');
-        }
-
-        if (isFinalInspectionAlreadySubmitted((Id) data.recordId)) {
-            return new EmailResult(false, 'Final Inspection already completed');
-        }
-
-        FinalInspectionSignatureState sigState = getFinalInspectionSignatureState((Id) data.recordId);
-        Boolean needsVendor = !sigState.homeownerSigned;
-        Boolean needsCompany = sigState.homeownerSigned && !sigState.representativeSigned;
-
-        if (!needsVendor && !needsCompany) {
-            return new EmailResult(false, 'Final Inspection already completed');
-        }
-
-        List<Contact> recipients = new List<Contact>();
-        Boolean isVendor = false;
-        Boolean isCompany = false;
-
-        if (needsVendor) {
-            if (data.vendorContactIds == null || data.vendorContactIds.isEmpty()) {
-                return new EmailResult(false, 'At least one homeowner recipient is required');
-            }
-            recipients = [
-                SELECT Id, Name, Email
-                FROM Contact
-                WHERE Id IN :data.vendorContactIds
-            ];
-            if (recipients.isEmpty()) {
-                return new EmailResult(false, 'No valid homeowner recipients found');
-            }
-            isVendor = true;
-        } else if (needsCompany) {
-            if (data.companyContactIds == null || data.companyContactIds.isEmpty()) {
-                return new EmailResult(false, 'At least one program representative contact is required');
-            }
-            recipients = [
-                SELECT Id, Name, Email
-                FROM Contact
-                WHERE Id IN :data.companyContactIds
-            ];
-            if (recipients.isEmpty()) {
-                return new EmailResult(false, 'No valid program representative recipients found');
-            }
-            isCompany = true;
-        }
-
-        String subject = data.subject;
-        if (data.includeRefId && String.isNotBlank(data.recordId)) {
-            subject = subject + '[ref:' + data.recordId + ']';
-        }
-
-        List<Messaging.EmailFileAttachment> attachmentList = new List<Messaging.EmailFileAttachment>();
-        if (data.fileIds != null && !data.fileIds.isEmpty()) {
-            List<ContentVersion> files = [
-                SELECT Title, VersionData, ContentSize, FileType, FileExtension
-                FROM ContentVersion
-                WHERE ContentDocumentId IN :data.fileIds AND IsLatest = true
-            ];
-
-            Integer totalSize = 0;
-            for (ContentVersion file : files) {
-                totalSize += file.ContentSize;
-            }
-
-            if (totalSize > 25 * 1024 * 1024) {
-                return new EmailResult(false, 'Total attachment size exceeds 25MB limit');
-            }
-
-            for (ContentVersion file : files) {
-                Messaging.EmailFileAttachment attachment = new Messaging.EmailFileAttachment();
-                String extension = String.isNotBlank(file.FileExtension)
-                    ? file.FileExtension
-                    : (file.FileType != null ? file.FileType.toLowerCase() : '');
-                attachment.setFileName(extension != '' ? file.Title + '.' + extension : file.Title);
-                attachment.setBody(file.VersionData);
-                attachmentList.add(attachment);
-            }
-        }
-
-        String baseBody = data.htmlBody == null ? '' : data.htmlBody;
-        String roleBody = applyFinalInspectionParamsToBody(
-            baseBody,
-            data.templateId,
-            data.recordId,
-            isVendor,
-            isCompany,
-            data.companyContactIds,
-            data.companyEmails,
-            data.fromAddress,
-            data.fileIds
-        );
-
-        List<Messaging.SingleEmailMessage> batch = new List<Messaging.SingleEmailMessage>();
-        List<Messaging.SendEmailResult> results = new List<Messaging.SendEmailResult>();
-
-        for (Contact recipient : recipients) {
-            if (recipient == null || String.isBlank(recipient.Email)) {
-                continue;
-            }
-
-            Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
-            mail.setToAddresses(new List<String>{ recipient.Email });
-            if (String.isNotBlank(data.fromAddress)) {
-                mail.setOrgWideEmailAddressId(data.fromAddress);
-            }
-            mail.setSubject(subject);
-            mail.setHtmlBody(applyContactName(roleBody, recipient.Name, data.contactNameToken, data.lastSelectedContactName));
-            mail.setUseSignature(data.useEmailSignature);
-            mail.setSaveAsActivity(data.saveAsActivity);
-            if (isValidIdFormat(data.recordId)) {
-                mail.setWhatId((Id) data.recordId);
-            }
-            if (!attachmentList.isEmpty()) {
-                mail.setFileAttachments(attachmentList);
-            }
-
-            batch.add(mail);
-            if (batch.size() == 10) {
-                results.addAll(Messaging.sendEmail(batch));
-                batch.clear();
-            }
-        }
-
-        if (!batch.isEmpty()) {
-            results.addAll(Messaging.sendEmail(batch));
-        }
-
-        if (results.isEmpty()) {
-            return new EmailResult(false, 'No valid recipients found');
-        }
-
-        for (Messaging.SendEmailResult result : results) {
-            if (!result.isSuccess()) {
-                if (result.getErrors() != null && !result.getErrors().isEmpty()) {
-                    return new EmailResult(false, result.getErrors()[0].getMessage());
-                }
-                return new EmailResult(false, 'Failed to send email');
-            }
-        }
-
-        return new EmailResult(true, 'Email sent successfully');
-    }
-
-    private static EmailResult sendNoticeToProceedEmail(DataWrap data) {
+    public static EmailResult sendNoticeToProceedEmail(DataWrap data) {
         if (String.isBlank(data.recordId)) {
             return new EmailResult(false, 'Record Id is required');
         }
@@ -516,7 +365,7 @@ public without sharing class ProjectPreviewEmailController {
      * Builds a full NTP VF page link with the role param AND all next-signer
      * contact IDs/emails embedded in the URL so the LWC can chain emails.
      */
-    private static String buildNtpRoleLink(
+    public static String buildNtpRoleLink(
         String recordId,
         String roleParam,
         List<String> contractorContactIds,
@@ -558,7 +407,7 @@ public without sharing class ProjectPreviewEmailController {
         return link;
     }
 
-    private static String applyOrganizationMergeFieldsStatic(String body) {
+    public static String applyOrganizationMergeFieldsStatic(String body) {
         if (String.isBlank(body)) { return body; }
         Organization orgInfo = [SELECT Name, Street, City, State, PostalCode, Phone FROM Organization LIMIT 1];
         Map<String, String> values = new Map<String, String>{
@@ -580,7 +429,7 @@ public without sharing class ProjectPreviewEmailController {
      * email body that contains '/apex/NoticeToProceed' — mirrors
      * applyFinalInspectionParamsToBody exactly.
      */
-    private static String applyNtpParamsToBody(
+    public static String applyNtpParamsToBody(
         String body,
         String recordId,
         String roleParam,
@@ -640,7 +489,7 @@ public without sharing class ProjectPreviewEmailController {
         return String.join(parts, '');
     }
 
-    private class NtpSignatureState {
+    public class NtpSignatureState {
         public Boolean ownerSigned { get; set; }
         public Boolean contractorSigned { get; set; }
         public Boolean programRepSigned { get; set; }
@@ -651,7 +500,7 @@ public without sharing class ProjectPreviewEmailController {
         }
     }
 
-    private static NtpSignatureState getNtpSignatureState(Id recordId) {
+    public static NtpSignatureState getNtpSignatureState(Id recordId) {
         if (recordId == null) { return new NtpSignatureState(false, false, false); }
         Map<String, Schema.SObjectField> fieldMap = buildertek__Project__c.SObjectType.getDescribe().fields.getMap();
         List<String> queryFields = new List<String>{ 'Id' };
@@ -666,7 +515,7 @@ public without sharing class ProjectPreviewEmailController {
         return new NtpSignatureState(ownerSigned, contractorSigned, programRepSigned);
     }
 
-    private static Boolean isNtpAlreadySubmitted(Id recordId) {
+    public static Boolean isNtpAlreadySubmitted(Id recordId) {
         if (recordId == null) { return false; }
         for (ContentDocumentLink link : [
             SELECT ContentDocument.Title, ContentDocument.FileType
@@ -687,131 +536,7 @@ public without sharing class ProjectPreviewEmailController {
 
 
 
-    private class FinalInspectionSignatureState {
-        public Boolean homeownerSigned { get; set; }
-        public Boolean representativeSigned { get; set; }
-
-        public FinalInspectionSignatureState(Boolean homeownerSigned, Boolean representativeSigned) {
-            this.homeownerSigned = homeownerSigned;
-            this.representativeSigned = representativeSigned;
-        }
-    }
-
-    private static FinalInspectionSignatureState getFinalInspectionSignatureState(Id recordId) {
-        if (recordId == null) {
-            return new FinalInspectionSignatureState(false, false);
-        }
-
-        Map<String, Schema.SObjectField> fieldMap = buildertek__Project__c.SObjectType.getDescribe().fields.getMap();
-        List<String> queryFields = new List<String>{ 'Id' };
-        if (fieldMap.containsKey('FI_Homeowner_Sign_Id__c')) {
-            queryFields.add('FI_Homeowner_Sign_Id__c');
-        }
-        if (fieldMap.containsKey('FI_Representative_Sign_Id__c')) {
-            queryFields.add('FI_Representative_Sign_Id__c');
-        }
-
-        if (queryFields.size() == 1) {
-            return new FinalInspectionSignatureState(false, false);
-        }
-
-        SObject recordSObj = Database.query(
-            'SELECT ' + String.join(queryFields, ',') + ' FROM buildertek__Project__c WHERE Id = :recordId LIMIT 1'
-        );
-
-        String homeownerSignId = fieldMap.containsKey('FI_Homeowner_Sign_Id__c')
-            ? (String) recordSObj.get('FI_Homeowner_Sign_Id__c')
-            : null;
-        String representativeSignId = fieldMap.containsKey('FI_Representative_Sign_Id__c')
-            ? (String) recordSObj.get('FI_Representative_Sign_Id__c')
-            : null;
-
-        Boolean homeownerSigned = String.isNotBlank(homeownerSignId);
-        Boolean representativeSigned = String.isNotBlank(representativeSignId);
-
-        return new FinalInspectionSignatureState(homeownerSigned, representativeSigned);
-    }
-
-    private static Boolean isFinalInspectionAlreadySubmitted(Id recordId) {
-        if (recordId == null) {
-            return false;
-        }
-
-        List<ContentDocumentLink> links = [
-            SELECT ContentDocument.Title, ContentDocument.FileType
-            FROM ContentDocumentLink
-            WHERE LinkedEntityId = :recordId
-        ];
-
-        for (ContentDocumentLink link : links) {
-            if (link.ContentDocument != null
-                && link.ContentDocument.FileType == 'PDF'
-                && link.ContentDocument.Title != null
-                && link.ContentDocument.Title.startsWith('Final Inspection ')) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static String applyFinalInspectionParamsToBody(
-        String body,
-        String templateId,
-        String recordId,
-        Boolean isVendor,
-        Boolean isCompany,
-        List<String> companyContactIds,
-        List<String> companyEmails,
-        String fromAddressId,
-        List<String> fileIds
-    ) {
-        if (String.isBlank(body)) {
-            return body;
-        }
-
-        Pattern pattern = Pattern.compile('(?i)href="([^"]+)"');
-        Matcher matcher = pattern.matcher(body);
-        List<String> parts = new List<String>();
-        String token = String.isBlank(templateId) ? null : '/apex/' + templateId;
-        Integer lastIndex = 0;
-
-        while (matcher.find()) {
-            parts.add(body.substring(lastIndex, matcher.start()));
-
-            String url = matcher.group(1);
-            String updatedUrl = url;
-            if (String.isNotBlank(url) && (token == null || url.contains(token))) {
-                updatedUrl = addOrReplaceUrlParam(updatedUrl, 'recordId', recordId);
-                updatedUrl = addOrReplaceUrlParam(updatedUrl, 'isPreview', 'false');
-                updatedUrl = addOrReplaceUrlParam(updatedUrl, 'isVendor', String.valueOf(isVendor));
-                updatedUrl = addOrReplaceUrlParam(updatedUrl, 'isCompany', String.valueOf(isCompany));
-                String companyIdsValue = joinIds(companyContactIds);
-                if (String.isNotBlank(companyIdsValue)) {
-                    updatedUrl = addOrReplaceUrlParam(updatedUrl, 'companyContactIds', companyIdsValue);
-                }
-                String companyEmailsValue = joinIds(companyEmails);
-                if (String.isNotBlank(companyEmailsValue)) {
-                    updatedUrl = addOrReplaceUrlParam(updatedUrl, 'companyEmails', companyEmailsValue);
-                }
-                if (String.isNotBlank(fromAddressId)) {
-                    updatedUrl = addOrReplaceUrlParam(updatedUrl, 'fromAddressId', fromAddressId);
-                }
-                String fileIdsValue = joinIds(fileIds);
-                if (String.isNotBlank(fileIdsValue)) {
-                    updatedUrl = addOrReplaceUrlParam(updatedUrl, 'fileIds', fileIdsValue);
-                }
-            }
-
-            parts.add('href="' + updatedUrl + '"');
-            lastIndex = matcher.end();
-        }
-
-        parts.add(body.substring(lastIndex));
-        return String.join(parts, '');
-    }
-
-    private static String addOrReplaceUrlParam(String url, String key, String value) {
+    public static String addOrReplaceUrlParam(String url, String key, String value) {
         if (String.isBlank(url) || String.isBlank(key)) {
             return url;
         }
@@ -826,7 +551,7 @@ public without sharing class ProjectPreviewEmailController {
         return url + separator + encodedKey + '=' + encodedValue;
     }
 
-    private static String joinIds(List<String> ids) {
+    public static String joinIds(List<String> ids) {
         if (ids == null || ids.isEmpty()) {
             return '';
         }
@@ -839,7 +564,7 @@ public without sharing class ProjectPreviewEmailController {
         return cleaned.isEmpty() ? '' : String.join(cleaned, ',');
     }
 
-    private static String applyContactName(String body, String contactName, String token, String lastSelectedName) {
+    public static String applyContactName(String body, String contactName, String token, String lastSelectedName) {
         if (String.isBlank(body) || String.isBlank(contactName)) {
             return body;
         }
@@ -903,7 +628,7 @@ public without sharing class ProjectPreviewEmailController {
         return result;
     }
 
-    private static Boolean isValidIdFormat(String value) {
+    public static Boolean isValidIdFormat(String value) {
         if (String.isBlank(value)) {
             return false;
         }
@@ -929,10 +654,6 @@ public without sharing class ProjectPreviewEmailController {
         public List<String> toEmails;
         public List<String> ccEmails;
         public List<String> bccEmails;
-        public List<String> vendorContactIds;
-        public List<String> vendorEmails;
-        public List<String> companyContactIds;
-        public List<String> companyEmails;
         // Notice To Proceed-specific
         public List<String> ntpOwnerContactIds;
         public List<String> ntpOwnerEmails;

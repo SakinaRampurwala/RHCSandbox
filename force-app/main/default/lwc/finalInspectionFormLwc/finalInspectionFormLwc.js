@@ -1,10 +1,14 @@
 import { LightningElement, api, track, wire } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import { refreshApex } from '@salesforce/apex';
 import getLogoUrl from '@salesforce/apex/FinalInspectionFormCtrl.getLogoUrl';
 import getFinalInspectionData from '@salesforce/apex/FinalInspectionFormCtrl.getFinalInspectionData';
 import saveSignature from '@salesforce/apex/FinalInspectionFormCtrl.saveSignature';
 import savePdf from '@salesforce/apex/FinalInspectionFormCtrl.savePdf';
 import sendCompanyContactEmail from '@salesforce/apex/FinalInspectionFormCtrl.sendCompanyContactEmail';
+
+const formatDateParts = (month, day, year) => `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}-${year}`;
+const formatDate = (dateValue) => formatDateParts(dateValue.getMonth() + 1, dateValue.getDate(), dateValue.getFullYear());
 
 export default class FinalInspectionFormLwc extends LightningElement {
     @api isPreview;
@@ -15,13 +19,15 @@ export default class FinalInspectionFormLwc extends LightningElement {
     @track isLoading = true;
     @track isSubmitted = false;
     @track isAlreadySubmitted = false;
-    @track submitTitle = 'Thank You!';
-    @track submitMessage = 'Final Inspection Form has been submitted successfully.';
+    @track submitError = '';
     @track logoURL;
     @track homeownerSignatureUrl;
     @track representativeSignatureUrl;
     @track homeownerSigned = false;
     @track representativeSigned = false;
+    @track showCustomToast = false;
+    @track customToastMessage = '';
+    @track customToastVariant = 'success';
     @track inspectionData = {
         homeownerName: '',
         homeownerAddress: '',
@@ -43,7 +49,11 @@ export default class FinalInspectionFormLwc extends LightningElement {
         representative: false
     };
 
-    currentDate = new Date().toLocaleDateString();
+    currentDate = formatDate(new Date());
+    toastTimeout;
+    wiredInspectionResult;
+    submissionStatus = '';
+    stageLocked = false;
 
     @wire(getLogoUrl)
     wiredLogo({ error, data }) {
@@ -55,9 +65,10 @@ export default class FinalInspectionFormLwc extends LightningElement {
     }
 
     @wire(getFinalInspectionData, { recordId: '$recordId' })
-    wiredInspection({ error, data }) {
+    wiredInspection(result) {
+        this.wiredInspectionResult = result;
+        const { error, data } = result;
         if (data) {
-            const finalDate = data.finalInspectionDate || this.currentDate;
             const homeownerAddress = this.formatAddress({
                 street: data.homeownerStreet,
                 city: data.homeownerCity,
@@ -68,7 +79,7 @@ export default class FinalInspectionFormLwc extends LightningElement {
             this.inspectionData = {
                 homeownerName: data.homeownerName || '',
                 homeownerAddress,
-                finalInspectionDate: finalDate || ''
+                finalInspectionDate: data.finalInspectionDate || ''
             };
             this.homeownerSignatureUrl = data.homeownerSignatureUrl || '';
             this.representativeSignatureUrl = data.representativeSignatureUrl || '';
@@ -81,6 +92,20 @@ export default class FinalInspectionFormLwc extends LightningElement {
             if (data.isFinalInspectionSubmitted) {
                 this.isSubmitted = true;
                 this.isAlreadySubmitted = true;
+                if (!this.submissionStatus) {
+                    this.submissionStatus = 'already';
+                }
+                this.stageLocked = false;
+            } else if (this.homeownerSigned && !this.representativeSigned && !this.isCompany) {
+                this.isSubmitted = false;
+                this.isAlreadySubmitted = false;
+                this.stageLocked = true;
+                this.submissionStatus = this.isVendor ? 'partial-vendor' : 'partial';
+            } else {
+                this.stageLocked = false;
+                if (this.submissionStatus === 'partial' || this.submissionStatus === 'partial-vendor') {
+                    this.submissionStatus = '';
+                }
             }
         } else if (error) {
             this.inspectionData = {
@@ -126,59 +151,71 @@ export default class FinalInspectionFormLwc extends LightningElement {
         }
     }
 
-    get showThankYouPage() {
-        const previewFlag = this.isPreview === true || this.isPreview === 'true';
-        if (previewFlag) {
-            return false;
-        }
-        return this.isSubmitted;
+    disconnectedCallback() {
+        window.clearTimeout(this.toastTimeout);
     }
 
     get isReadOnly() {
         const previewFlag = this.isPreview === true || this.isPreview === 'true';
-        if (this.isVendor || this.isCompany || this.isRepresentativeStage) {
+        if (this.isSubmitted) {
+            return true;
+        }
+        if (this.stageLocked) {
+            return true;
+        }
+        if (this.hasHomeownerSignature && !this.hasRepresentativeSignature && !this.isCompany) {
+            return true;
+        }
+        if (this.isVendor || this.isCompany) {
             return false;
         }
         return previewFlag;
     }
 
+    get showSubmittedMessage() {
+        return (this.isSubmitted || this.stageLocked) && !(this.isPreview === true || this.isPreview === 'true');
+    }
+
+    get submittedMessage() {
+        if (this.isAlreadySubmitted || this.submissionStatus === 'already') {
+            return 'Final Inspection Form has already been submitted for this record.';
+        }
+        if (this.submissionStatus === 'partial-vendor') {
+            return 'Your signature has been saved. The program representative has been notified.';
+        }
+        if (this.submissionStatus === 'partial') {
+            return 'Your signature has been saved. PDF will be generated once all signatures are collected.';
+        }
+        return 'Final Inspection Form has been submitted successfully.';
+    }
+
     get isRepresentativeStage() {
-        return this.hasHomeownerSignature && !this.hasRepresentativeSignature;
+        return this.isCompany && this.hasHomeownerSignature && !this.hasRepresentativeSignature;
     }
 
     get showHomeownerSection() {
         if (this.isReadOnly) {
             return true;
         }
-        if (this.isVendor || this.isCompany) {
-            if (this.isVendor) {
-                return true;
-            }
-            if (this.isCompany) {
-                return this.hasHomeownerSignature;
-            }
-        }
-        if (this.isRepresentativeStage) {
-            return true;
+        if (this.isCompany) {
+            return this.hasHomeownerSignature;
         }
         return true;
     }
 
     get showRepresentativeSection() {
         if (this.isReadOnly) {
-            return true;
+            return this.hasRepresentativeSignature || this.isSubmitted || this.isAlreadySubmitted || this.isPreview === true || this.isPreview === 'true';
         }
-        if (this.isRepresentativeStage) {
-            return true;
-        }
-        if (this.isVendor || this.isCompany) {
-            return this.isCompany;
-        }
-        return true;
+        return this.isCompany || this.hasRepresentativeSignature;
     }
 
     get signatureCanvasClass() {
         return `signature-pad${this.isReadOnly ? ' read-only' : ''}`;
+    }
+
+    get customToastClass() {
+        return `custom-toast custom-toast_${this.customToastVariant}`;
     }
 
     get isSubmitDisabled() {
@@ -220,7 +257,7 @@ export default class FinalInspectionFormLwc extends LightningElement {
         const safePostal = postal || '';
         const safeCountry = country || '';
 
-        const cityState = [safeCity, safeState].filter(Boolean).join(' ');
+        const cityState = [safeCity, safeState].filter(Boolean).join(', ');
         const firstPart = [safeStreet, cityState].filter(Boolean).join(', ');
         const zipPart = safePostal ? ` - ${safePostal}` : '';
         const countryPart = safeCountry ? `, ${safeCountry}` : '';
@@ -358,6 +395,7 @@ export default class FinalInspectionFormLwc extends LightningElement {
         if (this.isReadOnly) {
             return;
         }
+        this.submitError = '';
 
         const signaturePromises = [];
         const signatureResults = {};
@@ -383,13 +421,7 @@ export default class FinalInspectionFormLwc extends LightningElement {
                 return true;
             }
 
-            this.dispatchEvent(
-                new ShowToastEvent({
-                    title: 'Warning',
-                    message: warningMessage,
-                    variant: 'warning'
-                })
-            );
+            this.showStatusToast(warningMessage, 'error');
             return false;
         };
 
@@ -421,13 +453,7 @@ export default class FinalInspectionFormLwc extends LightningElement {
             || signatureResults.homeowner
             || signatureResults.representative;
         if (!hasAnySignature) {
-            this.dispatchEvent(
-                new ShowToastEvent({
-                    title: 'Warning',
-                    message: 'No signature found to save.',
-                    variant: 'warning'
-                })
-            );
+            this.showStatusToast('No signature found to save.', 'error');
             return;
         }
 
@@ -448,29 +474,34 @@ export default class FinalInspectionFormLwc extends LightningElement {
             .then((result) => {
                 if (result === 'Success') {
                     this.isSubmitted = true;
-                    this.submitTitle = 'Thank You!';
-                    this.submitMessage = 'Final Inspection Form has been submitted successfully.';
-                    this.dispatchEvent(
-                        new ShowToastEvent({
-                            title: 'Success',
-                            message: 'Final Inspection Form submitted successfully.',
-                            variant: 'success'
-                        })
-                    );
-                    return;
+                    this.isAlreadySubmitted = false;
+                    this.submissionStatus = 'success';
+                    return refreshApex(this.wiredInspectionResult).then(() => {
+                        this.dispatchEvent(
+                            new ShowToastEvent({
+                                title: 'Success',
+                                message: 'Final Inspection Form submitted successfully.',
+                                variant: 'success'
+                            })
+                        );
+                        this.showStatusToast('Final Inspection Form submitted successfully.', 'success');
+                    });
                 }
 
                 if (result === 'Already Submitted') {
                     this.isSubmitted = true;
                     this.isAlreadySubmitted = true;
-                    this.dispatchEvent(
-                        new ShowToastEvent({
-                            title: 'Already Submitted',
-                            message: 'Final Inspection Form has already been submitted for this record.',
-                            variant: 'info'
-                        })
-                    );
-                    return;
+                    this.submissionStatus = 'already';
+                    return refreshApex(this.wiredInspectionResult).then(() => {
+                        this.dispatchEvent(
+                            new ShowToastEvent({
+                                title: 'Already Submitted',
+                                message: 'Final Inspection Form has already been submitted for this record.',
+                                variant: 'info'
+                            })
+                        );
+                        this.showStatusToast('Final Inspection Form has already been submitted for this record.', 'info');
+                    });
                 }
 
                 if (result === 'Missing Signatures') {
@@ -487,43 +518,68 @@ export default class FinalInspectionFormLwc extends LightningElement {
                             if (sendResult && sendResult !== 'Success') {
                                 throw new Error(sendResult);
                             }
-                            this.isSubmitted = true;
-                            this.submitTitle = 'Thank You!';
-                            this.submitMessage = 'Your signature has been saved. We will notify the program representative.';
-                            this.dispatchEvent(
-                                new ShowToastEvent({
-                                    title: 'Success',
-                                    message: 'Signature saved. The request has been sent to the program representative.',
-                                    variant: 'success'
-                                })
-                            );
+                            this.stageLocked = true;
+                            this.isAlreadySubmitted = false;
+                            this.submissionStatus = 'partial-vendor';
+                            return refreshApex(this.wiredInspectionResult).then(() => {
+                                this.dispatchEvent(
+                                    new ShowToastEvent({
+                                        title: 'Success',
+                                        message: 'Signature saved. The request has been sent to the program representative.',
+                                        variant: 'success'
+                                    })
+                                );
+                                this.showStatusToast('Signature saved. The request has been sent to the program representative.', 'success');
+                            });
                         });
                     }
 
-                    this.isSubmitted = true;
-                    this.submitTitle = 'Thank You!';
-                    this.submitMessage = 'Your signature has been saved. PDF will be generated once all signatures are collected.';
-                    this.dispatchEvent(
-                        new ShowToastEvent({
-                            title: 'Signature Saved',
-                            message: 'Signature saved. PDF will be generated once all signatures are collected.',
-                            variant: 'success'
-                        })
-                    );
-                    return;
+                    this.stageLocked = true;
+                    this.isAlreadySubmitted = false;
+                    this.submissionStatus = 'partial';
+                    return refreshApex(this.wiredInspectionResult).then(() => {
+                        this.dispatchEvent(
+                            new ShowToastEvent({
+                                title: 'Signature Saved',
+                                message: 'Signature saved. PDF will be generated once all signatures are collected.',
+                                variant: 'success'
+                            })
+                        );
+                        this.showStatusToast('Signature saved. PDF will be generated once all signatures are collected.', 'success');
+                    });
                 }
+
+                throw new Error(result || 'Unable to submit Final Inspection Form.');
             })
             .catch((error) => {
+                const message = error?.body?.message || error?.message || 'An unknown error occurred';
+                this.submitError = message;
                 this.dispatchEvent(
                     new ShowToastEvent({
                         title: 'Error',
-                        message: error?.body?.message || error?.message || 'An unknown error occurred',
+                        message,
                         variant: 'error'
                     })
                 );
+                this.showStatusToast(message, 'error');
             })
             .finally(() => {
                 this.isLoading = false;
             });
+    }
+
+    showStatusToast(message, variant = 'success') {
+        window.clearTimeout(this.toastTimeout);
+        this.customToastMessage = message;
+        this.customToastVariant = variant;
+        this.showCustomToast = true;
+        this.toastTimeout = window.setTimeout(() => {
+            this.showCustomToast = false;
+        }, 5000);
+    }
+
+    handleCloseToast() {
+        window.clearTimeout(this.toastTimeout);
+        this.showCustomToast = false;
     }
 }

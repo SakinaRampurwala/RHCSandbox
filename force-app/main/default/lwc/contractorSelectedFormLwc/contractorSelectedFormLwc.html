@@ -1,38 +1,27 @@
 <template>
-    <template if:true={isLoading}>
-        <div class="slds-spinner_container" style="position:fixed;">
-            <div class="slds-spinner slds-spinner_large slds-spinner_brand slds-is-relative" role="alert">
-                <span class="slds-assistive-text">Loading</span>
-                <div class="slds-spinner__dot-a"></div>
-                <div class="slds-spinner__dot-b"></div>
-            </div>
+    <template if:true={showCustomToast}>
+        <div class={customToastClass} role="status">
+            <span>{customToastMessage}</span>
+            <button class="toast-close" onclick={handleCloseToast} aria-label="Close">x</button>
         </div>
     </template>
 
-    <template if:true={showHomeownerCompletePage}>
-        <div class="main-wrapper">
-            <div class="slds-container_large slds-container_center">
-                <div class="content-inner success-container">
-                    <lightning-icon icon-name="action:approval" size="large" alternative-text="Success"></lightning-icon>
-                    <h2 class="slds-text-heading_large slds-m-top_medium">Thank You!</h2>
-                    <p class="slds-text-heading_small slds-m-top_medium">{thankYouMessage}</p>
+    <div class="main-wrapper slds-is-relative">
+        <template if:true={isLoading}>
+            <div class="spinner-shell">
+                <lightning-spinner alternative-text="Loading" size="large" variant="brand"></lightning-spinner>
+            </div>
+        </template>
+
+        <div class="slds-container_large slds-container_center">
+            <template if:true={showSubmittedMessage}>
+                <div class="submitted-message">
+                    <lightning-icon icon-name="utility:success" size="x-small" alternative-text="Submitted"></lightning-icon>
+                    <span>{submittedMessage}</span>
                 </div>
-            </div>
-        </div>
-    </template>
+            </template>
 
-    <template if:true={showFormSurface}>
-        <div class="page-shell">
-            <div class="form-card">
-                <template if:true={showCompletedBanner}>
-                    <div class="status-banner success">
-                        Contractor Selected Form Completed
-                        <template if:true={submittedDate}>
-                            <span class="status-detail">Submitted Date: {submittedDate}</span>
-                        </template>
-                    </div>
-                </template>
-
+            <div class="main-container">
                 <template if:true={showLockedBanner}>
                     <div class="status-banner info">{infoMessage}</div>
                 </template>
@@ -240,5 +229,5 @@
                 </template>
             </div>
         </div>
-    </template>
+    </div>
 </template>

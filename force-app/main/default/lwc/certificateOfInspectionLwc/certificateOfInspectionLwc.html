@@ -1,0 +1,199 @@
+<template>
+    <template if:true={showCustomToast}>
+        <div class={customToastClass} role="status">
+            <span>{customToastMessage}</span>
+            <button class="toast-close" onclick={handleCloseToast} aria-label="Close">x</button>
+        </div>
+    </template>
+
+    <div class="main-wrapper slds-is-relative">
+        <template if:true={isLoading}>
+            <div class="spinner-overlay">
+                <lightning-spinner alternative-text="Loading" size="large" variant="brand"></lightning-spinner>
+            </div>
+        </template>
+
+        <div class="slds-container_large slds-container_center">
+            <template if:true={showSubmittedMessage}>
+                <div class="submitted-message">
+                    <lightning-icon icon-name="utility:success" size="x-small" alternative-text="Submitted"></lightning-icon>
+                    <span>{submittedMessage}</span>
+                </div>
+            </template>
+
+            <div class="main-container">
+                <div class="header-container">
+                    <template if:true={logoURL}>
+                        <img class="header-logo" src={logoURL} alt="Logo" onerror={handleLogoError} />
+                    </template>
+                </div>
+
+                <div class="doc-title">Certificate of Inspection</div>
+
+                <div class="content-inner">
+                    <div class="info-block">
+                        <div class="info-row">
+                            <span class="info-label">Date:</span>
+                            <span class="info-value">{certificateData.inspectionDate}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Contractor:</span>
+                            <span class="info-value">{certificateData.contractor}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Project Address:</span>
+                            <span class="info-value info-value-multiline">{certificateData.projectAddress}</span>
+                        </div>
+                    </div>
+
+                    <div class="section-title">Certification Statement</div>
+                    <p class="section-paragraph">
+                        I have visited the above referenced job site and have verified that work items that Homsite is paying for have been completed and are code compliant.
+                    </p>
+
+                    <div class="signature-list">
+                        <template if:true={showContractorSection}>
+                            <div class="signature-section">
+                                <label class="signature-label">Contractor Signature</label>
+                                <div class="signature-container">
+                                    <template if:true={hasContractorSignature}>
+                                        <img src={contractorSignatureUrl} alt="Contractor Signature" class="signature-image" />
+                                    </template>
+                                    <template if:false={hasContractorSignature}>
+                                        <template if:true={canEditContractor}>
+                                            <canvas class={signatureCanvasClass}
+                                                data-signature-id="contractor"
+                                                onmousedown={handleMouseDown}
+                                                onmousemove={handleMouseMove}
+                                                onmouseup={handleMouseUp}
+                                                onmouseout={handleMouseUp}
+                                                ontouchstart={handleTouchStart}
+                                                ontouchmove={handleTouchMove}
+                                                ontouchend={handleTouchEnd}></canvas>
+                                        </template>
+                                        <template if:false={canEditContractor}>
+                                            <div class="blank-signature"></div>
+                                        </template>
+                                    </template>
+                                </div>
+                                <template if:true={canEditContractor}>
+                                    <div class="signature-buttons">
+                                        <button class="clear-link" data-signature-id="contractor" onclick={clearSignature}>Clear Signature</button>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+
+                        <template if:true={showHomeownerSection}>
+                            <div class="signature-section">
+                                <label class="signature-label">Homeowner Signature</label>
+                                <div class="signature-container">
+                                    <template if:true={hasHomeownerSignature}>
+                                        <img src={homeownerSignatureUrl} alt="Homeowner Signature" class="signature-image" />
+                                    </template>
+                                    <template if:false={hasHomeownerSignature}>
+                                        <template if:true={canEditHomeowner}>
+                                            <canvas class={signatureCanvasClass}
+                                                data-signature-id="homeowner"
+                                                onmousedown={handleMouseDown}
+                                                onmousemove={handleMouseMove}
+                                                onmouseup={handleMouseUp}
+                                                onmouseout={handleMouseUp}
+                                                ontouchstart={handleTouchStart}
+                                                ontouchmove={handleTouchMove}
+                                                ontouchend={handleTouchEnd}></canvas>
+                                        </template>
+                                        <template if:false={canEditHomeowner}>
+                                            <div class="blank-signature"></div>
+                                        </template>
+                                    </template>
+                                </div>
+                                <template if:true={canEditHomeowner}>
+                                    <div class="signature-buttons">
+                                        <button class="clear-link" data-signature-id="homeowner" onclick={clearSignature}>Clear Signature</button>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+
+                        <template if:true={showHomsiteRepSection}>
+                            <div class="signature-section">
+                                <label class="signature-label">Homsite Representative Signature</label>
+                                <div class="signature-container">
+                                    <template if:true={hasHomsiteRepSignature}>
+                                        <img src={homsiteRepSignatureUrl} alt="Homsite Representative Signature" class="signature-image" />
+                                    </template>
+                                    <template if:false={hasHomsiteRepSignature}>
+                                        <template if:true={canEditHomsiteRep}>
+                                            <canvas class={signatureCanvasClass}
+                                                data-signature-id="homsiteRep"
+                                                onmousedown={handleMouseDown}
+                                                onmousemove={handleMouseMove}
+                                                onmouseup={handleMouseUp}
+                                                onmouseout={handleMouseUp}
+                                                ontouchstart={handleTouchStart}
+                                                ontouchmove={handleTouchMove}
+                                                ontouchend={handleTouchEnd}></canvas>
+                                        </template>
+                                        <template if:false={canEditHomsiteRep}>
+                                            <div class="blank-signature"></div>
+                                        </template>
+                                    </template>
+                                </div>
+                                <template if:true={canEditHomsiteRep}>
+                                    <div class="signature-buttons">
+                                        <button class="clear-link" data-signature-id="homsiteRep" onclick={clearSignature}>Clear Signature</button>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+
+                        <template if:true={showCodeEnforcementSection}>
+                            <div class="signature-section">
+                                <label class="signature-label">Code Enforcement Signature</label>
+                                <div class="signature-container">
+                                    <template if:true={hasCodeEnforcementSignature}>
+                                        <img src={codeEnforcementSignatureUrl} alt="Code Enforcement Signature" class="signature-image" />
+                                    </template>
+                                    <template if:false={hasCodeEnforcementSignature}>
+                                        <template if:true={canEditCodeEnforcement}>
+                                            <canvas class={signatureCanvasClass}
+                                                data-signature-id="codeEnforcement"
+                                                onmousedown={handleMouseDown}
+                                                onmousemove={handleMouseMove}
+                                                onmouseup={handleMouseUp}
+                                                onmouseout={handleMouseUp}
+                                                ontouchstart={handleTouchStart}
+                                                ontouchmove={handleTouchMove}
+                                                ontouchend={handleTouchEnd}></canvas>
+                                        </template>
+                                        <template if:false={canEditCodeEnforcement}>
+                                            <div class="blank-signature"></div>
+                                        </template>
+                                    </template>
+                                </div>
+                                <template if:true={canEditCodeEnforcement}>
+                                    <div class="signature-buttons">
+                                        <button class="clear-link" data-signature-id="codeEnforcement" onclick={clearSignature}>Clear Signature</button>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+
+                    <template if:false={isReadOnly}>
+                        <div class="submit-row">
+                            <lightning-button
+                                class="submit-button"
+                                variant="brand"
+                                label="Submit"
+                                onclick={handleSubmit}
+                                disabled={isSubmitDisabled}>
+                            </lightning-button>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>

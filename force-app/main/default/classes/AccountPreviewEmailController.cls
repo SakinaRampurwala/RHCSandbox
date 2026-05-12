@@ -60,12 +60,8 @@ public without sharing class AccountPreviewEmailController {
         String subject = template.Subject;
 
         if (String.isNotBlank(body) && body.contains('{!URL}')) {
-            String baseUrl = getConfirmationSiteUrl();
-            String safeRecordId = String.isBlank(recordId) ? '' : recordId;
-            String linkText = 'Click here';
-            String link = '<a href="' + baseUrl + '/apex/emailTemplateId?id=' + safeRecordId
-                + '&isPreview=true&senderId=' + UserInfo.getUserId()
-                + '&sendDate=' + Date.today() + '">' + linkText + '</a>';
+            String pageName = resolveTemplatePageName(vfApiName);
+            String link = buildTemplateLink(pageName, recordId);
             body = body.replace('{!URL}', link);
         }
 
@@ -78,7 +74,32 @@ public without sharing class AccountPreviewEmailController {
         return result;
     }
 
-    private static String getConfirmationSiteUrl() {
+    public static String resolveTemplatePageName(String templateKey) {
+        if (templateKey == 'IneligibleHIPletter') {
+            return 'IneligibleHIPletter';
+        }
+        if (templateKey == 'HIPEligibleLetter') {
+            return 'HIPEligibleLetter';
+        }
+        if (templateKey == 'HIPApplication') {
+            return 'HIPApplication';
+        }
+        return templateKey;
+    }
+
+    public static String buildTemplateLink(String pageName, String recordId) {
+        String baseUrl = getConfirmationSiteUrl();
+        String safeRecordId = String.isBlank(recordId) ? '' : EncodingUtil.urlEncode(recordId, 'UTF-8');
+        String safePageName = String.isBlank(pageName) ? '' : EncodingUtil.urlEncode(pageName, 'UTF-8');
+        String linkUrl = baseUrl + '/apex/' + safePageName
+            + '?id=' + safeRecordId
+            + '&isPreview=true&senderId=' + UserInfo.getUserId()
+            + '&sendDate=' + Date.today();
+        String link = '<a href="' + linkUrl + '">Click here</a>';
+        return link;
+    }
+
+    public static String getConfirmationSiteUrl() {
         buildertek__ConfirmationSiteURL__c settings = buildertek__ConfirmationSiteURL__c.getOrgDefaults();
         if (settings != null && String.isNotBlank(settings.buildertek__Sites_URL__c)) {
             return settings.buildertek__Sites_URL__c;
@@ -86,7 +107,7 @@ public without sharing class AccountPreviewEmailController {
         return URL.getOrgDomainUrl().toExternalForm();
     }
 
-    private static String applyOrganizationMergeFields(String body) {
+    public static String applyOrganizationMergeFields(String body) {
         if (String.isBlank(body)) {
             return body;
         }
@@ -108,7 +129,7 @@ public without sharing class AccountPreviewEmailController {
         return body;
     }
 
-    private static String safeValue(String value) {
+    public static String safeValue(String value) {
         return value == null ? '' : value;
     }
 
@@ -203,17 +224,6 @@ public without sharing class AccountPreviewEmailController {
             }
         }
 
-        if (data.templateId == 'HIPApplication' && String.isNotBlank(data.recordId)) {
-            Messaging.EmailFileAttachment hipApplicationPdf = buildHipApplicationAttachment(data.recordId);
-            if (hipApplicationPdf != null && hipApplicationPdf.getBody() != null) {
-                totalSize += hipApplicationPdf.getBody().size();
-                if (totalSize > 25 * 1024 * 1024) {
-                    return new EmailResult(false, 'Total attachment size exceeds 25MB limit');
-                }
-                attachmentList.add(hipApplicationPdf);
-            }
-        }
-
         if (data.templateId == 'IneligibleHIPletter' && String.isNotBlank(data.recordId)) {
             Messaging.EmailFileAttachment ineligibleHipPdf = buildIneligibleHipLetterAttachment(data.recordId);
             if (ineligibleHipPdf != null && ineligibleHipPdf.getBody() != null) {
@@ -241,7 +251,7 @@ public without sharing class AccountPreviewEmailController {
         return new EmailResult(false, errorMsg);
     }
 
-    private static Messaging.EmailFileAttachment buildHipEligibleLetterAttachment(String recordId) {
+    public static Messaging.EmailFileAttachment buildHipEligibleLetterAttachment(String recordId) {
         if (String.isBlank(recordId)) {
             return null;
         }
@@ -261,27 +271,7 @@ public without sharing class AccountPreviewEmailController {
         }
     }
 
-    private static Messaging.EmailFileAttachment buildHipApplicationAttachment(String recordId) {
-        if (String.isBlank(recordId)) {
-            return null;
-        }
-        try {
-            PageReference pageRef = Page.HIPApplicationAsPDF;
-            pageRef.getParameters().put('id', recordId);
-            Blob pdfBlob = Test.isRunningTest()
-                ? Blob.valueOf('HIP Application')
-                : pageRef.getContentAsPDF();
-            Messaging.EmailFileAttachment attachment = new Messaging.EmailFileAttachment();
-            attachment.setFileName('HIP Application.pdf');
-            attachment.setBody(pdfBlob);
-            attachment.setContentType('application/pdf');
-            return attachment;
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private static Messaging.EmailFileAttachment buildIneligibleHipLetterAttachment(String recordId) {
+    public static Messaging.EmailFileAttachment buildIneligibleHipLetterAttachment(String recordId) {
         if (String.isBlank(recordId)) {
             return null;
         }
@@ -311,7 +301,7 @@ public without sharing class AccountPreviewEmailController {
         }
     }
 
-    private static EmailResult sendFinalInspectionEmail(DataWrap data) {
+    public static EmailResult sendFinalInspectionEmail(DataWrap data) {
         if (String.isBlank(data.recordId)) {
             return new EmailResult(false, 'Record Id is required');
         }
@@ -457,7 +447,7 @@ public without sharing class AccountPreviewEmailController {
         return new EmailResult(true, 'Email sent successfully');
     }
 
-    private class FinalInspectionSignatureState {
+    public class FinalInspectionSignatureState {
         public Boolean homeownerSigned { get; set; }
         public Boolean representativeSigned { get; set; }
 
@@ -467,7 +457,7 @@ public without sharing class AccountPreviewEmailController {
         }
     }
 
-    private static FinalInspectionSignatureState getFinalInspectionSignatureState(Id recordId) {
+    public static FinalInspectionSignatureState getFinalInspectionSignatureState(Id recordId) {
         if (recordId == null) {
             return new FinalInspectionSignatureState(false, false);
         }
@@ -502,7 +492,7 @@ public without sharing class AccountPreviewEmailController {
         return new FinalInspectionSignatureState(homeownerSigned, representativeSigned);
     }
 
-    private static Boolean isFinalInspectionAlreadySubmitted(Id recordId) {
+    public static Boolean isFinalInspectionAlreadySubmitted(Id recordId) {
         if (recordId == null) {
             return false;
         }
@@ -525,7 +515,7 @@ public without sharing class AccountPreviewEmailController {
         return false;
     }
 
-    private static String applyFinalInspectionParamsToBody(
+    public static String applyFinalInspectionParamsToBody(
         String body,
         String templateId,
         String recordId,
@@ -581,7 +571,7 @@ public without sharing class AccountPreviewEmailController {
         return String.join(parts, '');
     }
 
-    private static String addOrReplaceUrlParam(String url, String key, String value) {
+    public static String addOrReplaceUrlParam(String url, String key, String value) {
         if (String.isBlank(url) || String.isBlank(key)) {
             return url;
         }
@@ -596,7 +586,7 @@ public without sharing class AccountPreviewEmailController {
         return url + separator + encodedKey + '=' + encodedValue;
     }
 
-    private static String joinIds(List<String> ids) {
+    public static String joinIds(List<String> ids) {
         if (ids == null || ids.isEmpty()) {
             return '';
         }
@@ -609,7 +599,7 @@ public without sharing class AccountPreviewEmailController {
         return cleaned.isEmpty() ? '' : String.join(cleaned, ',');
     }
 
-    private static String applyContactName(String body, String contactName, String token, String lastSelectedName) {
+    public static String applyContactName(String body, String contactName, String token, String lastSelectedName) {
         if (String.isBlank(body) || String.isBlank(contactName)) {
             return body;
         }
@@ -673,7 +663,7 @@ public without sharing class AccountPreviewEmailController {
         return result;
     }
 
-    private static Boolean isValidIdFormat(String value) {
+    public static Boolean isValidIdFormat(String value) {
         if (String.isBlank(value)) {
             return false;
         }

@@ -3,193 +3,251 @@
     <head>
         <style type="text/css">
             @page {
-                margin: 0.3in;
+                margin: 0.35in;
                 size: letter;
             }
             body {
                 font-family: "Times New Roman", Times, serif;
-                font-size: 11pt;
-                color: #000;
-                line-height: 1.2;
+                font-size: 12px;
+                color: #193247;
+                line-height: 1.45;
             }
-            .header-logo {
-                width: 190px;
-                max-width: 100%;
-                height: auto;
+            .page-shell {
+                background: #f3f5f8;
+                border: 1px solid #d7dfe8;
+                padding: 10px;
+            }
+            .document-card {
+                background: #ffffff;
+                border: 1px solid #d7dfe8;
+                padding: 18px 20px 24px;
+            }
+            .header {
+                text-align: center;
                 margin-bottom: 10px;
             }
+            .header-logo {
+                width: 200px;
+                max-width: 100%;
+                height: auto;
+                margin-bottom: 15px;
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+            }
             .doc-sub-title {
-                text-align: center;
-                font-size: 15pt;
+                font-size: 18px;
+                line-height: 1.35;
                 font-weight: bold;
+                color: #173a5e;
+                margin: 8px 0 2px;
             }
             .doc-title {
-                text-align: center;
-                font-size: 17pt;
+                font-size: 24px;
+                line-height: 1.35;
+                text-transform: uppercase;
                 font-weight: bold;
-                margin: 6px 0 10px;
+                color: #112a46;
+                margin: 0 0 14px;
+                letter-spacing: 0.03em;
+                padding-bottom: 8px;
+                border-bottom: 1px solid #d8e4f0;
             }
-            table {
+            table.notice-table {
                 width: 100%;
                 border-collapse: collapse;
-                font-size: 11pt;
                 table-layout: fixed;
+                font-size: 14px;
             }
-            td {
-                border: 1px solid #000;
-                padding: 3px 5px;
+            .notice-table td {
+                border: 1px solid #6f849a;
+                padding: 8px 10px;
                 vertical-align: top;
             }
             .label-cell {
                 font-weight: bold;
+                color: #0f2d4a;
+                background: #eef4fb;
             }
             .paragraph-cell {
-                line-height: 1.25;
-                padding: 8px 6px;
+                line-height: 1.35;
+                color: #173a5e;
+                padding: 12px 10px;
             }
             .empty-row td {
                 height: 12px;
                 padding: 0;
             }
-            .signature-wrap {
-                margin-top: 10px;
+            .signature-section {
+                margin-top: 12px;
+                padding: 12px 14px 8px;
+                border: 1px solid #dbe4ef;
+                background: #f7f9fb;
+                page-break-inside: avoid;
+                break-inside: avoid;
             }
-            .signature-image-area {
-                height: 80px;
+            .signature-heading {
+                font-size: 12px;
+                line-height: 1.2;
+                text-transform: uppercase;
+                font-family: Arial, Helvetica, sans-serif;
+                font-weight: bold;
+                color: #26455e;
+                margin-bottom: 6px;
+            }
+            .signature-box {
+                height: 135px;
+                max-height: 135px;
                 width: 100%;
-                line-height: 0;
+                border: 1px solid #7590a8;
+                background: #fff;
                 overflow: hidden;
+                line-height: 0;
+                page-break-inside: avoid;
+                break-inside: avoid;
             }
-            .signature-image {
-                width: 100%;
-                height: 80px;
+            .signature-box img {
                 display: block;
-                object-fit: contain;
-                object-position: left center;
-            }
-            .signature-underline {
-                border: none;
-                border-top: 1px solid #000;
-                margin: 2px 0 2px 0;
+                max-width: 100%;
+                width: auto;
+                height: 100%;
+                margin: 0 auto;
             }
             .signature-footer {
                 width: 100%;
-                display: table;
+                border-collapse: collapse;
+                margin-top: 6px;
                 table-layout: fixed;
+                page-break-inside: avoid;
+                break-inside: avoid;
             }
             .sig-label {
-                display: table-cell;
+                width: 50%;
                 text-align: left;
-                font-size: 10pt;
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 12px;
+                font-weight: bold;
+                color: #193247;
             }
             .sig-date {
-                display: table-cell;
+                width: 50%;
                 text-align: right;
-                font-size: 10pt;
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 12px;
+                font-weight: bold;
+                color: #193247;
+                white-space: nowrap;
             }
         </style>
     </head>
     <body>
-        <apex:image value="{!logoUrl}" rendered="{!logoUrl != null}" styleClass="header-logo"/>
+        <div class="page-shell">
+                <div class="document-card">
+                <div class="header">
+                    <apex:image value="{!logoUrl}" rendered="{!logoUrl != null}" styleClass="header-logo"/>
+                    <div class="doc-sub-title">Home Improvement Program</div>
+                    <div class="doc-title">NOTICE TO PROCEED</div>
+                </div>
 
-        <div class="doc-sub-title">Home Improvement Program</div>
-        <div class="doc-title">NOTICE TO PROCEED</div>
+                <table class="notice-table" cellspacing="0" cellpadding="0">
+                    <colgroup>
+                        <col style="width: 23%;" />
+                        <col style="width: 41%;" />
+                        <col style="width: 14%;" />
+                        <col style="width: 22%;" />
+                    </colgroup>
+                    <tr>
+                        <td class="label-cell">Project Location:</td>
+                        <td>{!vfNoticeData.projectLocation}</td>
+                        <td class="label-cell">Case No.</td>
+                        <td>{!vfNoticeData.caseNumber}</td>
+                    </tr>
+                    <tr>
+                        <td class="label-cell">Property Owner:</td>
+                        <td colspan="3">{!vfNoticeData.propertyOwner}</td>
+                    </tr>
+                    <tr class="empty-row">
+                        <td colspan="4"></td>
+                    </tr>
+                    <tr>
+                        <td class="label-cell">Contractor:</td>
+                        <td>{!vfNoticeData.contractor}</td>
+                        <td class="label-cell">Telephone:</td>
+                        <td>{!vfNoticeData.telephone}</td>
+                    </tr>
+                    <tr>
+                        <td class="label-cell">Address:</td>
+                        <td colspan="3">{!vfNoticeData.contractorAddress}</td>
+                    </tr>
+                    <tr>
+                        <td class="label-cell">Contract Dated:</td>
+                        <td colspan="3">{!vfNoticeData.contractDated}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="paragraph-cell">
+                            You are hereby authorized to proceed with the work listed in our Construction Contract. We have agreed that you will begin work and complete all improvements within the time periods listed below. It is understood that failure to complete this work in a timely manner may be grounds for termination of our contract.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">All work will begin not later than this date:</td>
+                        <td colspan="2">{!vfNoticeData.projectedStartDate}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">All work will be completed not later than this date:</td>
+                        <td colspan="2">{!vfNoticeData.projectedCompletionDate}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="paragraph-cell">
+                            According to the terms of our contract, progress payments can be made for work items that are completed in place. Such payments will be considered after receipt of your written claim subject to inspection by the Rehabilitation Specialist and approval by the grantee or its designee.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="paragraph-cell">
+                            No deviation from the Work Write-up will be permitted without specific authorization and a Change Order which must be approved by the grantee. It is understood that changes will generally not be considered except for unforeseen problems that must be addressed in order to complete work items included in this project.
+                        </td>
+                    </tr>
+                </table>
 
-        <table cellspacing="0" cellpadding="0">
-            <colgroup>
-                <col style="width: 28%;" />
-                <col style="width: 42%;" />
-                <col style="width: 16%;" />
-                <col style="width: 14%;" />
-            </colgroup>
-            <tr>
-                <td class="label-cell">Project Location:</td>
-                <td>{!vfNoticeData.projectLocation}</td>
-                <td class="label-cell">Case No.</td>
-                <td>{!vfNoticeData.caseNumber}</td>
-            </tr>
-            <tr>
-                <td class="label-cell">Property Owner:</td>
-                <td colspan="3">{!vfNoticeData.propertyOwner}</td>
-            </tr>
-            <tr class="empty-row">
-                <td colspan="4"></td>
-            </tr>
-            <tr>
-                <td class="label-cell">Contractor:</td>
-                <td>{!vfNoticeData.contractor}</td>
-                <td class="label-cell">Telephone:</td>
-                <td>{!vfNoticeData.telephone}</td>
-            </tr>
-            <tr>
-                <td class="label-cell">Address:</td>
-                <td colspan="3">{!vfNoticeData.contractorAddress}</td>
-            </tr>
-            <tr>
-                <td class="label-cell">Contract Dated:</td>
-                <td colspan="3">{!vfNoticeData.contractDated}</td>
-            </tr>
-            <tr>
-                <td colspan="4" class="paragraph-cell">
-                    You are hereby authorized to proceed with the work listed in our Construction Contract. We have agreed that you will begin work and complete all improvements within the time periods listed below. It is understood that failure to complete this work in a timely manner may be grounds for termination of our contract.
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2">All work will begin not later than this date:</td>
-                <td colspan="2">{!vfNoticeData.projectedStartDate}</td>
-            </tr>
-            <tr>
-                <td colspan="2">All work will be completed not later than this date:</td>
-                <td colspan="2">{!vfNoticeData.projectedCompletionDate}</td>
-            </tr>
-            <tr>
-                <td colspan="4" class="paragraph-cell">
-                    According to the terms of our contract, progress payments can be made for work items that are completed in place. Such payments will be considered after receipt of your written claim subject to inspection by the Rehabilitation Specialist and approval by the grantee or its designee.
-                </td>
-            </tr>
-            <tr>
-                <td colspan="4" class="paragraph-cell">
-                    No deviation from the Work Write-up will be permitted without specific authorization and a Change Order which must be approved by the grantee. It is understood that changes will generally not be considered except for unforeseen problems that must be addressed in order to complete work items included in this project.
-                </td>
-            </tr>
-        </table>
+                <div class="signature-section">
+                    <div class="signature-heading">Property Owner Signature</div>
+                    <div class="signature-box">
+                        <apex:image value="{!vfPropertyOwnerImgUrl}" rendered="{!NOT(ISBLANK(vfPropertyOwnerImgUrl))}"/>
+                    </div>
+                    <table class="signature-footer">
+                        <tr>
+                            <td class="sig-label">Property Owner</td>
+                            <td class="sig-date">Sign Date: {!IF(ISBLANK(vfNoticeData.propertyOwnerSignDate), currentRecordDate, vfNoticeData.propertyOwnerSignDate)}</td>
+                        </tr>
+                    </table>
+                </div>
 
-        <!-- Property Owner Signature -->
-        <div class="signature-wrap">
-            <div class="signature-image-area">
-                <apex:image value="{!vfPropertyOwnerImgUrl}" rendered="{!NOT(ISBLANK(vfPropertyOwnerImgUrl))}" styleClass="signature-image"/>
-            </div>
-            <hr class="signature-underline"/>
-            <div class="signature-footer">
-                <span class="sig-label">Property Owner</span>
-                <span class="sig-date">Date: {!currentRecordDate}</span>
+                <div class="signature-section">
+                    <div class="signature-heading">Contractor Representative Signature</div>
+                    <div class="signature-box">
+                        <apex:image value="{!vfContractorRepImgUrl}" rendered="{!NOT(ISBLANK(vfContractorRepImgUrl))}"/>
+                    </div>
+                    <table class="signature-footer">
+                        <tr>
+                            <td class="sig-label">Contractor Representative</td>
+                            <td class="sig-date">Sign Date: {!IF(ISBLANK(vfNoticeData.contractorRepSignDate), currentRecordDate, vfNoticeData.contractorRepSignDate)}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="signature-section">
+                    <div class="signature-heading">Home Improvement Program Representative Signature</div>
+                    <div class="signature-box">
+                        <apex:image value="{!vfProgramRepImgUrl}" rendered="{!NOT(ISBLANK(vfProgramRepImgUrl))}"/>
+                    </div>
+                    <table class="signature-footer">
+                        <tr>
+                            <td class="sig-label">Home Improvement Program Representative</td>
+                            <td class="sig-date">Sign Date: {!IF(ISBLANK(vfNoticeData.programRepSignDate), currentRecordDate, vfNoticeData.programRepSignDate)}</td>
+                        </tr>
+                    </table>
+                </div>
             </div>
         </div>
-
-        <!-- Contractor Representative Signature -->
-        <div class="signature-wrap">
-            <div class="signature-image-area">
-                <apex:image value="{!vfContractorRepImgUrl}" rendered="{!NOT(ISBLANK(vfContractorRepImgUrl))}" styleClass="signature-image"/>
-            </div>
-            <hr class="signature-underline"/>
-            <div class="signature-footer">
-                <span class="sig-label">Contractor Representative</span>
-                <span class="sig-date">Date: {!currentRecordDate}</span>
-            </div>
-        </div>
-
-        <!-- Home Improvement Program Representative Signature -->
-        <div class="signature-wrap">
-            <div class="signature-image-area">
-                <apex:image value="{!vfProgramRepImgUrl}" rendered="{!NOT(ISBLANK(vfProgramRepImgUrl))}" styleClass="signature-image"/>
-            </div>
-            <hr class="signature-underline"/>
-            <div class="signature-footer">
-                <span class="sig-label">Home Improvement Program Representative</span>
-                <span class="sig-date">Date: {!currentRecordDate}</span>
-            </div>
-        </div>
-
     </body>
     </html>
 </apex:page>

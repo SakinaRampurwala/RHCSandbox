@@ -1,0 +1,24 @@
+<apex:page sidebar="false" showHeader="false" standardStylesheets="false" controller="CertificateOfInspectionCtrl">
+    <apex:slds />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <apex:includeLightning />
+
+    <div id="lightning"></div>
+
+    <script>
+        $Lightning.use('c:CertificateOfInspectionApp', function () {
+            $Lightning.createComponent('c:certificateOfInspectionLwc',
+                {
+                    isPreview: '{!isPreview}',
+                    recordId: '{!recordId}',
+                    senderId: '{!senderId}',
+                    sendDate: '{!sendDate}'
+                },
+                'lightning',
+                function () {
+                    console.log('Certificate Of Inspection component loaded');
+                }
+            );
+        });
+    </script>
+</apex:page>

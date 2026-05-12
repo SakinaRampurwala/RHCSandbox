@@ -1,13 +1,12 @@
-import { LightningElement, api, wire, track } from 'lwc';
-import getLogoUrl from '@salesforce/apex/ProjectImprovementProgramPhotoCtrl.getLogoUrl';
-import getSenderInfo from '@salesforce/apex/ProjectImprovementProgramPhotoCtrl.getSenderInfo';
-import saveSignature from '@salesforce/apex/ProjectImprovementProgramPhotoCtrl.saveSignature';
-import getOrgInfo from '@salesforce/apex/ProjectImprovementProgramPhotoCtrl.getOrgInfo';
-
-import savePdf from '@salesforce/apex/ProjectImprovementProgramPhotoCtrl.savePdf';
-import getApplicationStatus from '@salesforce/apex/ProjectImprovementProgramPhotoCtrl.getApplicationStatus';
+import { LightningElement, api, track, wire } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { getRecord } from 'lightning/uiRecordApi';
+import { refreshApex } from '@salesforce/apex';
+import getLogoUrl from '@salesforce/apex/ProjectImprovementProgramPhotoCtrl.getLogoUrl';
+import getOrgInfo from '@salesforce/apex/ProjectImprovementProgramPhotoCtrl.getOrgInfo';
+import getApplicationStatus from '@salesforce/apex/ProjectImprovementProgramPhotoCtrl.getApplicationStatus';
+import saveSignature from '@salesforce/apex/ProjectImprovementProgramPhotoCtrl.saveSignature';
+import savePdf from '@salesforce/apex/ProjectImprovementProgramPhotoCtrl.savePdf';
 import ADDRESS_FIELD from '@salesforce/schema/buildertek__Project__c.buildertek__Address__c';
 import CITY_FIELD from '@salesforce/schema/buildertek__Project__c.buildertek__City_Text__c';
 import STATE_FIELD from '@salesforce/schema/buildertek__Project__c.buildertek__State__c';
@@ -24,163 +23,98 @@ const FIELDS = [
     CUSTOMER_NAME_FIELD
 ];
 
-
 export default class ProjectImprovementProgramPhotoReleaseLwc extends LightningElement {
-    @api isPreview; 
-    @api recordId; 
+    @api isPreview;
+    @api recordId;
     @api senderId;
     @api sendDate;
 
     @track isLoading = true;
     @track logoURL;
-    @track senderInfo;
     @track signerName = '';
     @track coSignerName = '';
     @track isSubmitted = false;
     @track isAlreadySubmitted = false;
     @track submitError = '';
-    @track checkedItems = new Set();
+    @track showCustomToast = false;
+    @track customToastMessage = '';
+    @track customToastVariant = 'success';
+    @track primarySignatureUrl = '';
+    @track secondarySignatureUrl = '';
 
-    // Canvas properties
-    signaturePads = {};
-    orgName;
-
-    
     address;
     city;
     state;
     zip;
     country;
     customerName;
+    orgName = '';
+    toastTimeout;
+    primarySigned = false;
+    secondarySigned = false;
+
+    canvasElements = new Map();
+    canvasContexts = new Map();
+    isDrawing = false;
+    activeSignatureKey;
+    wiredAppStatusResult;
 
     @wire(getRecord, { recordId: '$recordId', fields: FIELDS })
     wiredProject({ data, error }) {
         if (data) {
-            this.address = data.fields.buildertek__Address__c.value;
-            this.city = data.fields.buildertek__City_Text__c.value;
-            this.state = data.fields.buildertek__State__c.value;
-            this.zip = data.fields.buildertek__Zip__c.value;
-            this.country = data.fields.buildertek__Country__c.value;
-            this.customerName = data.fields.buildertek__Customer__r.displayValue || data.fields.buildertek__Customer__r.value.fields.Name.value;
+            this.address = data.fields.buildertek__Address__c?.value || '';
+            this.city = data.fields.buildertek__City_Text__c?.value || '';
+            this.state = data.fields.buildertek__State__c?.value || '';
+            this.zip = data.fields.buildertek__Zip__c?.value || '';
+            this.country = data.fields.buildertek__Country__c?.value || '';
+
+            const customerField = data.fields.buildertek__Customer__r;
+            this.customerName = customerField?.displayValue || customerField?.value?.fields?.Name?.value || '';
         } else if (error) {
-            console.error(error);
+            // eslint-disable-next-line no-console
+            console.error('Failed to load project record', error);
         }
     }
 
-    get projectAddress() {
-        return `${this.address || ''}, ${this.city || ''} ${this.state || ''} -  ${this.zip || ''}, ${this.country || ''}`;
-    }
-
-
     @wire(getOrgInfo)
-    wiredOrg({ error, data }) {
+    wiredOrg({ data, error }) {
         if (data) {
-            this.orgName = data.Name;
+            this.orgName = data.Name || '';
         } else if (error) {
-            this.error = error;
+            // eslint-disable-next-line no-console
+            console.error('Failed to load organization', error);
         }
     }
 
     @wire(getLogoUrl)
-    wiredLogoUrl({ error, data }) {
+    wiredLogoUrl({ data, error }) {
         if (data) {
             this.logoURL = data;
         } else if (error) {
+            // eslint-disable-next-line no-console
             console.error('Failed to load logo URL', error);
         }
     }
 
-    @wire(getSenderInfo, { senderId: '$senderId' })
-    wiredSenderInfo({ error, data }) {
-        if (data) {
-            this.senderInfo = data;
-        } else if (error) {
-            console.error('Failed to load sender info', error);
-        }
-    }
-
     @wire(getApplicationStatus, { recordId: '$recordId' })
-    wiredAppStatus({ error, data }) {
+    wiredAppStatus(result) {
+        this.wiredAppStatusResult = result;
+        const { data, error } = result;
         if (data) {
-            if (data.Home_Improvement_Submitted_Date__c) {
-                this.isSubmitted = true;
-                this.isAlreadySubmitted = true;
-            }
+            this.isSubmitted = data.isSubmitted === true;
+            this.isAlreadySubmitted = data.isSubmitted === true;
+            this.primarySignatureUrl = data.primarySignatureUrl || this.primarySignatureUrl;
+            this.secondarySignatureUrl = data.secondarySignatureUrl || this.secondarySignatureUrl;
+            this.signerName = data.signerName || this.signerName;
+            this.coSignerName = data.coSignerName || this.coSignerName;
+            this.primarySigned = Boolean(this.primarySignatureUrl);
+            this.secondarySigned = Boolean(this.secondarySignatureUrl);
             this.isLoading = false;
         } else if (error) {
+            // eslint-disable-next-line no-console
             console.error('Failed to load application status', error);
             this.isLoading = false;
         }
-    }
-
-    get showThankYouPage() {
-        const previewFlag = this.isPreview === true || this.isPreview === 'true';
-        if (previewFlag) {
-            return false;
-        }
-        return this.isSubmitted;
-    }
-
-    get isReadOnly() {
-        return this.isPreview === true || this.isPreview === 'true' || this.isSubmitted;
-    }
-
-    get displayDate() {
-        if (this.sendDate) {
-            return new Date(this.sendDate).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-        }
-        return new Date().toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-    }
-
-    get organizationName() {
-        return this.senderInfo?.organizationName || '';
-    }
-
-    get street() {
-        return this.senderInfo?.street || '';
-    }
-
-    get cityStateZip() {
-        if (!this.senderInfo) return '';
-        const { city = '', state = '', postalCode = '' } = this.senderInfo;
-        return `${city}${city && state ? ', ' : ''}${state}${state && postalCode ? ' ' : ''}${postalCode}`;
-    }
-
-    get senderName() {
-        return this.senderInfo?.name || '';
-    }
-
-    get phone() {
-        return this.senderInfo?.phone || '';
-    }
-
-    get altPhone() {
-        return this.senderInfo?.altPhone || '';
-    }
-
-    get email() {
-        return this.senderInfo?.email || '';
-    }
-
-    get signatureCanvasClass() {
-        return `signature-pad${this.isReadOnly ? ' read-only' : ''}`;
-    }
-
-    get isSubmitDisabled() {
-        const ownerPad = this.signaturePads.primary;
-        const coOwnerPad = this.signaturePads.secondary;
-        const hasOwnerName = this.signerName.trim() !== '';
-        const hasCoOwnerName = this.coSignerName.trim() !== '';
-
-        return this.isReadOnly || !ownerPad?.isSigned || !coOwnerPad?.isSigned || !hasOwnerName || !hasCoOwnerName;
     }
 
     connectedCallback() {
@@ -194,115 +128,182 @@ export default class ProjectImprovementProgramPhotoReleaseLwc extends LightningE
         this.initializeCanvas('secondary');
     }
 
-    initializeCanvas(signatureId) {
-        const canvasElement = this.template.querySelector(`canvas[data-signature-id="${signatureId}"]`);
-        if (!canvasElement || this.signaturePads[signatureId]?.initialized) return;
-
-        const ctx = canvasElement.getContext('2d');
-        this.signaturePads[signatureId] = {
-            canvasElement,
-            ctx,
-            isDrawing: false,
-            isSigned: false,
-            initialized: true
-        };
-        this.setCanvasSize(signatureId);
+    disconnectedCallback() {
+        window.clearTimeout(this.toastTimeout);
     }
 
-    setCanvasSize(signatureId) {
-        const pad = this.signaturePads[signatureId];
-        if (!pad) return;
-
-        pad.canvasElement.width = pad.canvasElement.offsetWidth;
-        pad.canvasElement.height = pad.canvasElement.offsetHeight;
-        pad.ctx.lineWidth = 2;
-        pad.ctx.lineCap = 'round';
-        pad.ctx.strokeStyle = '#000';
+    get isPreviewMode() {
+        return this.isPreview === true || this.isPreview === 'true';
     }
 
-    handleCheckboxChange(event) {
-        if (this.isReadOnly) return;
-        const id = event.target.dataset.id;
-        if (event.target.checked) {
-            this.checkedItems.add(id);
-        } else {
-            this.checkedItems.delete(id);
+    get isReadOnly() {
+        return this.isPreviewMode || this.isSubmitted;
+    }
+
+    get showSubmittedMessage() {
+        return this.isSubmitted && !this.isPreviewMode;
+    }
+
+    get submittedMessage() {
+        return this.isAlreadySubmitted
+            ? 'Home Improvement Program Photo Release Form has already been submitted for this record.'
+            : 'Your Home Improvement Program Photo Release Form has been successfully submitted.';
+    }
+
+    get showPrimarySignatureImage() {
+        return this.isReadOnly && !!this.primarySignatureUrl;
+    }
+
+    get showSecondarySignatureImage() {
+        return this.isReadOnly && !!this.secondarySignatureUrl;
+    }
+
+    get signatureCanvasClass() {
+        return `signature-pad${this.isReadOnly ? ' read-only' : ''}`;
+    }
+
+    get customToastClass() {
+        return `custom-toast custom-toast_${this.customToastVariant}`;
+    }
+
+    get projectAddress() {
+        const cityStateZip = [this.city, [this.state, this.zip].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+        return [this.address, cityStateZip, this.country].filter(Boolean).join(', ');
+    }
+
+    get displayDate() {
+        return this.sendDate ? this.formatSendDate(this.sendDate) : this.formatDatePartsFromDate(new Date());
+    }
+
+    get isSubmitDisabled() {
+        const hasOwnerName = this.signerName.trim() !== '';
+        const hasCoOwnerName = this.coSignerName.trim() !== '';
+        return this.isReadOnly || !this.primarySigned || !this.secondarySigned || !hasOwnerName || !hasCoOwnerName;
+    }
+
+    initializeCanvas(signatureKey) {
+        if (this.canvasElements.has(signatureKey)) {
+            return;
         }
+
+        const canvas = this.template.querySelector(`canvas[data-signature-id="${signatureKey}"]`);
+        if (!canvas) {
+            return;
+        }
+
+        const ctx = canvas.getContext('2d');
+        this.setCanvasSize(canvas, ctx);
+        this.canvasElements.set(signatureKey, canvas);
+        this.canvasContexts.set(signatureKey, ctx);
+    }
+
+    setCanvasSize(canvas, ctx) {
+        if (!canvas || !ctx) {
+            return;
+        }
+
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#000';
     }
 
     handleNameChange(event) {
-        if (this.isReadOnly) return;
+        if (this.isReadOnly) {
+            return;
+        }
         this.signerName = event.target.value;
     }
 
     handleCoSignerNameChange(event) {
-        if (this.isReadOnly) return;
+        if (this.isReadOnly) {
+            return;
+        }
         this.coSignerName = event.target.value;
     }
 
-    // Signature Pad logic
     handleMouseDown(event) {
-        if (this.isReadOnly) return;
-        const signatureId = event.currentTarget.dataset.signatureId;
-        const pad = this.signaturePads[signatureId];
-        if (!pad) return;
-
-        pad.isDrawing = true;
-        pad.isSigned = true;
-        const { offsetX, offsetY } = this.getCoordinates(pad.canvasElement, event);
-        pad.ctx.beginPath();
-        pad.ctx.moveTo(offsetX, offsetY);
+        if (this.isReadOnly) {
+            return;
+        }
+        this.beginStroke(event.currentTarget.dataset.signatureId, event.clientX, event.clientY);
     }
 
     handleMouseMove(event) {
-        if (this.isReadOnly) return;
-        const signatureId = event.currentTarget.dataset.signatureId;
-        const pad = this.signaturePads[signatureId];
-        if (!pad || !pad.isDrawing) return;
-
-        const { offsetX, offsetY } = this.getCoordinates(pad.canvasElement, event);
-        pad.ctx.lineTo(offsetX, offsetY);
-        pad.ctx.stroke();
+        if (this.isReadOnly || !this.isDrawing) {
+            return;
+        }
+        this.extendStroke(this.activeSignatureKey || event.currentTarget.dataset.signatureId, event.clientX, event.clientY);
     }
 
-    handleMouseUp(event) {
-        const signatureId = event.currentTarget.dataset.signatureId;
-        const pad = this.signaturePads[signatureId];
-        if (!pad) return;
-        pad.isDrawing = false;
+    handleMouseUp() {
+        this.isDrawing = false;
+        this.activeSignatureKey = null;
     }
 
     handleTouchStart(event) {
-        if (this.isReadOnly) return;
+        if (this.isReadOnly) {
+            return;
+        }
         event.preventDefault();
         const touch = event.touches[0];
-        const mouseEvent = new MouseEvent('mousedown', {
-            clientX: touch.clientX,
-            clientY: touch.clientY
-        });
-        event.currentTarget.dispatchEvent(mouseEvent);
+        this.beginStroke(event.currentTarget.dataset.signatureId, touch.clientX, touch.clientY);
     }
 
     handleTouchMove(event) {
+        if (this.isReadOnly || !this.isDrawing) {
+            return;
+        }
         event.preventDefault();
         const touch = event.touches[0];
-        const mouseEvent = new MouseEvent('mousemove', {
-            clientX: touch.clientX,
-            clientY: touch.clientY
-        });
-        event.currentTarget.dispatchEvent(mouseEvent);
+        this.extendStroke(this.activeSignatureKey || event.currentTarget.dataset.signatureId, touch.clientX, touch.clientY);
     }
 
     handleTouchEnd(event) {
+        if (this.isReadOnly) {
+            return;
+        }
         event.preventDefault();
-        const mouseEvent = new MouseEvent('mouseup', {});
-        event.currentTarget.dispatchEvent(mouseEvent);
+        this.isDrawing = false;
+        this.activeSignatureKey = null;
     }
 
-    getCoordinates(canvasElement, event) {
-        const rect = canvasElement.getBoundingClientRect();
-        const clientX = event.clientX || event.touches?.[0].clientX;
-        const clientY = event.clientY || event.touches?.[0].clientY;
+    beginStroke(signatureKey, clientX, clientY) {
+        const canvas = this.canvasElements.get(signatureKey);
+        const ctx = this.canvasContexts.get(signatureKey);
+        if (!canvas || !ctx) {
+            return;
+        }
+
+        const { offsetX, offsetY } = this.getCoordinates(canvas, clientX, clientY);
+        this.isDrawing = true;
+        this.activeSignatureKey = signatureKey;
+
+        if (signatureKey === 'primary') {
+            this.primarySigned = true;
+        } else if (signatureKey === 'secondary') {
+            this.secondarySigned = true;
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(offsetX, offsetY);
+    }
+
+    extendStroke(signatureKey, clientX, clientY) {
+        const canvas = this.canvasElements.get(signatureKey);
+        const ctx = this.canvasContexts.get(signatureKey);
+        if (!canvas || !ctx) {
+            return;
+        }
+
+        const { offsetX, offsetY } = this.getCoordinates(canvas, clientX, clientY);
+        ctx.lineTo(offsetX, offsetY);
+        ctx.stroke();
+    }
+
+    getCoordinates(canvas, clientX, clientY) {
+        const rect = canvas.getBoundingClientRect();
         return {
             offsetX: clientX - rect.left,
             offsetY: clientY - rect.top
@@ -310,89 +311,237 @@ export default class ProjectImprovementProgramPhotoReleaseLwc extends LightningE
     }
 
     clearSignature(event) {
-        if (this.isReadOnly) return;
-        const signatureId = event.currentTarget.dataset.signatureId;
-        const pad = this.signaturePads[signatureId];
-        if (!pad) return;
+        if (this.isReadOnly) {
+            return;
+        }
 
-        pad.ctx.clearRect(0, 0, pad.canvasElement.width, pad.canvasElement.height);
-        pad.isSigned = false;
+        const signatureKey = event.currentTarget.dataset.signatureId;
+        const canvas = this.canvasElements.get(signatureKey);
+        const ctx = this.canvasContexts.get(signatureKey);
+        if (!canvas || !ctx) {
+            return;
+        }
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (signatureKey === 'primary') {
+            this.primarySigned = false;
+        } else if (signatureKey === 'secondary') {
+            this.secondarySigned = false;
+        }
     }
 
     handleSubmit() {
-        console.log('handleSubmit');
-        
-        this.isLoading = true;
-        this.submitError = '';
-        const primaryPad = this.signaturePads.primary;
-        const secondaryPad = this.signaturePads.secondary;
-        if (!primaryPad?.canvasElement || !secondaryPad?.canvasElement) {
-            this.isLoading = false;
+        if (this.isReadOnly) {
             return;
         }
-        const ownerSignatureBody = primaryPad.canvasElement.toDataURL('image/png').replace(/^data:image\/(png|jpg);base64,/, "");
-        const coOwnerSignatureBody = secondaryPad.canvasElement.toDataURL('image/png').replace(/^data:image\/(png|jpg);base64,/, "");
+
+        if (this.signerName.trim() === '') {
+            this.showError('NAME is required for Home Owner Signature 1.');
+            return;
+        }
+        if (this.coSignerName.trim() === '') {
+            this.showError('NAME is required for Home Owner Signature 2.');
+            return;
+        }
+        if (!this.hasSignaturePixels('primary')) {
+            this.showError('Home Owner Signature 1 is required.');
+            return;
+        }
+        if (!this.hasSignaturePixels('secondary')) {
+            this.showError('Home Owner Signature 2 is required.');
+            return;
+        }
+
+        const primaryCanvas = this.canvasElements.get('primary');
+        const secondaryCanvas = this.canvasElements.get('secondary');
+        if (!primaryCanvas || !secondaryCanvas) {
+            this.showError('Unable to access the signature pad.');
+            return;
+        }
+
+        this.isLoading = true;
+        this.submitError = '';
+
+        const ownerSignatureBody = primaryCanvas.toDataURL('image/png').replace(/^data:image\/(png|jpg);base64,/, '');
+        const coOwnerSignatureBody = secondaryCanvas.toDataURL('image/png').replace(/^data:image\/(png|jpg);base64,/, '');
 
         Promise.all([
             saveSignature({
                 recordId: this.recordId,
-                signatureBody: ownerSignatureBody
+                signatureBody: ownerSignatureBody,
+                signatureLabel: 'Home Owner 1'
             }),
             saveSignature({
                 recordId: this.recordId,
-                signatureBody: coOwnerSignatureBody
+                signatureBody: coOwnerSignatureBody,
+                signatureLabel: 'Home Owner 2'
             })
         ])
-        .then(([ownerSignatureResult, coOwnerSignatureResult]) => {
-            console.log(ownerSignatureResult, coOwnerSignatureResult);
+            .then(([ownerSignatureResult, coOwnerSignatureResult]) => {
+                this.primarySignatureUrl = ownerSignatureResult?.imgUrl
+                    || (ownerSignatureResult?.cvId
+                        ? `/sfc/servlet.shepherd/version/download/${ownerSignatureResult.cvId}`
+                        : '');
+                this.secondarySignatureUrl = coOwnerSignatureResult?.imgUrl
+                    || (coOwnerSignatureResult?.cvId
+                        ? `/sfc/servlet.shepherd/version/download/${coOwnerSignatureResult.cvId}`
+                        : '');
 
-            if (typeof ownerSignatureResult === 'string' || typeof coOwnerSignatureResult === 'string') {
-                this.isSubmitted = true;
-                this.submitError = typeof ownerSignatureResult === 'string'
-                    ? ownerSignatureResult
-                    : coOwnerSignatureResult;
-                return null;
-            }
-
-            return savePdf({
-                recordId: this.recordId,
-                senderId: this.senderId,
-                sendDate: this.sendDate,
-                imgUrl: ownerSignatureResult.imgUrl || '',
-                signerName: this.signerName,
-                signatureId: ownerSignatureResult.cvId || '',
-                coSignerImgUrl: coOwnerSignatureResult.imgUrl || '',
-                coSignerName: this.coSignerName,
-                coSignatureId: coOwnerSignatureResult.cvId || ''
-            });
-        })
-        .then((pdfResult) => {
-            console.log(pdfResult);
-            
-            if (pdfResult === 'Success') {
-                this.isSubmitted = true;
+                return savePdf({
+                    recordId: this.recordId,
+                    senderId: this.senderId,
+                    sendDate: this.sendDate,
+                    imgUrl: ownerSignatureResult?.imgUrl || '',
+                    signerName: this.signerName,
+                    signatureId: ownerSignatureResult?.cvId || '',
+                    coSignerImgUrl: coOwnerSignatureResult?.imgUrl || '',
+                    coSignerName: this.coSignerName,
+                    coSignatureId: coOwnerSignatureResult?.cvId || ''
+                });
+            })
+            .then((pdfResult) => {
+                if (pdfResult === 'Success') {
+                    this.isSubmitted = true;
+                    this.isAlreadySubmitted = false;
+                    return refreshApex(this.wiredAppStatusResult).then(() => {
+                        this.dispatchEvent(
+                            new ShowToastEvent({
+                                title: 'Success',
+                                message: 'Your Home Improvement Program Photo Release Form has been successfully submitted.',
+                                variant: 'success'
+                            })
+                        );
+                        this.showStatusToast('Your Home Improvement Program Photo Release Form has been successfully submitted.', 'success');
+                    });
+                } else if (pdfResult === 'Already Submitted') {
+                    this.isSubmitted = true;
+                    this.isAlreadySubmitted = true;
+                    return refreshApex(this.wiredAppStatusResult).then(() => {
+                        this.dispatchEvent(
+                            new ShowToastEvent({
+                                title: 'Already Submitted',
+                                message: 'Home Improvement Program Photo Release Form has already been submitted for this record.',
+                                variant: 'info'
+                            })
+                        );
+                        this.showStatusToast('Home Improvement Program Photo Release Form has already been submitted for this record.', 'info');
+                    });
+                } else {
+                    throw new Error(pdfResult || 'Unable to submit Home Improvement Program Photo Release Form.');
+                }
+            })
+            .catch((error) => {
+                const message = error?.body?.message || error?.message || 'An unknown error occurred';
+                this.submitError = message;
                 this.dispatchEvent(
                     new ShowToastEvent({
-                        title: 'Success',
-                        message: 'Attestation submitted successfully.',
-                        variant: 'success'
+                        title: 'Error',
+                        message,
+                        variant: 'error'
                     })
                 );
+                this.showStatusToast(message, 'error');
+                // eslint-disable-next-line no-console
+                console.error('Error submitting Home Improvement Program Photo Release Form', error);
+            })
+            .finally(() => {
+                this.isLoading = false;
+            });
+    }
+
+    hasSignaturePixels(signatureKey, minPixels = 25) {
+        const canvas = this.canvasElements.get(signatureKey);
+        const ctx = this.canvasContexts.get(signatureKey);
+        if (!canvas || !ctx) {
+            return false;
+        }
+
+        const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        let hitCount = 0;
+        for (let i = 3; i < data.length; i += 4) {
+            if (data[i] !== 0) {
+                hitCount += 1;
+                if (hitCount >= minPixels) {
+                    return true;
+                }
             }
-        })
-        .catch(error => {
-            console.error('Error submitting attestation', error);
-            this.submitError = error.body?.message || error.message || 'An unknown error occurred';
-            this.dispatchEvent(
-                new ShowToastEvent({
-                    title: 'Error',
-                    message: this.submitError,
-                    variant: 'error'
-                })
-            );
-        })
-        .finally(() => {
-            this.isLoading = false;
-        });
+        }
+        return false;
+    }
+
+    showError(message) {
+        this.submitError = message;
+        this.dispatchEvent(
+            new ShowToastEvent({
+                title: 'Error',
+                message,
+                variant: 'error'
+            })
+        );
+        this.showStatusToast(message, 'error');
+    }
+
+    showStatusToast(message, variant = 'success') {
+        window.clearTimeout(this.toastTimeout);
+        this.customToastMessage = message;
+        this.customToastVariant = variant;
+        this.showCustomToast = true;
+        this.toastTimeout = window.setTimeout(() => {
+            this.showCustomToast = false;
+        }, 5000);
+    }
+
+    handleCloseToast() {
+        window.clearTimeout(this.toastTimeout);
+        this.showCustomToast = false;
+    }
+
+    formatSendDate(value) {
+        const raw = String(value || '').trim();
+        if (!raw) {
+            return this.formatDatePartsFromDate(new Date());
+        }
+
+        const dateOnly = raw.includes(' ') ? raw.split(' ')[0] : raw;
+        let month;
+        let day;
+        let year;
+
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
+            const parts = dateOnly.split('-');
+            year = parseInt(parts[0], 10);
+            month = parseInt(parts[1], 10);
+            day = parseInt(parts[2], 10);
+        } else {
+            const parts = dateOnly.split(/[-/]/);
+            if (parts.length !== 3) {
+                return raw;
+            }
+            month = parseInt(parts[0], 10);
+            day = parseInt(parts[1], 10);
+            year = parseInt(parts[2], 10);
+        }
+
+        if (Number.isNaN(month) || Number.isNaN(day) || Number.isNaN(year)) {
+            return raw;
+        }
+
+        return this.formatDateParts(month, day, year);
+    }
+
+    formatDatePartsFromDate(dateValue) {
+        return this.formatDateParts(dateValue.getMonth() + 1, dateValue.getDate(), dateValue.getFullYear());
+    }
+
+    formatDateParts(month, day, year) {
+        const monthNames = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ];
+        const safeMonth = month >= 1 && month <= 12 ? monthNames[month - 1] : '';
+        if (!safeMonth) {
+            return `${month}-${day}-${year}`;
+        }
+        return `${safeMonth} ${day}, ${year}`;
     }
 }

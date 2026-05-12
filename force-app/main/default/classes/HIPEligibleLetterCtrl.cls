@@ -35,7 +35,7 @@ public without sharing class HIPEligibleLetterCtrl {
         }
     }
 
-    private static String getAccountName() {
+    public static String getAccountName() {
         try {
             String recordId = ApexPages.currentPage().getParameters().get('id');
             if (String.isBlank(recordId)) {
@@ -56,7 +56,7 @@ public without sharing class HIPEligibleLetterCtrl {
         }
     }
 
-    private static String getAccountAddress() {
+    public static String getAccountAddress() {
         try {
             String recordId = ApexPages.currentPage().getParameters().get('id');
             if (String.isBlank(recordId)) {

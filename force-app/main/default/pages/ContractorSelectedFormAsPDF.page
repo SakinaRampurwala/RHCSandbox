@@ -15,12 +15,13 @@
                 padding: 0;
             }
             .page-shell {
-                padding: 8px;
-                background: #ffffff;
+                background: #f3f5f8;
+                border: 1px solid #d7dfe8;
+                padding: 10px;
             }
             .form-card {
-                border: 1px solid #d8dee6;
-                padding: 18px;
+                border: 1px solid #d7dfe8;
+                padding: 18px 20px 24px;
                 background: #ffffff;
             }
             .program-title {
@@ -35,6 +36,7 @@
                 font-size: 24px;
                 font-weight: bold;
                 color: #1f3f58;
+                padding-bottom: 8px;
             }
             .header-table,
             .field-table,
@@ -46,24 +48,25 @@
             .header-table {
                 margin-top: 18px;
             }
+            .header-table td {
+                vertical-align: middle;
+            }
             .header-meta {
                 width: 60%;
-                vertical-align: top;
                 font-size: 15px;
                 font-weight: bold;
             }
             .logo-cell {
                 width: 40%;
                 text-align: right;
-                vertical-align: top;
             }
             .logo-cell img {
                 width: auto;
-                height: 38px;
-                max-width: 115px;
+                height: 35px;
+                max-width: 110px;
             }
             .field-table {
-                margin-top: 16px;
+                margin-top: 18px;
             }
             .field-table td {
                 border: 1px solid #d6dbe1;
@@ -112,59 +115,80 @@
                 color: #4b647a;
                 background: #fbfcfd;
             }
-            .legal-copy,
-            .notes-section {
+            .legal-copy {
                 margin-top: 18px;
                 font-size: 14px;
                 line-height: 1.6;
                 color: #17334a;
             }
-            .notes-label {
-                display: block;
-                margin-bottom: 6px;
-                font-size: 11px;
-                font-weight: bold;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-                color: #536b80;
-            }
-            .notes-box {
-                border: 1px solid #d9e1ea;
-                background: #f7f9fb;
-                padding: 10px 12px;
-            }
             .signature-section {
-                margin-top: 22px;
-                padding: 12px;
+                margin-top: 12px;
+                padding: 12px 14px 8px;
                 border: 1px solid #d9e1ea;
                 background: #f7f9fb;
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            .signature-panel {
+                width: 100%;
+                border-collapse: collapse;
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            .signature-panel td {
+                padding: 0;
+                page-break-inside: avoid;
+                break-inside: avoid;
             }
             .signature-label {
                 display: block;
-                margin-bottom: 7px;
-                font-size: 11px;
+                margin-bottom: 6px;
+                font-size: 12px;
                 font-weight: bold;
                 text-transform: uppercase;
                 letter-spacing: 0.06em;
                 color: #26455e;
             }
             .signature-box {
-                height: 84px;
-                border: 1px dashed #7590a8;
+                height: 135px;
+                max-height: 135px;
+                width: 100%;
+                border: 1px solid #7590a8;
                 background: #fff;
                 vertical-align: bottom;
+                overflow: hidden;
+                line-height: 0;
+                page-break-inside: avoid;
+                break-inside: avoid;
             }
             .signature-box img {
-                width: 100%;
-                height: 58px;
                 display: block;
+                max-width: 100%;
+                width: auto;
+                height: 100%;
+                margin: 0 auto;
+            }
+            .signature-meta {
+                margin-top: 6px;
+                table-layout: fixed;
+                page-break-inside: avoid;
+                break-inside: avoid;
             }
             .signature-meta td {
                 font-size: 13px;
+                font-weight: bold;
                 color: #193247;
+                padding: 0;
+                vertical-align: top;
+            }
+            .signature-meta .name-cell {
+                width: 50%;
+                text-align: left;
             }
             .signature-meta .date-cell {
+                width: 50%;
                 text-align: right;
+                white-space: nowrap;
             }
         </style>
     </head>
@@ -248,38 +272,43 @@
                     I/We have reviewed the bids for the work to be done at my/our property and understand that my/our initials above represent the choice that I/we have made for the contractor to be used for this project and have made this choice of my/our own will. I understand that the amount of my grant is based on the lowest reasonable bid and that I may choose a higher bidder by putting the monetary difference in an escrow account.
                 </div>
 
-                <apex:outputPanel rendered="{!hasOwnerNotes}">
-                    <div class="notes-section">
-                        <span class="notes-label">Owner Notes</span>
-                        <div class="notes-box">{!ownerNotes}</div>
-                    </div>
-                </apex:outputPanel>
+                <table class="signature-panel">
+                    <tr>
+                        <td>
+                            <div class="signature-section">
+                                <span class="signature-label">Owner Signature(s)</span>
+                                <div class="signature-box">
+                                    <apex:image value="{!homeownerSignatureUrl}" rendered="{!hasHomeownerSignature}" />
+                                </div>
+                                <table class="signature-meta">
+                                    <tr>
+                                        <td class="name-cell">Owner Signature(s)</td>
+                                        <td class="date-cell">Sign Date: {!homeownerSignDate}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
 
-                <div class="signature-section">
-                    <span class="signature-label">Owner Signature(s)</span>
-                    <div class="signature-box">
-                        <apex:image value="{!homeownerSignatureUrl}" rendered="{!hasHomeownerSignature}" />
-                    </div>
-                    <table class="signature-meta">
-                        <tr>
-                            <td>Owner Signature(s)</td>
-                            <td class="date-cell">Date: {!displayDate}</td>
-                        </tr>
-                    </table>
-                </div>
-
-                <div class="signature-section">
-                    <span class="signature-label">Program Representative Signature</span>
-                    <div class="signature-box">
-                        <apex:image value="{!programStaffSignatureUrl}" rendered="{!hasProgramStaffSignature}" />
-                    </div>
-                    <table class="signature-meta">
-                        <tr>
-                            <td>Program Representative Signature</td>
-                            <td class="date-cell">Date: {!displayDate}</td>
-                        </tr>
-                    </table>
-                </div>
+                <table class="signature-panel">
+                    <tr>
+                        <td>
+                            <div class="signature-section">
+                                <span class="signature-label">Program Representative Signature</span>
+                                <div class="signature-box">
+                                    <apex:image value="{!programStaffSignatureUrl}" rendered="{!hasProgramStaffSignature}" />
+                                </div>
+                                <table class="signature-meta">
+                                    <tr>
+                                        <td class="name-cell">Program Representative Signature</td>
+                                        <td class="date-cell">Sign Date: {!programStaffSignDate}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
             </div>
         </div>
     </body>

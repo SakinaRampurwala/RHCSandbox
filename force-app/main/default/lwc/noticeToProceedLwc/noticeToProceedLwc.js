@@ -1,36 +1,9 @@
 import { LightningElement, api, wire, track } from 'lwc';
-import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import { getRecord, getFieldValue } from 'lightning/uiRecordApi';
+import { refreshApex } from '@salesforce/apex';
 import getLogoUrl from '@salesforce/apex/NoticeToProceedCtrl.getLogoUrl';
 import getNoticeData from '@salesforce/apex/NoticeToProceedCtrl.getNoticeData';
 import saveSignature from '@salesforce/apex/NoticeToProceedCtrl.saveSignature';
 import savePdf from '@salesforce/apex/NoticeToProceedCtrl.savePdf';
-import CASE_NO_FIELD from '@salesforce/schema/buildertek__Project__c.Case_No__c';
-import ADDRESS_FIELD from '@salesforce/schema/buildertek__Project__c.buildertek__Address__c';
-import CITY_FIELD from '@salesforce/schema/buildertek__Project__c.buildertek__City_Text__c';
-import STATE_FIELD from '@salesforce/schema/buildertek__Project__c.buildertek__State__c';
-import ZIP_FIELD from '@salesforce/schema/buildertek__Project__c.buildertek__Zip__c';
-import COUNTRY_FIELD from '@salesforce/schema/buildertek__Project__c.buildertek__Country__c';
-import CUSTOMER_NAME_FIELD from '@salesforce/schema/buildertek__Project__c.buildertek__Customer__r.Name';
-import CONTRACTOR_NAME_FIELD from '@salesforce/schema/buildertek__Project__c.General_Contractor__r.Name';
-import CONTRACTOR_PHONE_FIELD from '@salesforce/schema/buildertek__Project__c.General_Contractor__r.Phone';
-import CONTRACTOR_BILLING_STREET_FIELD from '@salesforce/schema/buildertek__Project__c.General_Contractor__r.BillingStreet';
-import CONTRACTOR_BILLING_CITY_FIELD from '@salesforce/schema/buildertek__Project__c.General_Contractor__r.BillingCity';
-import CONTRACTOR_BILLING_STATE_FIELD from '@salesforce/schema/buildertek__Project__c.General_Contractor__r.BillingState';
-import CONTRACTOR_BILLING_POSTAL_FIELD from '@salesforce/schema/buildertek__Project__c.General_Contractor__r.BillingPostalCode';
-import CONTRACTOR_BILLING_COUNTRY_FIELD from '@salesforce/schema/buildertek__Project__c.General_Contractor__r.BillingCountry';
-import PROJECT_COMPLETION_DATE from '@salesforce/schema/buildertek__Project__c.buildertek__Project_Completion_Date__c';
-import PROJECT_START_DATE from '@salesforce/schema/buildertek__Project__c.buildertek__Project_Start_Date__c';
-import CONTRACT_DATE_FIELD from '@salesforce/schema/buildertek__Project__c.buildertek__Contract_Date__c';
-
-const FIELDS = [
-    CASE_NO_FIELD, ADDRESS_FIELD, CITY_FIELD, STATE_FIELD, ZIP_FIELD, COUNTRY_FIELD,
-    CUSTOMER_NAME_FIELD, CONTRACTOR_NAME_FIELD, CONTRACTOR_PHONE_FIELD,
-    CONTRACTOR_BILLING_STREET_FIELD, CONTRACTOR_BILLING_CITY_FIELD,
-    CONTRACTOR_BILLING_STATE_FIELD, CONTRACTOR_BILLING_POSTAL_FIELD,
-    CONTRACTOR_BILLING_COUNTRY_FIELD, PROJECT_COMPLETION_DATE,
-    PROJECT_START_DATE, CONTRACT_DATE_FIELD
-];
 
 export default class NoticeToProceedLwc extends LightningElement {
     @api isPreview;
@@ -41,10 +14,14 @@ export default class NoticeToProceedLwc extends LightningElement {
     @track isLoading = true;
     @track isSubmitted = false;
     @track isAlreadySubmitted = false;
-    @track submitTitle = 'Thank You!';
-    @track submitMessage = 'Your signature has been saved successfully.';
+    @track stageLocked = false;
+    @track submissionStatus = '';
     @track logoURL;
     @track noticeData = {};
+    @track showCustomToast = false;
+    @track customToastMessage = '';
+    @track customToastVariant = 'success';
+    noticeWireResult;
 
     // Role flags — read from URL params
     @track isPropertyOwner = false;
@@ -80,12 +57,16 @@ export default class NoticeToProceedLwc extends LightningElement {
     }
 
     @wire(getNoticeData, { recordId: '$recordId' })
-    wiredNoticeData({ data }) {
+    wiredNoticeData(result) {
+        this.noticeWireResult = result;
+        const { data } = result;
         if (data) {
-            if (data.isSubmitted) {
-                this.isSubmitted = true;
-                this.isAlreadySubmitted = true;
-            }
+            this.noticeData = {
+                ...this.noticeData,
+                ...data
+            };
+            this.isSubmitted = !!data.isSubmitted;
+            this.isAlreadySubmitted = !!data.isSubmitted;
             this.propertyOwnerSignatureUrl = data.propertyOwnerSignatureUrl || '';
             this.contractorRepSignatureUrl = data.contractorRepSignatureUrl || '';
             this.programRepSignatureUrl    = data.programRepSignatureUrl    || '';
@@ -97,42 +78,9 @@ export default class NoticeToProceedLwc extends LightningElement {
                 contractorRep: this.contractorRepSigned || !!this.contractorRepSignatureUrl,
                 programRep:    this.programRepSigned    || !!this.programRepSignatureUrl
             };
-            // If current role already signed, show submitted screen (can't sign twice)
-            if (!this.isSubmitted) {
-                if (this.isPropertyOwner && this.propertyOwnerSigned) {
-                    this.isSubmitted = true;
-                    this.isAlreadySubmitted = true;
-                } else if (this.isContractorRep && this.contractorRepSigned) {
-                    this.isSubmitted = true;
-                    this.isAlreadySubmitted = true;
-                } else if (this.isProgramRep && this.programRepSigned) {
-                    this.isSubmitted = true;
-                    this.isAlreadySubmitted = true;
-                }
-            }
+            this.applySubmissionState(data);
         }
         this.isLoading = false;
-    }
-
-    @wire(getRecord, { recordId: '$recordId', fields: FIELDS })
-    wiredProject({ data }) {
-        if (data) {
-            this.noticeData = {
-                ...this.noticeData,
-                caseNumber: getFieldValue(data, CASE_NO_FIELD) || '',
-                projectLocation: this.buildProjectLocation(data),
-                propertyOwner: getFieldValue(data, CUSTOMER_NAME_FIELD) || '',
-                contractor: getFieldValue(data, CONTRACTOR_NAME_FIELD) || '',
-                telephone: getFieldValue(data, CONTRACTOR_PHONE_FIELD) || '',
-                contractorAddress: this.buildContractorAddress(data),
-                contractDated: getFieldValue(data, CONTRACT_DATE_FIELD)
-                    ? new Date(getFieldValue(data, CONTRACT_DATE_FIELD)).toLocaleDateString() : '',
-                projectedStartDate: getFieldValue(data, PROJECT_START_DATE)
-                    ? new Date(getFieldValue(data, PROJECT_START_DATE)).toLocaleDateString() : '',
-                projectedCompletionDate: getFieldValue(data, PROJECT_COMPLETION_DATE)
-                    ? new Date(getFieldValue(data, PROJECT_COMPLETION_DATE)).toLocaleDateString() : ''
-            };
-        }
     }
 
     connectedCallback() {
@@ -168,35 +116,29 @@ export default class NoticeToProceedLwc extends LightningElement {
     // ── Section visibility ──────────────────────────────────────────────────────
 
     get showPropertyOwnerSection() {
-        if (this.isReadOnly) return true;
-        if (!this.isPropertyOwner && !this.isContractorRep && !this.isProgramRep) return true;
-        return this.isPropertyOwner || this.propertyOwnerSigned;
+        if (!this.isRoleDrivenView || this.isSubmitted || this.isPreviewMode) return true;
+        if (this.isPropertyOwner) return true;
+        return this.propertyOwnerSigned;
     }
 
     get showContractorRepSection() {
-        if (this.isReadOnly) return true;
-        if (!this.isPropertyOwner && !this.isContractorRep && !this.isProgramRep) return true;
-        return this.isContractorRep || this.contractorRepSigned;
+        if (!this.isRoleDrivenView || this.isSubmitted || this.isPreviewMode) return true;
+        if (this.isPropertyOwner) return this.contractorRepSigned;
+        if (this.isContractorRep) return true;
+        if (this.isProgramRep) return this.contractorRepSigned;
+        return false;
     }
 
     get showProgramRepSection() {
-        if (this.isReadOnly) return true;
-        if (!this.isPropertyOwner && !this.isContractorRep && !this.isProgramRep) return true;
-        return this.isProgramRep || this.programRepSigned;
+        if (!this.isRoleDrivenView || this.isSubmitted || this.isPreviewMode) return true;
+        if (this.isProgramRep) return true;
+        return this.programRepSigned;
     }
 
     // ── Computed getters ────────────────────────────────────────────────────────
 
-    get showThankYouPage() {
-        const previewFlag = this.isPreview === true || this.isPreview === 'true';
-        if (previewFlag) {
-            return false;
-        }
-        return this.isSubmitted;
-    }
-
     get isReadOnly() {
-        return this.isPreview === true || this.isPreview === 'true';
+        return this.isPreviewMode || this.isSubmitted || this.stageLocked;
     }
 
     get signatureCanvasClass() {
@@ -226,6 +168,35 @@ export default class NoticeToProceedLwc extends LightningElement {
         if (this.isContractorRep) return 'isContractorRep';
         if (this.isProgramRep)    return 'isProgramRep';
         return '';
+    }
+
+    get isPreviewMode() {
+        return this.isPreview === true || this.isPreview === 'true';
+    }
+
+    get isRoleDrivenView() {
+        return this.isPropertyOwner || this.isContractorRep || this.isProgramRep;
+    }
+
+    get showSubmittedMessage() {
+        return !!this.submissionStatus;
+    }
+
+    get submittedMessage() {
+        if (this.submissionStatus === 'already') {
+            return 'Notice To Proceed has already been submitted for this record.';
+        }
+        if (this.submissionStatus === 'final') {
+            return 'Notice To Proceed has been submitted successfully.';
+        }
+        if (this.submissionStatus === 'partial') {
+            return 'Your signature has been submitted. The next signer has been notified.';
+        }
+        return '';
+    }
+
+    get customToastClass() {
+        return `custom-toast custom-toast_${this.customToastVariant}`;
     }
 
     // ── Canvas / drawing ───────────────────────────────────────────────────────
@@ -354,7 +325,7 @@ export default class NoticeToProceedLwc extends LightningElement {
                 signatureResults[signatureId] = { imgUrl: existingUrl, cvId: '' };
                 return true;
             }
-            this.dispatchEvent(new ShowToastEvent({ title: 'Warning', message: warningMsg, variant: 'warning' }));
+            this.showToast(warningMsg, 'info');
             return false;
         };
 
@@ -399,60 +370,70 @@ export default class NoticeToProceedLwc extends LightningElement {
             })
             .then((result) => {
                 if (result === 'Success') {
-                    this.isSubmitted = true;
-                    this.submitTitle = 'Thank You!';
-                    this.submitMessage = 'Notice To Proceed has been submitted successfully.';
-                    this.dispatchEvent(new ShowToastEvent({ title: 'Success', message: 'Notice To Proceed submitted.', variant: 'success' }));
-                    return;
+                    this.submissionStatus = 'final';
+                    return this.refreshNoticeData().then(() => {
+                        this.showToast('Notice To Proceed submitted.', 'success');
+                    });
                 }
                 if (result === 'Already Submitted') {
-                    this.isSubmitted = true;
-                    this.isAlreadySubmitted = true;
-                    this.dispatchEvent(new ShowToastEvent({ title: 'Already Submitted', message: 'This form has already been submitted.', variant: 'info' }));
-                    return;
+                    this.submissionStatus = 'already';
+                    return this.refreshNoticeData().then(() => {
+                        this.showToast('This form has already been submitted.', 'info');
+                    });
                 }
                 if (result === 'Missing Signatures') {
-                    // Apex already sent the next signer email — just show thank you
-                    this.isSubmitted = true;
-                    this.submitTitle = 'Thank You!';
-                    this.submitMessage = 'Your signature has been saved. The next recipient has been notified to sign.';
-                    this.dispatchEvent(new ShowToastEvent({
-                        title: 'Signature Saved',
-                        message: 'Signature saved. The next recipient has been notified.',
-                        variant: 'success'
-                    }));
+                    this.submissionStatus = 'partial';
+                    return this.refreshNoticeData().then(() => {
+                        this.showToast('Signature saved. The next recipient has been notified.', 'success');
+                    });
                 }
+                return null;
             })
             .catch((error) => {
-                this.dispatchEvent(new ShowToastEvent({
-                    title: 'Error',
-                    message: error?.body?.message || error?.message || 'An unknown error occurred.',
-                    variant: 'error'
-                }));
+                this.showToast(error?.body?.message || error?.message || 'An unknown error occurred.', 'error');
             })
             .finally(() => { this.isLoading = false; });
     }
 
-    // ── Address helpers ────────────────────────────────────────────────────────
+    applySubmissionState(data) {
+        if (this.isPreviewMode) {
+            this.stageLocked = true;
+            this.submissionStatus = data.isSubmitted ? 'final' : '';
+            return;
+        }
 
-    buildProjectLocation(recordData) {
-        const address = getFieldValue(recordData, ADDRESS_FIELD) || '';
-        const city    = getFieldValue(recordData, CITY_FIELD) || '';
-        const state   = getFieldValue(recordData, STATE_FIELD) || '';
-        const zip     = getFieldValue(recordData, ZIP_FIELD) || '';
-        const country = getFieldValue(recordData, COUNTRY_FIELD) || '';
-        const cityState = [city, state].filter(Boolean).join(' ');
-        const firstPart = [address, cityState].filter(Boolean).join(', ');
-        return `${firstPart}${zip ? ` - ${zip}` : ''}${country ? `, ${country}` : ''}`.trim();
+        if (data.isSubmitted) {
+            this.isSubmitted = true;
+            this.isAlreadySubmitted = true;
+            this.stageLocked = false;
+            this.submissionStatus = this.submissionStatus === 'final' ? 'final' : 'already';
+            return;
+        }
+
+        const roleSigned =
+            (this.isPropertyOwner && data.propertyOwnerSigned) ||
+            (this.isContractorRep && data.contractorRepSigned) ||
+            (this.isProgramRep && data.programRepSigned);
+
+        this.stageLocked = this.isRoleDrivenView && roleSigned;
+        this.submissionStatus = this.stageLocked ? 'partial' : '';
+        this.isAlreadySubmitted = false;
     }
 
-    buildContractorAddress(recordData) {
-        const street     = getFieldValue(recordData, CONTRACTOR_BILLING_STREET_FIELD) || '';
-        const city       = getFieldValue(recordData, CONTRACTOR_BILLING_CITY_FIELD) || '';
-        const state      = getFieldValue(recordData, CONTRACTOR_BILLING_STATE_FIELD) || '';
-        const postalCode = getFieldValue(recordData, CONTRACTOR_BILLING_POSTAL_FIELD) || '';
-        const country    = getFieldValue(recordData, CONTRACTOR_BILLING_COUNTRY_FIELD) || '';
-        const cityStatePostal = [city, state, postalCode].filter(Boolean).join(' ');
-        return [street, cityStatePostal, country].filter(Boolean).join(', ');
+    refreshNoticeData() {
+        if (!this.noticeWireResult) {
+            return Promise.resolve();
+        }
+        return refreshApex(this.noticeWireResult);
+    }
+
+    showToast(message, variant = 'success') {
+        this.customToastMessage = message;
+        this.customToastVariant = variant;
+        this.showCustomToast = true;
+    }
+
+    handleCloseToast() {
+        this.showCustomToast = false;
     }
 }

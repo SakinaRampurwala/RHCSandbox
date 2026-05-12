@@ -1,177 +1,180 @@
 <template>
+    <template if:true={showCustomToast}>
+        <div class={customToastClass} role="status">
+            <span>{customToastMessage}</span>
+            <button class="toast-close" onclick={handleCloseToast} aria-label="Close">x</button>
+        </div>
+    </template>
+
     <div class="main-wrapper slds-is-relative">
         <template if:true={isLoading}>
             <lightning-spinner alternative-text="Loading" size="large" variant="brand"></lightning-spinner>
         </template>
 
         <div class="slds-container_large slds-container_center">
-            <template if:true={showThankYouPage}>
-                <div class="content-inner success-container">
-                    <lightning-icon icon-name="action:approval" size="large" alternative-text="Success"></lightning-icon>
-                    <template if:false={isAlreadySubmitted}>
-                        <h2 class="slds-text-heading_large slds-m-top_medium">{submitTitle}</h2>
-                        <p class="slds-text-heading_small slds-m-top_medium">{submitMessage}</p>
-                    </template>
-                    <template if:true={isAlreadySubmitted}>
-                        <h2 class="slds-text-heading_large slds-m-top_medium">Already Submitted</h2>
-                        <p class="slds-text-heading_small slds-m-top_medium">Notice To Proceed has already been submitted for this record.</p>
-                    </template>
+            <template if:true={showSubmittedMessage}>
+                <div class="submitted-message">
+                    <lightning-icon icon-name="utility:success" size="x-small" alternative-text="Submitted"></lightning-icon>
+                    <span>{submittedMessage}</span>
                 </div>
             </template>
 
-            <template if:false={showThankYouPage}>
-                <div class="main-container">
-                    <div class="header-container slds-grid slds-wrap">
-                        <div class="slds-col slds-size_1-of-2 slds-text-align_left">
-                            <template if:true={logoURL}>
-                                <img class="header-logo" src={logoURL} alt="Logo" />
+            <div class="main-container">
+                <div class="header-container slds-grid slds-wrap">
+                    <div class="slds-col slds-size_1-of-1 slds-text-align_center">
+                        <template if:true={logoURL}>
+                            <img class="header-logo" src={logoURL} alt="Logo" />
+                        </template>
+                    </div>
+                </div>
+
+                <div class="doc-sub-title">Home Improvement Program</div>
+                <div class="doc-title">NOTICE TO PROCEED</div>
+
+                <table class="notice-table" cellspacing="0" cellpadding="0">
+                    <colgroup>
+                        <col class="col-label-main" />
+                        <col class="col-value-main" />
+                        <col class="col-label-meta" />
+                        <col class="col-value-meta" />
+                    </colgroup>
+                    <tr>
+                        <td class="label-cell">Project Location:</td>
+                        <td>{noticeData.projectLocation}</td>
+                        <td class="label-cell small meta-label-cell">Case No.</td>
+                        <td class="meta-value-cell">{noticeData.caseNumber}</td>
+                    </tr>
+                    <tr>
+                        <td class="label-cell">Property Owner:</td>
+                        <td colspan="3">{noticeData.propertyOwner}</td>
+                    </tr>
+                    <tr class="empty-row">
+                        <td colspan="4"></td>
+                    </tr>
+                    <tr>
+                        <td class="label-cell">Contractor:</td>
+                        <td>{noticeData.contractor}</td>
+                        <td class="label-cell small meta-label-cell">Telephone:</td>
+                        <td class="meta-value-cell">{noticeData.telephone}</td>
+                    </tr>
+                    <tr>
+                        <td class="label-cell">Address:</td>
+                        <td colspan="3">{noticeData.contractorAddress}</td>
+                    </tr>
+                    <tr>
+                        <td class="label-cell">Contract Dated:</td>
+                        <td colspan="3">{noticeData.contractDated}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="paragraph-cell">
+                            You are hereby authorized to proceed with the work listed in our Construction Contract. We have agreed that you will begin work and complete all improvements within the time periods listed below. It is understood that failure to complete this work in a timely manner may be grounds for termination of our contract.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">All work will begin not later than this date:</td>
+                        <td colspan="2">{noticeData.projectedStartDate}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">All work will be completed not later than this date:</td>
+                        <td colspan="2">{noticeData.projectedCompletionDate}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="paragraph-cell">
+                            According to the terms of our contract, progress payments can be made for work items that are completed in place. Such payments will be considered after receipt of your written claim subject to inspection by the Rehabilitation Specialist and approval by the grantee or its designee.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="paragraph-cell">
+                            No deviation from the Work Write-up will be permitted without specific authorization and a Change Order which must be approved by the grantee. It is understood that changes will generally not be considered except for unforeseen problems that must be addressed in order to complete work items included in this project.
+                        </td>
+                    </tr>
+                </table>
+
+                <template if:true={showPropertyOwnerSection}>
+                    <div class="signature-section">
+                        <label class="signature-label">Property Owner Signature</label>
+                        <div class="signature-container">
+                            <template if:true={hasPropertyOwnerSignature}>
+                                <img src={propertyOwnerSignatureUrl} alt="Property Owner Signature" class="signature-image" />
+                            </template>
+                            <template if:false={hasPropertyOwnerSignature}>
+                                <canvas class={signatureCanvasClass}
+                                    data-signature-id="propertyOwner"
+                                    onmousedown={handleMouseDown}
+                                    onmousemove={handleMouseMove}
+                                    onmouseup={handleMouseUp}
+                                    onmouseout={handleMouseUp}
+                                    ontouchstart={handleTouchStart}
+                                    ontouchmove={handleTouchMove}
+                                    ontouchend={handleTouchEnd}>
+                                </canvas>
+                            </template>
+                        </div>
+                        <div class="signature-buttons">
+                            <template if:false={hasPropertyOwnerSignature}>
+                                <button class="clear-link" data-signature-id="propertyOwner" onclick={clearSignature} disabled={isReadOnly}>Clear Signature</button>
                             </template>
                         </div>
                     </div>
+                </template>
 
-                    <div class="doc-sub-title">Home Improvement Program</div>
-                    <div class="doc-title">NOTICE TO PROCEED</div>
-
-                    <table class="notice-table" cellspacing="0" cellpadding="0">
-                        <tr>
-                            <td class="label-cell">Project Location:</td>
-                            <td>{noticeData.projectLocation}</td>
-                            <td class="label-cell small">Case No.</td>
-                            <td>{noticeData.caseNumber}</td>
-                        </tr>
-                        <tr>
-                            <td class="label-cell">Property Owner:</td>
-                            <td colspan="3">{noticeData.propertyOwner}</td>
-                        </tr>
-                        <tr class="empty-row">
-                            <td colspan="4"></td>
-                        </tr>
-                        <tr>
-                            <td class="label-cell">Contractor:</td>
-                            <td>{noticeData.contractor}</td>
-                            <td class="label-cell small">Telephone:</td>
-                            <td>{noticeData.telephone}</td>
-                        </tr>
-                        <tr>
-                            <td class="label-cell">Address:</td>
-                            <td colspan="3">{noticeData.contractorAddress}</td>
-                        </tr>
-                        <tr>
-                            <td class="label-cell">Contract Dated:</td>
-                            <td colspan="3">{noticeData.contractDated}</td>
-                        </tr>
-                        <tr>
-                            <td colspan="4" class="paragraph-cell">
-                                You are hereby authorized to proceed with the work listed in our Construction Contract. We have agreed that you will begin work and complete all improvements within the time periods listed below. It is understood that failure to complete this work in a timely manner may be grounds for termination of our contract.
-                            </td>
-                        </tr>
-                        <tr>
-                            <td colspan="2">All work will begin not later than this date:</td>
-                            <td colspan="2">{noticeData.projectedStartDate}</td>
-                        </tr>
-                        <tr>
-                            <td colspan="2">All work will be completed not later than this date:</td>
-                            <td colspan="2">{noticeData.projectedCompletionDate}</td>
-                        </tr>
-                        <tr>
-                            <td colspan="4" class="paragraph-cell">
-                                According to the terms of our contract, progress payments can be made for work items that are completed in place. Such payments will be considered after receipt of your written claim subject to inspection by the Rehabilitation Specialist and approval by the grantee or its designee.
-                            </td>
-                        </tr>
-                        <tr>
-                            <td colspan="4" class="paragraph-cell">
-                                No deviation from the Work Write-up will be permitted without specific authorization and a Change Order which must be approved by the grantee. It is understood that changes will generally not be considered except for unforeseen problems that must be addressed in order to complete work items included in this project.
-                            </td>
-                        </tr>
-                    </table>
-
-                    <!-- Property Owner Signature — shown only when isPropertyOwner=true (or admin/preview) -->
-                    <template if:true={showPropertyOwnerSection}>
-                        <div class="signature-section">
-                            <label class="signature-label">Property Owner Signature</label>
-                            <div class="signature-container">
-                                <template if:true={hasPropertyOwnerSignature}>
-                                    <img src={propertyOwnerSignatureUrl} alt="Property Owner Signature" class="signature-image" />
-                                </template>
-                                <template if:false={hasPropertyOwnerSignature}>
-                                    <canvas class={signatureCanvasClass}
-                                        data-signature-id="propertyOwner"
-                                        onmousedown={handleMouseDown}
-                                        onmousemove={handleMouseMove}
-                                        onmouseup={handleMouseUp}
-                                        onmouseout={handleMouseUp}
-                                        ontouchstart={handleTouchStart}
-                                        ontouchmove={handleTouchMove}
-                                        ontouchend={handleTouchEnd}>
-                                    </canvas>
-                                </template>
-                            </div>
-                            <div class="signature-buttons">
-                                <template if:false={hasPropertyOwnerSignature}>
-                                    <button class="clear-link" data-signature-id="propertyOwner" onclick={clearSignature} disabled={isReadOnly}>Clear Signature</button>
-                                </template>
-                            </div>
+                <template if:true={showContractorRepSection}>
+                    <div class="signature-section">
+                        <label class="signature-label">Contractor Representative Signature</label>
+                        <div class="signature-container">
+                            <template if:true={hasContractorRepSignature}>
+                                <img src={contractorRepSignatureUrl} alt="Contractor Representative Signature" class="signature-image" />
+                            </template>
+                            <template if:false={hasContractorRepSignature}>
+                                <canvas class={signatureCanvasClass}
+                                    data-signature-id="contractorRep"
+                                    onmousedown={handleMouseDown}
+                                    onmousemove={handleMouseMove}
+                                    onmouseup={handleMouseUp}
+                                    onmouseout={handleMouseUp}
+                                    ontouchstart={handleTouchStart}
+                                    ontouchmove={handleTouchMove}
+                                    ontouchend={handleTouchEnd}>
+                                </canvas>
+                            </template>
                         </div>
-                    </template>
-
-                    <!-- Contractor Representative Signature — shown only when isContractorRep=true (or admin/preview) -->
-                    <template if:true={showContractorRepSection}>
-                        <div class="signature-section">
-                            <label class="signature-label">Contractor Representative Signature</label>
-                            <div class="signature-container">
-                                <template if:true={hasContractorRepSignature}>
-                                    <img src={contractorRepSignatureUrl} alt="Contractor Representative Signature" class="signature-image" />
-                                </template>
-                                <template if:false={hasContractorRepSignature}>
-                                    <canvas class={signatureCanvasClass}
-                                        data-signature-id="contractorRep"
-                                        onmousedown={handleMouseDown}
-                                        onmousemove={handleMouseMove}
-                                        onmouseup={handleMouseUp}
-                                        onmouseout={handleMouseUp}
-                                        ontouchstart={handleTouchStart}
-                                        ontouchmove={handleTouchMove}
-                                        ontouchend={handleTouchEnd}>
-                                    </canvas>
-                                </template>
-                            </div>
-                            <div class="signature-buttons">
-                                <template if:false={hasContractorRepSignature}>
-                                    <button class="clear-link" data-signature-id="contractorRep" onclick={clearSignature} disabled={isReadOnly}>Clear Signature</button>
-                                </template>
-                            </div>
+                        <div class="signature-buttons">
+                            <template if:false={hasContractorRepSignature}>
+                                <button class="clear-link" data-signature-id="contractorRep" onclick={clearSignature} disabled={isReadOnly}>Clear Signature</button>
+                            </template>
                         </div>
-                    </template>
+                    </div>
+                </template>
 
-                    <!-- Program Representative Signature — shown only when isProgramRep=true (or admin/preview) -->
-                    <template if:true={showProgramRepSection}>
-                        <div class="signature-section">
-                            <label class="signature-label">Home Improvement Program Representative Signature</label>
-                            <div class="signature-container">
-                                <template if:true={hasProgramRepSignature}>
-                                    <img src={programRepSignatureUrl} alt="Program Representative Signature" class="signature-image" />
-                                </template>
-                                <template if:false={hasProgramRepSignature}>
-                                    <canvas class={signatureCanvasClass}
-                                        data-signature-id="programRep"
-                                        onmousedown={handleMouseDown}
-                                        onmousemove={handleMouseMove}
-                                        onmouseup={handleMouseUp}
-                                        onmouseout={handleMouseUp}
-                                        ontouchstart={handleTouchStart}
-                                        ontouchmove={handleTouchMove}
-                                        ontouchend={handleTouchEnd}>
-                                    </canvas>
-                                </template>
-                            </div>
-                            <div class="signature-buttons">
-                                <template if:false={hasProgramRepSignature}>
-                                    <button class="clear-link" data-signature-id="programRep" onclick={clearSignature} disabled={isReadOnly}>Clear Signature</button>
-                                </template>
-                            </div>
+                <template if:true={showProgramRepSection}>
+                    <div class="signature-section">
+                        <label class="signature-label">Home Improvement Program Representative Signature</label>
+                        <div class="signature-container">
+                            <template if:true={hasProgramRepSignature}>
+                                <img src={programRepSignatureUrl} alt="Program Representative Signature" class="signature-image" />
+                            </template>
+                            <template if:false={hasProgramRepSignature}>
+                                <canvas class={signatureCanvasClass}
+                                    data-signature-id="programRep"
+                                    onmousedown={handleMouseDown}
+                                    onmousemove={handleMouseMove}
+                                    onmouseup={handleMouseUp}
+                                    onmouseout={handleMouseUp}
+                                    ontouchstart={handleTouchStart}
+                                    ontouchmove={handleTouchMove}
+                                    ontouchend={handleTouchEnd}>
+                                </canvas>
+                            </template>
                         </div>
-                    </template>
+                        <div class="signature-buttons">
+                            <template if:false={hasProgramRepSignature}>
+                                <button class="clear-link" data-signature-id="programRep" onclick={clearSignature} disabled={isReadOnly}>Clear Signature</button>
+                            </template>
+                        </div>
+                    </div>
+                </template>
 
+                <template if:false={isReadOnly}>
                     <div class="submit-row">
                         <lightning-button
                             class="submit-button"
@@ -181,8 +184,8 @@
                             disabled={isSubmitDisabled}>
                         </lightning-button>
                     </div>
-                </div>
-            </template>
+                </template>
+            </div>
         </div>
     </div>
 </template>

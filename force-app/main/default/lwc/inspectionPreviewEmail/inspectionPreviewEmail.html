@@ -1,5 +1,4 @@
 <template>
-
     <lightning-modal-header label={headerTitle} size="large">
         <lightning-button-icon icon-name="utility:close" variant="bare-inverse" onclick={closeModal} alternative-text="Close" class="slds-modal__close"></lightning-button-icon>
     </lightning-modal-header>
@@ -18,7 +17,8 @@
             </div>
         </template>
 
-        <div class="email-composer-container" style={gridStyle}>
+        <div class="modal-body-layout">
+            <div class="email-composer-container" style={gridStyle}>
                 <div class="left-panel">
                     <div class="slds-form-element slds-m-bottom_medium">
                         <label class="slds-form-element__label">
@@ -50,133 +50,115 @@
                         </lightning-combobox>
                     </div>
 
-                    <template if:true={isNoticeToProceedForm}>
+                    <template if:true={isFinalInspectionForm}>
                         <div class="slds-form-element slds-m-bottom_medium">
                             <label class="slds-form-element__label">
-                            <abbr class="slds-required" title="required">*</abbr>Property Owner
+                                <abbr class="slds-required" title="required">*</abbr>Homeowner
                             </label>
-                            <c-generic-lookup 
-                                objectname="Contact" 
+                            <c-generic-lookup
+                                objectname="Contact"
                                 field-names="Id, Name, Email"
                                 search-condition="Email != null"
-                                first-field-to-display="Name" 
+                                first-field-to-display="Name"
                                 second-field-to-display="Email"
-                                icon-name="standard:contact" 
-                                placeholder="Search Property Owner Contact..."
+                                icon-name="standard:contact"
+                                placeholder="Search Homeowner Contact..."
                                 is-multi-select="true"
-                                default-selected-records={ntpOwnerContactList}
-                                onselected={handleNtpOwnerLookupChange}>
+                                default-selected-records={vendorContactList}
+                                onselected={handleVendorLookupChange}>
                             </c-generic-lookup>
                         </div>
 
                         <div class="slds-form-element slds-m-bottom_medium">
                             <label class="slds-form-element__label">
-                            <abbr class="slds-required" title="required">*</abbr>Contractor Representative
+                                <abbr class="slds-required" title="required">*</abbr>Program Representative
                             </label>
-                            <c-generic-lookup 
-                                objectname="Contact" 
+                            <c-generic-lookup
+                                objectname="Contact"
                                 field-names="Id, Name, Email"
                                 search-condition="Email != null"
-                                first-field-to-display="Name" 
+                                first-field-to-display="Name"
                                 second-field-to-display="Email"
-                                icon-name="standard:contact" 
-                                placeholder="Search Contractor Representative..."
-                                is-multi-select="true"
-                                default-selected-records={ntpContractorContactList}
-                                onselected={handleNtpContractorLookupChange}>
-                            </c-generic-lookup>
-                        </div>
-
-                        <div class="slds-form-element slds-m-bottom_medium">
-                            <label class="slds-form-element__label">
-                            <abbr class="slds-required" title="required">*</abbr>Home Improvement Program Representative
-                            </label>
-                            <c-generic-lookup 
-                                objectname="Contact" 
-                                field-names="Id, Name, Email"
-                                search-condition="Email != null"
-                                first-field-to-display="Name" 
-                                second-field-to-display="Email"
-                                icon-name="standard:contact" 
+                                icon-name="standard:contact"
                                 placeholder="Search Program Representative..."
                                 is-multi-select="true"
-                                default-selected-records={ntpProgramRepContactList}
-                                onselected={handleNtpProgramRepLookupChange}>
+                                default-selected-records={companyContactList}
+                                onselected={handleCompanyLookupChange}>
                             </c-generic-lookup>
                         </div>
                     </template>
 
-                    <template if:false={isSpecialForm}>
+                    <template if:false={isFinalInspectionForm}>
                         <div class="slds-form-element slds-m-bottom_medium">
                             <label class="slds-form-element__label">
-                                <abbr class="slds-required" title="required">*</abbr>To
+                                <abbr class="slds-required" title="required">*</abbr>Contractor
                             </label>
-                            <c-generic-lookup 
-                                objectname="Contact" 
+                            <c-generic-lookup
+                                objectname="Contact"
                                 field-names="Id, Name, Email"
                                 search-condition="Email != null"
-                                first-field-to-display="Name" 
+                                first-field-to-display="Name"
                                 second-field-to-display="Email"
-                                icon-name="standard:contact" 
-                                placeholder="Search Contact..."
+                                icon-name="standard:contact"
+                                placeholder="Search Contractor Contact..."
                                 is-multi-select="true"
-                                default-selected-records={toContactList}
-                                onselected={handleToLookupChange}>
+                                default-selected-records={contractorContactList}
+                                onselected={handleContractorLookupChange}>
                             </c-generic-lookup>
                         </div>
 
                         <div class="slds-form-element slds-m-bottom_medium">
-                            <label class="slds-form-element__label">CC</label>
-                            <c-generic-lookup 
-                                objectname="Contact" 
+                            <label class="slds-form-element__label">
+                                <abbr class="slds-required" title="required">*</abbr>Homeowner
+                            </label>
+                            <c-generic-lookup
+                                objectname="Contact"
                                 field-names="Id, Name, Email"
                                 search-condition="Email != null"
-                                first-field-to-display="Name" 
+                                first-field-to-display="Name"
                                 second-field-to-display="Email"
-                                icon-name="standard:contact" 
-                                placeholder="Search Contact..."
+                                icon-name="standard:contact"
+                                placeholder="Search Homeowner Contact..."
                                 is-multi-select="true"
-                                onselected={handleCCLookupChange}>
-                            </c-generic-lookup>
-                        </div>
-
-                        <div>
-                            <lightning-input type="checkbox" label="CC Current User" onchange={handleCcCurrentUser}></lightning-input>
-                        </div>
-
-                        <div class="slds-form-element slds-m-bottom_medium">
-                            <label class="slds-form-element__label">BCC</label>
-                            <c-generic-lookup 
-                                objectname="Contact" 
-                                field-names="Id, Name, Email"
-                                search-condition="Email != null"
-                                first-field-to-display="Name" 
-                                second-field-to-display="Email"
-                                icon-name="standard:contact" 
-                                placeholder="Search Contact..."
-                                is-multi-select="true"
-                                onselected={handleBCCLookupChange}>
+                                default-selected-records={homeownerContactList}
+                                onselected={handleHomeownerLookupChange}>
                             </c-generic-lookup>
                         </div>
 
                         <div class="slds-form-element slds-m-bottom_medium">
-                            <label class="slds-form-element__label">Additional Emails (comma-separated emails)</label>
-                            <lightning-input
-                                class="additional-email-input-cls"
-                                variant="label-hidden"
-                                type="text"
-                                value={additionalEmailsInput}
-                                placeholder="Enter CC email addresses separated by commas"
-                                onchange={handleAdditionalEmailsChange}>
-                            </lightning-input>
+                            <label class="slds-form-element__label">
+                                <abbr class="slds-required" title="required">*</abbr>Homsite Representative
+                            </label>
+                            <c-generic-lookup
+                                objectname="Contact"
+                                field-names="Id, Name, Email"
+                                search-condition="Email != null"
+                                first-field-to-display="Name"
+                                second-field-to-display="Email"
+                                icon-name="standard:contact"
+                                placeholder="Search Homsite Representative..."
+                                is-multi-select="true"
+                                default-selected-records={homsiteRepContactList}
+                                onselected={handleHomsiteRepLookupChange}>
+                            </c-generic-lookup>
+                        </div>
 
-                            <div class="selected-contacts slds-m-top_x-small">
-                                <template for:each={additionalEmailsList} for:item="email" for:index="index">
-                                    <lightning-pill key={email} label={email} name={index} onremove={handleRemoveAdditionalEmail}>
-                                        <lightning-icon slot="media" icon-name="utility:email" size="x-small"></lightning-icon>
-                                    </lightning-pill>
-                                </template>
-                            </div>
+                        <div class="slds-form-element slds-m-bottom_medium">
+                            <label class="slds-form-element__label">
+                                <abbr class="slds-required" title="required">*</abbr>Code Enforcement
+                            </label>
+                            <c-generic-lookup
+                                objectname="Contact"
+                                field-names="Id, Name, Email"
+                                search-condition="Email != null"
+                                first-field-to-display="Name"
+                                second-field-to-display="Email"
+                                icon-name="standard:contact"
+                                placeholder="Search Code Enforcement Contact..."
+                                is-multi-select="true"
+                                default-selected-records={codeEnforcementContactList}
+                                onselected={handleCodeEnforcementLookupChange}>
+                            </c-generic-lookup>
                         </div>
                     </template>
 
@@ -195,10 +177,7 @@
 
                     <div class="slds-form-element slds-m-bottom_medium">
                         <label class="slds-form-element__label">
-                            <template if:true={isBodyRequired}>
-                                <abbr class="slds-required" title="required">*</abbr>
-                            </template>
-                            Body
+                            <abbr class="slds-required" title="required">*</abbr>Body
                         </label>
                         <lightning-input-rich-text
                             class="rich-body-div"
@@ -209,58 +188,28 @@
                         </lightning-input-rich-text>
                     </div>
 
-                    <div class="flex-top-data">
+                    <div class="flex-top-data slds-m-bottom_medium">
                         <lightning-input type="checkbox" label="Use Your Custom Email Signature" onchange={handleEmailSignatureChange} checked={useEmailSignature}></lightning-input>
-                        <lightning-helptext content="You can change your default email signature by going to: Top Right Avatar → Settings → Email → My Email Settings → Email Signature"></lightning-helptext>
+                        <lightning-helptext content="The email uses the template body. This option only controls whether Salesforce appends your own signature when the message is sent."></lightning-helptext>
                     </div>
 
-                    <template if:true={showFileUpload}>
-                        <div class="slds-form-element slds-m-bottom_medium">
-                            <label class="slds-form-element__label">Attachments</label>
-                            <div class="flex-bottom-data">
-                                <lightning-file-upload
-                                    label="Upload Files"
-                                    name="fileUploader"
-                                    record-id={recordId}
-                                    multiple="true"
-                                    onuploadfinished={handleUploadFinished}>
-                                </lightning-file-upload>
-
-                                <lightning-button class="custom-m-botton-5" variant="neutral" label="Select File From Record" onclick={openRecordFileModal}></lightning-button>
-                            </div>
-        
-                            <div class="attached-files slds-m-top_x-small">
-                                <template for:each={attachedFiles} for:item="file" for:index="index">
-                                    <lightning-pill key={file.Id} label={file.name} name={file.Id} onremove={handleRemoveFile}>
-                                        <lightning-icon icon-name="standard:file" alternative-text="File icon" size="x-small"></lightning-icon>
-                                    </lightning-pill>
-                                </template>
-                            </div>
+                    <div class="slds-form-element slds-m-bottom_medium">
+                        <label class="slds-form-element__label">Attachments</label>
+                        <lightning-file-upload
+                            label="Upload Files"
+                            name="fileUploader"
+                            record-id={recordId}
+                            multiple
+                            onuploadfinished={handleUploadFinished}>
+                        </lightning-file-upload>
+                        <div class="attached-files slds-m-top_small">
+                            <template for:each={attachedFiles} for:item="file">
+                                <lightning-pill key={file.Id} label={file.name} name={file.Id} onremove={handleRemoveFile}>
+                                    <lightning-icon slot="media" icon-name="standard:file" size="x-small"></lightning-icon>
+                                </lightning-pill>
+                            </template>
                         </div>
-                    </template>
-
-                    <template if:true={showSignaturePad}>
-                        <div class="slds-form-element slds-m-bottom_medium">
-                            <label class="slds-form-element__label">
-                                <abbr class="slds-required" title="required">*</abbr>Signature
-                            </label>
-                            <div class="signature-container">
-                                <canvas class="signature-pad"
-                                        width="400"
-                                        height="200"
-                                        onmousedown={startDrawing}
-                                        onmousemove={draw}
-                                        onmouseup={stopDrawing}
-                                        ontouchstart={startDrawing}
-                                        ontouchmove={draw}
-                                        ontouchend={stopDrawing}>
-                                </canvas>
-                                <div class="signature-controls slds-m-top_x-small">
-                                    <lightning-button variant="neutral" label="Clear Signature" onclick={clearSignature}></lightning-button>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
+                    </div>
                 </div>
 
                 <div class="divider"
@@ -293,7 +242,7 @@
                                 </template>
                             </button>
                         </div>
-                        
+
                         <template if:true={isBodyPreviewExpanded}>
                             <div class="email-body-preview-div">
                                 <div class="email-body-preview" lwc:dom="manual"></div>
@@ -323,6 +272,7 @@
                                 </template>
                             </button>
                         </div>
+
                         <template if:true={isProjectImprovementExpanded}>
                             <div class="email-Attachment-preview-div">
                                 <template if:true={hasSelectedTemplate}>
@@ -344,59 +294,12 @@
                         </template>
                     </div>
                 </div>
+            </div>
         </div>
-
-        <!-- Modal for Related Files -->
-        <template if:true={showRecordFileModal}>
-            <section role="dialog" class="slds-modal slds-fade-in-open" aria-labelledby="modal-heading-2">
-                <div class="slds-modal__container">
-                    <header class="slds-modal__header">
-                        <h2 id="modal-heading-2" class="slds-modal__title">Select Files</h2>
-                    </header>
-
-                    <div class="slds-modal__content slds-p-around_medium second-modal-container">
-                        <div class="file-modal-table">
-                            <table class="slds-table slds-table_bordered slds-table_cell-buffer">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">
-                                            <lightning-input type="checkbox" variant="label-hidden" class="checkbox-cls" onchange={handleAllFileSelect}></lightning-input>
-                                        </th>
-                                        <th scope="col">File Name</th>
-                                        <th scope="col">Size</th>
-                                        <th scope="col">File Type</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <template for:each={relatedFileList} for:item="file">
-                                        <tr key={file.Id}>
-                                            <td>
-                                                <lightning-input type="checkbox" variant="label-hidden" class="checkbox-cls" checked={file.isChecked} data-id={file.ContentDocumentId} onchange={handleFileCheckboxChange}></lightning-input>
-                                            </td>
-                                            <td>{file.Title}</td>
-                                            <td>{file.FormattedSize}</td> 
-                                            <td>{file.FileType}</td>
-                                        </tr>
-                                    </template>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <footer class="slds-modal__footer">
-                        <lightning-button variant="neutral" label="Cancel" class="slds-p-right_small" onclick={closeRelatedFileModal}></lightning-button>
-                        <lightning-button variant="brand" label="Attach Selected Files" onclick={addSelectedFiles}></lightning-button>
-                    </footer>
-                </div>
-            </section>
-            <div class="slds-backdrop slds-backdrop_open second-modal"></div>
-
-        </template>
     </lightning-modal-body>
 
     <lightning-modal-footer>
         <lightning-button class="slds-m-right_small" variant="brand" label="Send Email" disabled={isSendDisabled} onclick={handleSendEmail}></lightning-button>
         <lightning-button variant="neutral" label="Cancel" class="slds-p-right_small" onclick={closeModal}></lightning-button>
     </lightning-modal-footer>
-
 </template>

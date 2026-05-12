@@ -51,7 +51,7 @@ public without sharing class IneligibleHIPletterCtrl {
         }
     }
 
-    private String getRecordIdFromPageParameters() {
+    public String getRecordIdFromPageParameters() {
         String recordId;
 
         recordId = ApexPages.currentPage().getParameters().get('id');
@@ -62,11 +62,11 @@ public without sharing class IneligibleHIPletterCtrl {
         return recordId;
     }
 
-    private String getFormattedDateFromPageParameters() {
+    public String getFormattedDateFromPageParameters() {
         return Datetime.now().format('M/d/yy');
     }
 
-    private void loadAccountData(String recordId) {
+    public void loadAccountData(String recordId) {
         try {
             Account accountRecord;
 
@@ -102,7 +102,7 @@ public without sharing class IneligibleHIPletterCtrl {
         }
     }
 
-    private String buildAccountAddress(Account accountRecord) {
+    public String buildAccountAddress(Account accountRecord) {
         List<String> addressLines;
         String cityStatePostalLine;
 
@@ -144,7 +144,7 @@ public without sharing class IneligibleHIPletterCtrl {
         return String.join(addressLines, '\n');
     }
 
-    private String formatIncomeUpperLimit(Decimal incomeUpperLimitValue) {
+    public String formatIncomeUpperLimit(Decimal incomeUpperLimitValue) {
         if (incomeUpperLimitValue == null) {
             return '';
         }

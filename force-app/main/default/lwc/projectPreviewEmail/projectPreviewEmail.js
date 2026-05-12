@@ -31,16 +31,12 @@ export default class ProjectPreviewEmail extends LightningElement {
 
     @track templateOptions = [
         {
-            label: 'Project Improvement Program Photo Release Form',
+            label: 'Home Improvement Program Photo Release Form',
             value: 'ProjectImprovementProgramPhotoRelease'
         }, 
         {
             label: 'Notice To Proceed',
             value: 'NoticeToProceed'
-        },
-        {
-            label: 'Final Inspection Form',
-            value: 'FinalInspectionForm'
         }
     ];
     @track orgWideEmailOptions = [];
@@ -49,8 +45,6 @@ export default class ProjectPreviewEmail extends LightningElement {
     @track toContactList = [];
     @track ccContactList = [];
     @track bccContactList = [];
-    @track vendorContactList = [];
-    @track companyContactList = [];
     // Notice To Proceed – 3 separate contact lists
     @track ntpOwnerContactList = [];
     @track ntpContractorContactList = [];
@@ -125,17 +119,13 @@ export default class ProjectPreviewEmail extends LightningElement {
         return !!this.selectedTemplateId;
     }
 
-    get isFinalInspectionForm() {
-        return this.selectedTemplateId === 'FinalInspectionForm';
-    }
-
     get isNoticeToProceedForm() {
         return this.selectedTemplateId === 'NoticeToProceed';
     }
 
     // True when a template uses its own recipient UI (not the generic To/CC/BCC)
     get isSpecialForm() {
-        return this.isFinalInspectionForm || this.isNoticeToProceedForm;
+        return this.isNoticeToProceedForm;
     }
 
     @wire(getEmailSignature)
@@ -278,30 +268,6 @@ export default class ProjectPreviewEmail extends LightningElement {
         if (!didUpdate) {
             this.updateBodyPreview();
         }
-    }
-
-    handleVendorLookupChange(event) {
-        const detail = event?.detail || {};
-        const selectedRecords = detail.selectedRecords
-            ? detail.selectedRecords
-            : (detail.selectedRecord ? [detail.selectedRecord] : []);
-        this.vendorContactList = this.createContactObj(selectedRecords);
-        this.handleBtnEnable();
-
-        const primaryName = this.vendorContactList.length > 0 ? this.vendorContactList[0].Name : null;
-        const didUpdate = this.applyContactNameToBody(primaryName);
-        if (!didUpdate) {
-            this.updateBodyPreview();
-        }
-    }
-
-    handleCompanyLookupChange(event) {
-        const detail = event?.detail || {};
-        const selectedRecords = detail.selectedRecords
-            ? detail.selectedRecords
-            : (detail.selectedRecord ? [detail.selectedRecord] : []);
-        this.companyContactList = this.createContactObj(selectedRecords);
-        this.handleBtnEnable();
     }
 
     handleNtpOwnerLookupChange(event) {
@@ -605,14 +571,7 @@ export default class ProjectPreviewEmail extends LightningElement {
             errors.push('Please select an email template');
         }
 
-        if (this.isFinalInspectionForm) {
-            if (this.vendorContactList.length == 0) {
-                errors.push('Please add at least one homeowner recipient');
-            }
-            if (this.companyContactList.length == 0) {
-                errors.push('Please select a program representative contact');
-            }
-        } else if (this.isNoticeToProceedForm) {
+        if (this.isNoticeToProceedForm) {
             if (this.ntpOwnerContactList.length == 0) {
                 errors.push('Please select a Property Owner contact');
             }
@@ -868,10 +827,6 @@ export default class ProjectPreviewEmail extends LightningElement {
         const uniqueToEmails = (this.toContactList ?? []).map(con => con?.Email);
         const uniqueCcEmails = (this.ccContactList ?? []).map(con => con?.Email);
         const uniqueBccEmails = (this.bccContactList ?? []).map(con => con?.Email);
-        const vendorContactIds = (this.vendorContactList ?? []).map(con => con?.Id);
-        const companyContactIds = (this.companyContactList ?? []).map(con => con?.Id);
-        const vendorEmails = (this.vendorContactList ?? []).map(con => con?.Email);
-        const companyEmails = (this.companyContactList ?? []).map(con => con?.Email);
         const ntpOwnerContactIds = (this.ntpOwnerContactList ?? []).map(con => con?.Id);
         const ntpContractorContactIds = (this.ntpContractorContactList ?? []).map(con => con?.Id);
         const ntpProgramRepContactIds = (this.ntpProgramRepContactList ?? []).map(con => con?.Id);
@@ -895,10 +850,6 @@ export default class ProjectPreviewEmail extends LightningElement {
             toEmails: uniqueToEmails,
             ccEmails: uniqueCcEmails,
             bccEmails: uniqueBccEmails,
-            vendorContactIds: vendorContactIds,
-            vendorEmails: vendorEmails,
-            companyContactIds: companyContactIds,
-            companyEmails: companyEmails,
             ntpOwnerContactIds: ntpOwnerContactIds,
             ntpOwnerEmails: ntpOwnerEmails,
             ntpContractorContactIds: ntpContractorContactIds,

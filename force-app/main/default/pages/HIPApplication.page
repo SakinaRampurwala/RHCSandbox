@@ -9,10 +9,10 @@
         $Lightning.use("c:HIPApplicationApp", function () {
             $Lightning.createComponent("c:hipApplicationLwc",
                 {
-                    isPreview: "{!isPreview}",
-                    recordId: "{!recordId}",
-                    senderId: "{!senderId}",
-                    sendDate: "{!sendDate}"
+                    isPreview: "{!JSENCODE(isPreview)}",
+                    recordId: "{!JSENCODE(recordId)}",
+                    senderId: "{!JSENCODE(senderId)}",
+                    sendDate: "{!JSENCODE(sendDate)}"
                 },
                 "lightning",
                 function (cmp) {

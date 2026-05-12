@@ -1,32 +1,74 @@
-/* Spinner styles */
-.custom-loading-text {
-    transform: rotate(-90deg);
-    position: absolute;
-    top: -0.5rem;
-    white-space: nowrap;
-    font-size: 18px;
+.spinner-shell {
+    z-index: 9998;
+}
+
+.custom-toast {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 10000;
+    min-width: 280px;
+    max-width: 420px;
+    padding: 12px 14px;
+    border-radius: 6px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.custom-toast_success {
+    background: #2e844a;
+}
+
+.custom-toast_error {
+    background: #ba0517;
+}
+
+.custom-toast_info {
+    background: #1b5f9e;
+}
+
+.toast-close {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
 }
 
 .main-wrapper {
     background:
-        radial-gradient(circle at 10% 10%, #e8f2ff 0%, transparent 45%),
-        radial-gradient(circle at 90% 15%, #eef8ef 0%, transparent 40%),
-        #f6f8fb;
+        radial-gradient(circle at 85% 18%, rgba(214, 169, 30, 0.16), transparent 38%),
+        radial-gradient(circle at 8% 78%, rgba(4, 70, 59, 0.14), transparent 40%),
+        linear-gradient(140deg, #f3f5f8 0%, #e9eef3 100%);
     min-height: 100vh;
     padding: 2.5rem 0;
 }
 
-.content-inner {
-    background: #fff;
-    border: 1px solid #d4d4d4;
-    border-radius: 4px;
-    padding: 3rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+.submitted-message {
+    margin: 0 20px 18px;
+    max-width: 1040px;
+    padding: 12px 16px;
+    border: 1px solid #91d5a8;
+    border-radius: 6px;
+    background: #e8f5e9;
+    color: #1f5f2c;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    line-height: 1.4;
+    font-weight: 600;
 }
 
-.success-container {
-    text-align: center;
-    padding: 4rem 2rem;
+.content-inner {
+    padding: 0 1.5rem 1.5rem;
 }
 
 .header-logo {
@@ -39,12 +81,12 @@
 .header-container {
     padding: 24px 24px 8px;
     align-items: flex-start;
-    justify-content: space-between;
+    justify-content: center;
 }
 
 .main-container {
     max-width: 1040px;
-    margin: 24px auto 48px;
+    margin: 24px 20px 48px;
     padding: 1.75rem;
     background-color: #ffffff;
     border: 1px solid #d8e1eb;
@@ -52,32 +94,9 @@
     box-shadow: 0 10px 28px rgba(13, 37, 63, 0.08);
 }
 
-.letter-block {
-    font-family: "Times New Roman", Times, serif;
-    font-size: 20px;
-    line-height: 1.5;
-    color: #000;
-}
-
-.letter-line {
-    margin-bottom: 6px;
-}
-
-.letter-line.spacer {
-    margin-bottom: 14px;
-}
-
 .logo-col {
     display: flex;
     justify-content: center;
-}
-
-.logo-wrap {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    width: 100%;
-    padding-top: 8px;
 }
 
 .doc-title {
@@ -90,11 +109,23 @@
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 0.02em;
-    padding-bottom: 0;
 }
 
-.customer-block {
-    margin: 48px 24px 0;
+.error-message {
+    margin: 12px 24px 0;
+    padding: 12px 16px;
+    border: 1px solid #f1aeb5;
+    border-radius: 6px;
+    background: #fdecef;
+    color: #8a1f2d;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.error-message h2 {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    font-weight: 600;
 }
 
 .letter-body {
@@ -109,71 +140,8 @@
     margin: 0 0 24px;
 }
 
-.statement {
-    display: flex;
-    align-items: flex-start;
-    gap: 24px;
-    margin: 36px 0 56px;
-}
-
-.statement-text {
-    flex: 1;
-}
-
-.checkbox-wrap {
-    margin-right: 0;
-    flex-shrink: 0;
-    width: 32px;
-    margin-top: 8px;
-}
-
-.custom-checkbox-container {
-    display: block;
-    position: relative;
-    width: 22px;
-    height: 22px;
-    cursor: pointer;
-}
-
-.custom-checkbox-container input {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
-}
-
-.checkmark {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 22px;
-    width: 22px;
-    background-color: #fff;
-    border: 2px solid #000;
-}
-
-.custom-checkbox-container input:checked ~ .checkmark {
-    background-color: #fff;
-}
-
-.checkmark:after {
-    content: "";
-    position: absolute;
-    display: none;
-}
-
-.custom-checkbox-container input:checked ~ .checkmark:after {
-    display: block;
-    left: 7px;
-    top: 3px;
-    width: 6px;
-    height: 12px;
-    border: solid #000;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
-}
-
 .signature-section {
-    margin-top: 38px;
+    margin: 38px 24px 0;
     padding: 16px;
     border: 1px solid #dbe4ef;
     border-radius: 12px;
@@ -190,6 +158,12 @@
     letter-spacing: 0.02em;
     margin-bottom: 8px;
     color: #102a43;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.required-mark {
+    color: #ba0517;
+    font-weight: 700;
 }
 
 .signature-container {
@@ -198,10 +172,6 @@
     border-radius: 8px;
     background: #fff;
     box-shadow: inset 0 0 0 1px #e8eff6;
-}
-
-.signature-image-container {
-    margin-bottom: 16px;
 }
 
 .signature-image {
@@ -236,24 +206,15 @@
     border: none;
     cursor: pointer;
     font-weight: 600;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 .clear-link:hover {
     text-decoration: underline;
 }
 
-.submit-row {
-    margin-top: 30px;
-    margin-bottom: 30px;
-    text-align: center;
-}
-
-.submit-button {
-    --slds-c-button-brand-color-background: #0f5cab;
-    --slds-c-button-brand-color-background-hover: #0b4e93;
-    --slds-c-button-brand-color-border: #0f5cab;
-    --slds-c-button-brand-text-color: #ffffff;
-    --slds-c-button-radius-border: 8px;
+.name-block {
+    margin-top: 28px;
 }
 
 .name-underline-container {
@@ -266,6 +227,7 @@
     color: #102a43;
     font-weight: 700;
     font-size: 0.95rem;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 .underline-input {
@@ -276,6 +238,7 @@
     min-height: 34px;
     font-size: 1.05rem;
     color: #1a2f47;
+    min-width: 0;
 }
 
 .underline-input:focus {
@@ -283,34 +246,142 @@
     border-bottom-color: #0f5cab;
 }
 
-.line {
-    display: inline-block;
-    border-bottom: 1px solid #607385;
-    min-width: 180px;
+.underline-input:disabled {
+    color: #1a2f47;
+    border-bottom-color: #5f7489;
 }
 
-@media (max-width: 48rem) {
+.submit-row {
+    margin-top: 30px;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.submit-button {
+    --slds-c-button-brand-color-background: #0f6f60;
+    --slds-c-button-brand-color-background-hover: #0a564a;
+    --slds-c-button-brand-color-border: #0f6f60;
+    --slds-c-button-brand-text-color: #ffffff;
+    --slds-c-button-brand-spacing-inline-start: 2.3rem;
+    --slds-c-button-brand-spacing-inline-end: 2.3rem;
+    --slds-c-button-brand-sizing-border: 0;
+    --slds-c-button-radius-border: 999px;
+}
+
+@media (max-width: 900px) {
+    .main-wrapper {
+        padding: 1.5rem 0;
+    }
+
+    .submitted-message {
+        margin: 0 20px 18px;
+    }
+
+    .main-container {
+        margin: 20px;
+        padding: 1.25rem;
+        border-radius: 14px;
+    }
+
     .header-container {
-        padding: 16px 12px;
+        padding: 16px 16px 6px;
     }
 
     .header-logo {
-        margin-top: 12px;
-        width: 280px;
+        width: 320px;
+        margin-top: 0;
     }
 
-    .statement {
-        gap: 16px;
-        margin: 28px 0 44px;
+    .doc-title {
+        font-size: 24px;
+        margin: 18px 16px 8px;
     }
 
-    .custom-checkbox-container {
-        width: 20px;
-        height: 20px;
+    .letter-body {
+        margin: 24px 16px 0;
+        font-size: 20px;
+        line-height: 1.65;
     }
 
-    .checkmark {
-        height: 20px;
-        width: 20px;
+    .signature-section {
+        margin: 32px 16px 0;
+        padding: 14px;
+    }
+
+    .signature-container {
+        height: 11rem;
+    }
+
+    .content-inner {
+        padding: 0 0 1.5rem 0;
+    }
+}
+
+@media (max-width: 640px) {
+    .main-wrapper {
+        padding: 0.75rem 0;
+    }
+
+    .submitted-message {
+        margin: 0 12px 16px;
+        font-size: 14px;
+    }
+
+    .main-container {
+        margin: 12px;
+        padding: 1rem;
+        border-radius: 12px;
+    }
+
+    .header-container {
+        padding: 8px 8px 4px;
+    }
+
+    .header-logo {
+        width: 230px;
+        margin-top: 8px;
+    }
+
+    .doc-title {
+        font-size: 21px;
+        margin: 16px 8px 6px;
+    }
+
+    .letter-body {
+        margin: 20px 8px 0;
+        font-size: 18px;
+        line-height: 1.6;
+    }
+
+    .signature-section {
+        margin: 28px 8px 0;
+        padding: 14px;
+    }
+
+    .signature-container {
+        height: 10rem;
+    }
+
+    .name-underline-container {
+        display: block;
+    }
+
+    .name-label-text,
+    .required-mark {
+        display: inline-block;
+        margin-bottom: 8px;
+    }
+
+    .underline-input {
+        width: 100%;
+        font-size: 16px;
+    }
+
+    .custom-toast {
+        left: 12px;
+        right: 12px;
+        top: 12px;
+        min-width: 0;
+        max-width: none;
     }
 }

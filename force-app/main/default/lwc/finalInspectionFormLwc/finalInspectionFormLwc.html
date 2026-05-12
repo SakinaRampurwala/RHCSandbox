@@ -1,35 +1,41 @@
 <template>
+    <template if:true={showCustomToast}>
+        <div class={customToastClass} role="status">
+            <span>{customToastMessage}</span>
+            <button class="toast-close" onclick={handleCloseToast} aria-label="Close">x</button>
+        </div>
+    </template>
+
     <div class="main-wrapper slds-is-relative">
         <template if:true={isLoading}>
             <lightning-spinner alternative-text="Loading" size="large" variant="brand"></lightning-spinner>
         </template>
 
         <div class="slds-container_large slds-container_center">
-            <template if:true={showThankYouPage}>
-                <div class="content-inner success-container">
-                    <lightning-icon icon-name="action:approval" size="large" alternative-text="Success"></lightning-icon>
-                    <template if:false={isAlreadySubmitted}>
-                        <h2 class="slds-text-heading_large slds-m-top_medium">{submitTitle}</h2>
-                        <p class="slds-text-heading_small slds-m-top_medium">{submitMessage}</p>
-                    </template>
-                    <template if:true={isAlreadySubmitted}>
-                        <h2 class="slds-text-heading_large slds-m-top_medium">Already Submitted</h2>
-                        <p class="slds-text-heading_small slds-m-top_medium">Final Inspection Form has already been submitted for this record.</p>
-                    </template>
+            <template if:true={showSubmittedMessage}>
+                <div class="submitted-message">
+                    <lightning-icon icon-name="utility:success" size="x-small" alternative-text="Submitted"></lightning-icon>
+                    <span>{submittedMessage}</span>
                 </div>
             </template>
 
-            <template if:false={showThankYouPage}>
-                <div class="main-container">
-                    <div class="header-container slds-grid slds-wrap">
-                        <div class="slds-col slds-size_1-of-2 slds-text-align_left">
-                            <template if:true={logoURL}>
-                                <img class="header-logo" src={logoURL} alt="Logo" />
-                            </template>
-                        </div>
+            <div class="main-container">
+                <div class="header-container slds-grid slds-wrap">
+                    <div class="slds-col slds-size_1-of-1 slds-text-align_center">
+                        <template if:true={logoURL}>
+                            <img class="header-logo" src={logoURL} alt="Logo" />
+                        </template>
                     </div>
+                </div>
 
-                    <div class="doc-title">CERTIFICATION OF COMPLETION/FINAL INSPECTION</div>
+                <div class="doc-title">CERTIFICATION OF COMPLETION/FINAL INSPECTION</div>
+
+                <div class="content-inner">
+                    <template if:true={submitError}>
+                        <div class="error-message" role="alert">
+                            <h2>{submitError}</h2>
+                        </div>
+                    </template>
 
                     <div class="info-block">
                         <div class="info-row">
@@ -121,17 +127,19 @@
                         and cannot be approved by the Rehabilitation Specialist.
                     </div>
 
-                    <div class="submit-row">
-                        <lightning-button
-                            class="submit-button"
-                            variant="brand"
-                            label="Submit"
-                            onclick={handleSubmit}
-                            disabled={isSubmitDisabled}>
-                        </lightning-button>
-                    </div>
+                    <template if:false={isReadOnly}>
+                        <div class="submit-row">
+                            <lightning-button
+                                class="submit-button"
+                                variant="brand"
+                                label="Submit"
+                                onclick={handleSubmit}
+                                disabled={isSubmitDisabled}>
+                            </lightning-button>
+                        </div>
+                    </template>
                 </div>
-            </template>
+            </div>
         </div>
     </div>
 </template>

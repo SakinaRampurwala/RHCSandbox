@@ -1,144 +1,967 @@
 <template>
-    <div class="page-bg">
-        <article class="sheet">
-            <header class="sheet-header">
-                <template if:true={logoUrl}>
-                    <img class="logo" src={logoUrl} alt="Galvan Housing Resources logo" />
-                </template>
-            </header>
+    <div class="main-wrapper slds-is-relative">
+        <template if:true={isSubmitting}>
+            <lightning-spinner alternative-text="Submitting" size="large" variant="brand"></lightning-spinner>
+        </template>
 
-            <section class="letter-section">
-                <p class="salutation">Dear Homeowner,</p>
-
-                <p>
-                    Thank you for your interest in Galvan Housing Resources' Home Improvement Program.
-                    GHR provides matching grants for project costs to assist low to moderate-income
-                    homeowners in completing necessary health and safety-related repairs and improvements
-                    to their homes. Pre-qualified contractors will complete improvements after an open and
-                    competitive bidding process.
-                </p>
-
-                <p>
-                    The primary threshold requirements for participation are that the recipient household
-                    must own the subject property and maintain it as their principal place of residence at
-                    the time of application. Further, the participant household must earn no more than 80%
-                    of the Columbia County median income adjusted by family size according to the most
-                    recently published U.S. Department of Housing and Urban Development (HUD) median
-                    income data:
-                </p>
-
-                <h3>*2025 Income Limits (by family size)</h3>
-
-                <div class="income-grid">
-                    <div>
-                        <div>1 Person: $63,150</div>
-                        <div>2 Person: $72,150</div>
-                        <div>3 Person: $81,150</div>
-                    </div>
-                    <div>
-                        <div>4 Person: $90,150</div>
-                        <div>5 Person: $97,400</div>
-                        <div>6 Person: $104,600</div>
-                    </div>
-                    <div>
-                        <div>7 Person: $111,800</div>
-                        <div>8 Person: $119,000</div>
-                    </div>
+        <div class="slds-container_large slds-container_center">
+            <template if:true={isSubmitted}>
+                <div class="submitted-message">
+                    <lightning-icon icon-name="utility:success" size="x-small" alternative-text="Submitted"></lightning-icon>
+                    <span>{submittedStatusMessage}</span>
                 </div>
+            </template>
 
-                <p>
-                    Examples of work that can be done on a home to bring a structure into compliance with
-                    applicable laws and regulations, include but are not limited to the following:
-                </p>
+            <article class="main-container">
+                <header class="header-container slds-grid slds-wrap">
+                    <div class="slds-col slds-size_1-of-1 slds-text-align_center slds-m-bottom_medium">
+                        <template if:true={logoUrl}>
+                            <img class="header-logo" src={logoUrl} alt="Galvan Housing Resources logo" />
+                        </template>
+                    </div>
+                </header>
 
-                <ul class="disc-list">
-                    <li>Installation, replacement or repair of heating, plumbing, electrical, and related systems</li>
-                    <li>Work to improve habitability or prolong the useful life of the home</li>
-                    <li>Roof repairs</li>
-                    <li>Elimination of all hazardous materials and violations</li>
-                    <li>General structural repairs</li>
-                </ul>
+                <div class="content-inner">
+                    <section class="letter-section">
+                        <p class="salutation">Dear Homeowner,</p>
 
-                <p>
-                    The Home Improvement Program Grant is a matching grant. Galvan Housing Resources has
-                    executed an agreement with Columbia Opportunities Inc. to provide matching services under
-                    their Weatherization program.
-                </p>
+                        <p>
+                            Thank you for your interest in Galvan Housing Resources' Home Improvement Program.
+                            GHR provides matching grants for project costs to assist low to moderate-income
+                            homeowners in completing necessary health and safety-related repairs and improvements
+                            to their homes. Pre-qualified contractors will complete improvements after an open and
+                            competitive bidding process.
+                        </p>
 
-                <p>
-                    Please complete, sign, and date the enclosed application and return it to address below.
-                    Once received, we will contact you to set up a time to review the information.
-                </p>
-            </section>
-        </article>
+                        <p>
+                            The primary threshold requirements for participation are that the recipient household
+                            must own the subject property and maintain it as their principal place of residence at
+                            the time of application. Further, the participant household must earn no more than 80%
+                            of the Columbia County median income adjusted by family size according to the most
+                            recently published U.S. Department of Housing and Urban Development (HUD) median
+                            income data:
+                        </p>
+                    </section>
 
-        <article class="sheet">
-            <header class="sheet-header">
-                <template if:true={logoUrl}>
-                    <img class="logo" src={logoUrl} alt="Galvan Housing Resources logo" />
-                </template>
-            </header>
-            <section class="center-block">
-                <div>Galvan Housing Resources,</div>
-                <div>64 Green Street,</div>
-                <div>Hudson, NY 12534</div>
-                <div>Attn: Susan Petersen</div>
-            </section>
+                    <section class="info-panel">
+                        <h2>2025 Income Limits (by family size)</h2>
+                        <table class="income-table" cellspacing="0" cellpadding="0">
+                            <tbody>
+                                <tr>
+                                    <td>1 Person: $63,150</td>
+                                    <td>4 Person: $90,150</td>
+                                    <td>7 Person: $111,800</td>
+                                </tr>
+                                <tr>
+                                    <td>2 Person: $72,150</td>
+                                    <td>5 Person: $97,400</td>
+                                    <td>8 Person: $119,000</td>
+                                </tr>
+                                <tr>
+                                    <td>3 Person: $81,150</td>
+                                    <td>6 Person: $104,600</td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </section>
 
-            <p class="footnote">*income limits good until May 2026</p>
-        </article>
+                    <section class="letter-section">
+                        <p>
+                            Examples of work that can be done on a home to bring a structure into compliance with
+                            applicable laws and regulations, include but are not limited to the following:
+                        </p>
 
-        <article class="sheet">
-            <header class="sheet-header">
-                <template if:true={logoUrl}>
-                    <img class="logo" src={logoUrl} alt="Galvan Housing Resources logo" />
-                </template>
-            </header>
+                        <ul class="disc-list">
+                            <li>Installation, replacement or repair of heating, plumbing, electrical, and related systems</li>
+                            <li>Work to improve habitability or prolong the useful life of the home</li>
+                            <li>Roof repairs</li>
+                            <li>Elimination of all hazardous materials and violations</li>
+                            <li>General structural repairs</li>
+                        </ul>
 
-            <section class="letter-section">
-                <h2>Recapture/Compliance Requirements:</h2>
-                <p>
-                    Certain occupancy restrictions, secured by a subordinate mortgage, apply to recipients
-                    of Home Improvement Program (HIP) grants. These grant funds will be secured by a note and
-                    mortgage for 2-15 years, depending on the amount of funds, with no required repayment as
-                    long as you remain in and are the owner of the house for the required length of time.
-                </p>
+                        <p>
+                            The Home Improvement Program Grant is a matching grant. Galvan Housing Resources has
+                            executed an agreement with Columbia Opportunities Inc. to provide matching services under
+                            their Weatherization program.
+                        </p>
 
-                <h2>The following information MUST be attached to the application:</h2>
-                <ul class="check-list">
-                    <li><span class="box"></span>Proof of Home ownership (legible copy of recorded deed)</li>
-                    <li><span class="box"></span>Proof of Homeowner's insurance (recent declaration page/recent certificate from agent)</li>
-                    <li><span class="box"></span>Copies of most recent paid Property, Town and Village AND School tax receipt</li>
-                    <li><span class="box"></span>Most recent mortgage statement, if applicable. The mortgage must be paid up to date.</li>
-                </ul>
+                        <p>
+                            Please complete, sign, and date the enclosed application and return it to address below.
+                            Once received, we will contact you to set up a time to review the information.
+                        </p>
+                    </section>
 
-                <p class="red-note">Please use boxes to check off items once attached</p>
+                    <section class="address-panel">
+                        <div>Galvan Housing Resources,</div>
+                        <div>64 Green Street,</div>
+                        <div>Hudson, NY 12534</div>
+                        <div>Attn: Susan Petersen</div>
+                    </section>
 
-                <h2>Plus: For EACH household member 18 years and older:</h2>
-                <ul class="check-list">
-                    <li><span class="box"></span>Proof of income from all sources - 2 months of current and consecutive pay stubs, statements from SS, SSD, SSI, child support, alimony, DSS assistance, etc.</li>
-                    <li><span class="box"></span>Completed, signed and dated copies of the most recent FEDERAL tax returns and W2's (2024 and 2025) OR a notarized statement of non-filing of tax returns, if applicable</li>
-                    <li><span class="box"></span>Three most recent bank statements for each bank account per household member</li>
-                    <li><span class="box"></span>Recent whole life insurance policy (if applicable) statement showing the cash surrender value (term life policies are excluded)</li>
-                </ul>
-            </section>
-        </article>
+                    <section class="letter-section">
+                        <h2>Recapture/Compliance Requirements</h2>
+                        <p>
+                            Certain occupancy restrictions, secured by a subordinate mortgage, apply to recipients
+                            of Home Improvement Program (HIP) grants. These grant funds will be secured by a note and
+                            mortgage for 2-15 years, depending on the amount of funds, with no required repayment as
+                            long as you remain in and are the owner of the house for the required length of time.
+                        </p>
+                    </section>
 
-        <article class="sheet">
-            <header class="sheet-header">
-                <template if:true={logoUrl}>
-                    <img class="logo" src={logoUrl} alt="Galvan Housing Resources logo" />
-                </template>
-            </header>
+                    <section class="check-section">
+                        <h2>The following information MUST be attached to the application:</h2>
+                        <ul class="check-list">
+                            <template for:each={applicationDocuments} for:item="item">
+                                <li key={item.id}>
+                                    <label class="check-item">
+                                        <input
+                                            type="checkbox"
+                                            checked={item.isChecked}
+                                            data-section="application"
+                                            data-item-id={item.id}
+                                            onchange={handleChecklistChange}
+                                        />
+                                        <span>{item.label}</span>
+                                    </label>
+                                    <div class="upload-block">
+                                        <template if:false={isSubmitted}>
+                                            <template if:true={recordId}>
+                                                <label class="file-upload-label">
+                                                    <span>Upload file</span>
+                                                    <input
+                                                        class="file-upload-input"
+                                                        type="file"
+                                                        data-section="application"
+                                                        data-item-id={item.id}
+                                                        data-item-label={item.label}
+                                                        multiple
+                                                        onchange={handleFileSelected}
+                                                    />
+                                                </label>
+                                            </template>
+                                            <template if:false={recordId}>
+                                                <p class="upload-unavailable">Document upload is unavailable without a record.</p>
+                                            </template>
+                                        </template>
+                                        <template if:true={item.isUploading}>
+                                            <p class="uploading-status">Uploading file...</p>
+                                        </template>
+                                        <template if:true={item.uploadError}>
+                                            <p class="upload-error">{item.uploadError}</p>
+                                        </template>
+                                        <template if:true={item.hasFiles}>
+                                            <div class="uploaded-files">
+                                                <p class="uploaded-status">Uploaded file(s) for this requirement</p>
+                                                <ul>
+                                                    <template for:each={item.uploadedFiles} for:item="file">
+                                                        <li key={file.id} class="uploaded-file-row">
+                                                            <template if:true={file.downloadUrl}>
+                                                                <a class="uploaded-file-name" href={file.downloadUrl} target="_blank">{file.name}</a>
+                                                            </template>
+                                                            <template if:false={file.downloadUrl}>
+                                                                <span class="uploaded-file-name">{file.name}</span>
+                                                            </template>
+                                                            <template if:false={isSubmitted}>
+                                                                <button
+                                                                    class="remove-file-button"
+                                                                    type="button"
+                                                                    data-section="application"
+                                                                    data-item-id={item.id}
+                                                                    data-file-id={file.id}
+                                                                    data-server-file-id={file.serverFileId}
+                                                                    data-file-name={file.name}
+                                                                    onclick={handleRemoveUploadedFile}
+                                                                >
+                                                                    Remove
+                                                                </button>
+                                                            </template>
+                                                        </li>
+                                                    </template>
+                                                </ul>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </li>
+                            </template>
+                        </ul>
 
-            <section class="letter-section compact-top">
-                <ul class="check-list">
-                    <li><span class="box"></span>Recent statements showing your name and your balance of ALL peer-to-peer payment apps including but not limited to: VenMo, Zelle, CashApp, Paypal, etc.</li>
-                    <li><span class="box"></span>Copies of most recent utility bills and monthly debt obligations, i.e., electric, phone, etc.</li>
-                    <li><span class="box"></span>Completed Financial Assessment (page 9)</li>
-                </ul>
-                <p class="final-note">Incomplete applications will not be accepted</p>
-            </section>
-        </article>
+                        <p class="red-note">Please use boxes to check off items once attached</p>
+
+                        <h2>Plus: For EACH household member 18 years and older:</h2>
+                        <ul class="check-list">
+                            <template for:each={adultHouseholdDocuments} for:item="item">
+                                <li key={item.id}>
+                                    <label class="check-item">
+                                        <input
+                                            type="checkbox"
+                                            checked={item.isChecked}
+                                            data-section="adult"
+                                            data-item-id={item.id}
+                                            onchange={handleChecklistChange}
+                                        />
+                                        <span>{item.label}</span>
+                                    </label>
+                                    <div class="upload-block">
+                                        <template if:false={isSubmitted}>
+                                            <template if:true={recordId}>
+                                                <label class="file-upload-label">
+                                                    <span>Upload file</span>
+                                                    <input
+                                                        class="file-upload-input"
+                                                        type="file"
+                                                        data-section="adult"
+                                                        data-item-id={item.id}
+                                                        data-item-label={item.label}
+                                                        multiple
+                                                        onchange={handleFileSelected}
+                                                    />
+                                                </label>
+                                            </template>
+                                            <template if:false={recordId}>
+                                                <p class="upload-unavailable">Document upload is unavailable without a record.</p>
+                                            </template>
+                                        </template>
+                                        <template if:true={item.isUploading}>
+                                            <p class="uploading-status">Uploading file...</p>
+                                        </template>
+                                        <template if:true={item.uploadError}>
+                                            <p class="upload-error">{item.uploadError}</p>
+                                        </template>
+                                        <template if:true={item.hasFiles}>
+                                            <div class="uploaded-files">
+                                                <p class="uploaded-status">Uploaded file(s) for this requirement</p>
+                                                <ul>
+                                                    <template for:each={item.uploadedFiles} for:item="file">
+                                                        <li key={file.id} class="uploaded-file-row">
+                                                            <template if:true={file.downloadUrl}>
+                                                                <a class="uploaded-file-name" href={file.downloadUrl} target="_blank">{file.name}</a>
+                                                            </template>
+                                                            <template if:false={file.downloadUrl}>
+                                                                <span class="uploaded-file-name">{file.name}</span>
+                                                            </template>
+                                                            <template if:false={isSubmitted}>
+                                                                <button
+                                                                    class="remove-file-button"
+                                                                    type="button"
+                                                                    data-section="adult"
+                                                                    data-item-id={item.id}
+                                                                    data-file-id={file.id}
+                                                                    data-server-file-id={file.serverFileId}
+                                                                    data-file-name={file.name}
+                                                                    onclick={handleRemoveUploadedFile}
+                                                                >
+                                                                    Remove
+                                                                </button>
+                                                            </template>
+                                                        </li>
+                                                    </template>
+                                                </ul>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </li>
+                            </template>
+                        </ul>
+
+                        <template if:true={uploadedFileMessage}>
+                            <p class="upload-message">{uploadedFileMessage}</p>
+                        </template>
+                        <template if:true={showReadOnlyFiles}>
+                            <div class="uploaded-files readonly-file-list">
+                                <p class="uploaded-status">Uploaded files linked to this application</p>
+                                <ul>
+                                    <template for:each={readOnlyFiles} for:item="file">
+                                        <li key={file.id} class="uploaded-file-row">
+                                            <template if:true={file.downloadUrl}>
+                                                <a class="uploaded-file-name" href={file.downloadUrl} target="_blank">{file.name}</a>
+                                            </template>
+                                            <template if:false={file.downloadUrl}>
+                                                <span class="uploaded-file-name">{file.name}</span>
+                                            </template>
+                                        </li>
+                                    </template>
+                                </ul>
+                            </div>
+                        </template>
+                        <p class="final-note attachment-note">Incomplete applications will not be accepted</p>
+                    </section>
+
+                    <section class="form-section">
+                        <h2>Household Member Information</h2>
+                        <div class="field-grid">
+                            <label class="form-field">
+                                <span>Applicant Name</span>
+                                <input type="text" value={household.applicantName} data-section="household" data-field="applicantName" onchange={handleSectionChange} />
+                            </label>
+                            <label class="form-field">
+                                <span>Property Address</span>
+                                <input type="text" value={household.propertyAddress} data-section="household" data-field="propertyAddress" onchange={handleSectionChange} />
+                            </label>
+                            <label class="form-field">
+                                <span>Marital Status</span>
+                                <select value={household.maritalStatus} data-section="household" data-field="maritalStatus" onchange={handleSectionChange}>
+                                    <template for:each={maritalStatusOptions} for:item="option">
+                                        <option key={option.value} value={option.value}>{option.label}</option>
+                                    </template>
+                                </select>
+                            </label>
+                            <label class="form-field">
+                                <span>Household Type (Please select the most accurate option)</span>
+                                <select value={household.householdType} data-section="household" data-field="householdType" onchange={handleSectionChange}>
+                                    <template for:each={householdTypeOptions} for:item="option">
+                                        <option key={option.value} value={option.value}>{option.label}</option>
+                                    </template>
+                                </select>
+                            </label>
+                            <label class="form-field">
+                                <span>Number of Units in Building</span>
+                                <input type="number" step="1" value={household.numberOfUnitsInBuilding} data-section="household" data-field="numberOfUnitsInBuilding" onchange={handleSectionChange} />
+                            </label>
+                            <label class="form-field">
+                                <span>Family / Household Size</span>
+                                <input type="number" step="1" value={household.familyHouseholdSize} data-section="household" data-field="familyHouseholdSize" onchange={handleSectionChange} />
+                            </label>
+                            <label class="form-field">
+                                <span>How Many Dependents?</span>
+                                <input type="number" step="1" value={household.howManyDependents} data-section="household" data-field="howManyDependents" onchange={handleSectionChange} />
+                            </label>
+                        </div>
+
+                        <div class="subsection-header">
+                            <h3>List ALL household member's information below</h3>
+                            <button class="secondary-button" type="button" onclick={addBorrower}>Add Member</button>
+                        </div>
+
+                        <template for:each={borrowers} for:item="borrower" for:index="borrowerIndex">
+                            <div key={borrower.id} class="repeating-block">
+                                <div class="repeat-title-row">
+                                    <h4>{borrower.roleLabel}</h4>
+                                    <button class="remove-row-button" type="button" data-index={borrowerIndex} onclick={removeBorrower}>Remove Adult</button>
+                                </div>
+                                <div class="field-grid">
+                                    <label class="form-field">
+                                        <span>Name</span>
+                                        <input type="text" value={borrower.name} data-index={borrowerIndex} data-field="name" onchange={handleBorrowerChange} />
+                                    </label>
+                                    <label class="form-field">
+                                        <span>Social Security #</span>
+                                        <input type="text" value={borrower.ssn} data-index={borrowerIndex} data-field="ssn" onchange={handleBorrowerChange} />
+                                    </label>
+                                    <label class="form-field">
+                                        <span>Date of Birth</span>
+                                        <input type="date" value={borrower.dateOfBirth} data-index={borrowerIndex} data-field="dateOfBirth" onchange={handleBorrowerChange} />
+                                    </label>
+                                    <label class="form-field">
+                                        <span>Phone</span>
+                                        <input type="tel" value={borrower.phone} data-index={borrowerIndex} data-field="phone" onchange={handleBorrowerChange} />
+                                    </label>
+                                    <label class="form-field">
+                                        <span>Email Address</span>
+                                        <input type="email" value={borrower.emailAddress} data-index={borrowerIndex} data-field="emailAddress" onchange={handleBorrowerChange} />
+                                    </label>
+                                    <label class="form-field">
+                                        <span>Relationship</span>
+                                        <input type="text" value={borrower.relationship} data-index={borrowerIndex} data-field="relationship" onchange={handleBorrowerChange} />
+                                    </label>
+                                </div>
+                            </div>
+                        </template>
+                    </section>
+
+                    <section class="form-section">
+                        <div class="document-line-block">
+                            <div class="document-row">
+                                <span class="document-question">Has your home ever received weatherization assistance?</span>
+                                <label class="document-check">Yes:<input type="checkbox" value="Yes" checked={yesNoChecked.homeWeatherizationYes} data-section="household" data-field="homeEverReceivedWeatherization" onchange={handleYesNoChange} /></label>
+                                <label class="document-check">No:<input type="checkbox" value="No" checked={yesNoChecked.homeWeatherizationNo} data-section="household" data-field="homeEverReceivedWeatherization" onchange={handleYesNoChange} /></label>
+                            </div>
+                            <div class="document-row">
+                                <label class="document-field short-field"><span>If Yes, Year received:</span><input type="number" step="1" value={household.weatherizationYear} data-section="household" data-field="weatherizationYear" onchange={handleSectionChange} /></label>
+                                <label class="document-field medium-field money-field"><span>Amount received:</span><span class="currency-prefix">$</span><input type="text" inputmode="decimal" data-amount="true" value={household.weatherizationAmount} data-section="household" data-field="weatherizationAmount" onchange={handleSectionChange} /></label>
+                            </div>
+                            <div class="document-row">
+                                <span class="document-question">Do you have a Weatherization application pending?</span>
+                                <label class="document-check">Yes:<input type="checkbox" value="Yes" checked={yesNoChecked.weatherizationPendingYes} data-section="household" data-field="weatherizationPending" onchange={handleYesNoChange} /></label>
+                                <label class="document-check">No:<input type="checkbox" value="No" checked={yesNoChecked.weatherizationPendingNo} data-section="household" data-field="weatherizationPending" onchange={handleYesNoChange} /></label>
+                            </div>
+                            <div class="document-row">
+                                <span class="document-question">Have you received HEAP Assistance?</span>
+                                <label class="document-check">Yes:<input type="checkbox" value="Yes" checked={yesNoChecked.heapAssistanceYes} data-section="household" data-field="heapAssistance" onchange={handleYesNoChange} /></label>
+                                <label class="document-check">No:<input type="checkbox" value="No" checked={yesNoChecked.heapAssistanceNo} data-section="household" data-field="heapAssistance" onchange={handleYesNoChange} /></label>
+                                <label class="document-field short-field"><span>If yes, Year:</span><input type="number" step="1" value={household.heapYear} data-section="household" data-field="heapYear" onchange={handleSectionChange} /></label>
+                            </div>
+                            <div class="document-row">
+                                <span class="document-question full-question">How much money are you able to make available, from any source, to pay for necessary repairs?</span>
+                            </div>
+                            <div class="document-row">
+                                <label class="document-field short-field money-field"><span class="currency-prefix">$</span><input type="text" inputmode="decimal" data-amount="true" value={household.repairContribution} data-section="household" data-field="repairContribution" onchange={handleSectionChange} /></label>
+                            </div>
+                            <div class="document-row">
+                                <span class="document-question">Have you sold/disposed of any property in the last 2 years?</span>
+                                <label class="document-check">Yes:<input type="checkbox" value="Yes" checked={yesNoChecked.soldPropertyYes} data-section="property" data-field="soldProperty" onchange={handleYesNoChange} /></label>
+                                <label class="document-check">No:<input type="checkbox" value="No" checked={yesNoChecked.soldPropertyNo} data-section="property" data-field="soldProperty" onchange={handleYesNoChange} /></label>
+                            </div>
+                            <label class="document-field full-line"><span>IF YES, list</span><input type="text" value={propertyInfo.soldPropertyDetails} data-section="property" data-field="soldPropertyDetails" onchange={handleSectionChange} /></label>
+                            <div class="document-row">
+                                <span class="document-question long-question">Have you disposed of any other assets in the last 2 years? (Example: give away money to relatives, set up Irrevocable Trust Accounts)</span>
+                                <label class="document-check">Yes:<input type="checkbox" value="Yes" checked={yesNoChecked.disposedAssetsYes} data-section="property" data-field="disposedAssets" onchange={handleYesNoChange} /></label>
+                                <label class="document-check">No:<input type="checkbox" value="No" checked={yesNoChecked.disposedAssetsNo} data-section="property" data-field="disposedAssets" onchange={handleYesNoChange} /></label>
+                            </div>
+                            <label class="document-field full-line"><span>IF YES, describe asset:</span><input type="text" value={propertyInfo.assetDisposalDescription} data-section="property" data-field="assetDisposalDescription" onchange={handleSectionChange} /></label>
+                            <label class="document-field full-line"><span>Whose name(s) are listed on the deed to your property?</span><input type="text" value={propertyInfo.deedNames} data-section="property" data-field="deedNames" onchange={handleSectionChange} /></label>
+                            <label class="document-field full-line"><span>When did you purchase the property?</span><input type="date" value={propertyInfo.purchaseDate} data-section="property" data-field="purchaseDate" onchange={handleSectionChange} /></label>
+                            <div class="document-row">
+                                <span class="document-question">Is there a mortgage on the property?</span>
+                                <label class="document-check">Yes<input type="checkbox" value="Yes" checked={yesNoChecked.mortgageExistsYes} data-section="property" data-field="mortgageExists" onchange={handleYesNoChange} /></label>
+                                <label class="document-check">No<input type="checkbox" value="No" checked={yesNoChecked.mortgageExistsNo} data-section="property" data-field="mortgageExists" onchange={handleYesNoChange} /></label>
+                            </div>
+                            <label class="document-field medium-field money-field"><span>If yes, outstanding mortgage balance due</span><span class="currency-prefix">$</span><input type="text" inputmode="decimal" data-amount="true" value={propertyInfo.mortgageBalance} data-section="property" data-field="mortgageBalance" onchange={handleSectionChange} /></label>
+                            <label class="document-field wide-money-field money-field"><span>If yes, what are your monthly mortgage payments?</span><span class="currency-prefix">$</span><input type="text" inputmode="decimal" data-amount="true" value={propertyInfo.mortgageMonthlyPayment} data-section="property" data-field="mortgageMonthlyPayment" onchange={handleSectionChange} /></label>
+                            <div class="document-row">
+                                <span class="document-question">Does that include escrow for taxes and insurance?</span>
+                                <label class="document-check">Yes<input type="checkbox" value="Yes" checked={yesNoChecked.escrowIncludedYes} data-section="property" data-field="escrowIncluded" onchange={handleYesNoChange} /></label>
+                                <label class="document-check">No<input type="checkbox" value="No" checked={yesNoChecked.escrowIncludedNo} data-section="property" data-field="escrowIncluded" onchange={handleYesNoChange} /></label>
+                            </div>
+                            <div class="document-row">
+                                <span class="document-question">Are you behind any mortgage payments?</span>
+                                <label class="document-check">Yes<input type="checkbox" value="Yes" checked={yesNoChecked.behindMortgageYes} data-section="property" data-field="behindMortgage" onchange={handleYesNoChange} /></label>
+                                <label class="document-check">No<input type="checkbox" value="No" checked={yesNoChecked.behindMortgageNo} data-section="property" data-field="behindMortgage" onchange={handleYesNoChange} /></label>
+                            </div>
+                            <p class="warning-note compact-warning">If YES- STOP- you must be up to date with all mortgage payments to qualify for this wait list. Please contact our Foreclosure prevention counselor services at 518-822-0707 extension 104.</p>
+                            <div class="document-row">
+                                <span class="document-question">Is your home covered by homeowner's insurance?</span>
+                                <label class="document-check">Yes<input type="checkbox" value="Yes" checked={yesNoChecked.homeownerInsuranceYes} data-section="property" data-field="homeownerInsurance" onchange={handleYesNoChange} /></label>
+                                <label class="document-check">No<input type="checkbox" value="No" checked={yesNoChecked.homeownerInsuranceNo} data-section="property" data-field="homeownerInsurance" onchange={handleYesNoChange} /></label>
+                            </div>
+                            <p class="warning-note compact-warning">If NO- STOP- all homes must be covered by homeowner's insurance.</p>
+                            <label class="document-field medium-field money-field"><span>Amount of annual insurance premium</span><span class="currency-prefix">$</span><input type="text" inputmode="decimal" data-amount="true" value={propertyInfo.annualInsurancePremium} data-section="property" data-field="annualInsurancePremium" onchange={handleSectionChange} /></label>
+                            <div class="document-row">
+                                <span class="document-question">Is your home current on Property, Town &amp; Village AND School Taxes?</span>
+                                <label class="document-check">Yes<input type="checkbox" value="Yes" checked={yesNoChecked.taxesCurrentYes} data-section="property" data-field="taxesCurrent" onchange={handleYesNoChange} /></label>
+                                <label class="document-check">No<input type="checkbox" value="No" checked={yesNoChecked.taxesCurrentNo} data-section="property" data-field="taxesCurrent" onchange={handleYesNoChange} /></label>
+                            </div>
+                            <p class="warning-note compact-warning">If NO- STOP- all homes must be up to date on taxes.</p>
+                            <label class="document-field medium-field money-field"><span>Amount of annual taxes paid</span><span class="currency-prefix">$</span><input type="text" inputmode="decimal" data-amount="true" value={propertyInfo.annualTaxesPaid} data-section="property" data-field="annualTaxesPaid" onchange={handleSectionChange} /></label>
+                            <div class="document-row">
+                                <span class="document-question">Are there any other liens against your property besides your primary mortgage?</span>
+                                <label class="document-check">Yes<input type="checkbox" value="Yes" checked={yesNoChecked.otherLiensYes} data-section="property" data-field="otherLiens" onchange={handleYesNoChange} /></label>
+                                <label class="document-check">No<input type="checkbox" value="No" checked={yesNoChecked.otherLiensNo} data-section="property" data-field="otherLiens" onchange={handleYesNoChange} /></label>
+                            </div>
+                            <label class="document-field full-line"><span>If you answered "yes", please explain:</span><input type="text" value={propertyInfo.lienExplanation} data-section="property" data-field="lienExplanation" onchange={handleSectionChange} /></label>
+                            <label class="document-field wide-money-field money-field"><span>Appraised market value of property (as per most recent tax bill)</span><span class="currency-prefix">$</span><input type="text" inputmode="decimal" data-amount="true" value={propertyInfo.appraisedMarketValue} data-section="property" data-field="appraisedMarketValue" onchange={handleSectionChange} /></label>
+                            <label class="document-field wide-money-field money-field"><span>Amount of most recent tax bill(s)</span><span class="currency-prefix">$</span><input type="text" inputmode="decimal" data-amount="true" value={propertyInfo.recentTaxBillAmount} data-section="property" data-field="recentTaxBillAmount" onchange={handleSectionChange} /></label>
+                            <div class="document-row">
+                                <span class="document-question">Is it a single family house?</span>
+                                <label class="document-check">Yes<input type="checkbox" value="Yes" checked={yesNoChecked.singleFamilyHouseYes} data-section="property" data-field="singleFamilyHouse" onchange={handleYesNoChange} /></label>
+                                <label class="document-check">No<input type="checkbox" value="No" checked={yesNoChecked.singleFamilyHouseNo} data-section="property" data-field="singleFamilyHouse" onchange={handleYesNoChange} /></label>
+                            </div>
+                            <label class="document-field full-line"><span>Approximate age of your house</span><input type="number" step="1" value={propertyInfo.houseAge} data-section="property" data-field="houseAge" onchange={handleSectionChange} /></label>
+                            <label class="document-field full-line"><span>How many bedrooms?</span><input type="number" step="1" value={propertyInfo.bedrooms} data-section="property" data-field="bedrooms" onchange={handleSectionChange} /></label>
+                            <label class="document-field full-line"><span>If not, how many units are there?</span><input type="number" step="1" value={propertyInfo.unitsIfNotSingleFamily} data-section="property" data-field="unitsIfNotSingleFamily" onchange={handleSectionChange} /></label>
+                            <label class="document-field full-line"><span>How many buildings are on property</span><input type="number" step="1" value={propertyInfo.buildingsOnProperty} data-section="property" data-field="buildingsOnProperty" onchange={handleSectionChange} /></label>
+                            <label class="document-field full-line"><span>If more than one, what are the other buildings used for?</span><input type="text" value={propertyInfo.otherBuildingUse} data-section="property" data-field="otherBuildingUse" onchange={handleSectionChange} /></label>
+                            <label class="document-field full-line stacked-field"><span>Please list what health and safety repairs and improvements your home needs:</span><textarea value={propertyInfo.repairNeeds} data-section="property" data-field="repairNeeds" onchange={handleSectionChange}></textarea></label>
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h2>Household Characteristics</h2>
+                        <p class="section-note">The Federal Government for statistical information requests the following information. You are not required to furnish this information but are encouraged to do so. This information will not affect your participation in the program.</p>
+                        <div class="field-grid">
+                            <label class="form-field">
+                                <span>Race / Ethnicity of Head of Household</span>
+                                <select value={characteristics.raceEthnicityHead} data-section="characteristics" data-field="raceEthnicityHead" onchange={handleSectionChange}>
+                                    <template for:each={raceOptions} for:item="option">
+                                        <option key={option.value} value={option.value}>{option.label}</option>
+                                    </template>
+                                </select>
+                            </label>
+                            <label class="form-field">
+                                <span>Race / Ethnicity of Co-Applicant</span>
+                                <select value={characteristics.raceEthnicityCoApplicant} data-section="characteristics" data-field="raceEthnicityCoApplicant" onchange={handleSectionChange}>
+                                    <template for:each={raceOptions} for:item="option">
+                                        <option key={option.value} value={option.value}>{option.label}</option>
+                                    </template>
+                                </select>
+                            </label>
+                            <label class="form-field">
+                                <span>Any Galvan Personal / Business / Family Ties in Last 12 Months?</span>
+                                <select value={characteristics.hasGalvanTies} data-section="characteristics" data-field="hasGalvanTies" onchange={handleSectionChange}>
+                                    <template for:each={yesNoOptions} for:item="option">
+                                        <option key={option.value} value={option.value}>{option.label}</option>
+                                    </template>
+                                </select>
+                            </label>
+                            <label class="form-field wide-field">
+                                <span>Explanation if Yes</span>
+                                <textarea value={characteristics.galvanTiesExplanation} data-section="characteristics" data-field="galvanTiesExplanation" onchange={handleSectionChange}></textarea>
+                            </label>
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h2>Adult Income and Assets</h2>
+                        <template for:each={borrowers} for:item="borrower" for:index="borrowerIndex">
+                            <div key={borrower.id} class="repeating-block">
+                                <div class="adult-income-heading">
+                                    <span>{borrower.roleLabel}</span>
+                                    <strong>List GROSS MONTHLY amounts</strong>
+                                </div>
+                                <div class="adult-name-row">
+                                    <span>Name of adult:</span>
+                                    <input type="text" value={borrower.name} data-index={borrowerIndex} data-field="name" onchange={handleBorrowerChange} />
+                                </div>
+                                <div class="responsive-table-wrap">
+                                    <table class="form-table document-income-table" cellspacing="0" cellpadding="0">
+                                        <tbody>
+                                            <tr>
+                                                <td>Employment</td>
+                                                <td>Gross Monthly Amount</td>
+                                                <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={borrower.employmentGrossMonthlyAmount} data-index={borrowerIndex} data-field="employmentGrossMonthlyAmount" onchange={handleBorrowerChange} /></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Employer</td>
+                                                <td colspan="2"><input type="text" value={borrower.employer} data-index={borrowerIndex} data-field="employer" onchange={handleBorrowerChange} /></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Position held?</td>
+                                                <td colspan="2"><input type="text" value={borrower.positionHeld} data-index={borrowerIndex} data-field="positionHeld" onchange={handleBorrowerChange} /></td>
+                                            </tr>
+                                            <tr>
+                                                <td>How long employed?</td>
+                                                <td colspan="2"><input type="text" value={borrower.howLongEmployed} data-index={borrowerIndex} data-field="howLongEmployed" onchange={handleBorrowerChange} /></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Pension</td>
+                                                <td>Gross Monthly Amount</td>
+                                                <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={borrower.pension} data-index={borrowerIndex} data-field="pension" onchange={handleBorrowerChange} /></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Source of Pension &amp; Address</td>
+                                                <td colspan="2"><input type="text" value={borrower.pensionSourceAddress} data-index={borrowerIndex} data-field="pensionSourceAddress" onchange={handleBorrowerChange} /></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Social Security</td>
+                                                <td>Monthly Amount</td>
+                                                <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={borrower.socialSecurityDisability} data-index={borrowerIndex} data-field="socialSecurityDisability" onchange={handleBorrowerChange} /></td>
+                                            </tr>
+                                            <tr>
+                                                <td>SSI / SSD</td>
+                                                <td>
+                                                    <select value={borrower.ssiSsdType} data-index={borrowerIndex} data-field="ssiSsdType" onchange={handleBorrowerChange}>
+                                                        <template for:each={ssiSsdOptions} for:item="option">
+                                                            <option key={option.value} value={option.value}>{option.label}</option>
+                                                        </template>
+                                                    </select>
+                                                </td>
+                                                <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={borrower.ssiSsdAmount} data-index={borrowerIndex} data-field="ssiSsdAmount" onchange={handleBorrowerChange} /></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Unemployment</td>
+                                                <td>Monthly Amount</td>
+                                                <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={borrower.unemployment} data-index={borrowerIndex} data-field="unemployment" onchange={handleBorrowerChange} /></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Self-Employment</td>
+                                                <td>Monthly Amount</td>
+                                                <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={borrower.selfEmployment} data-index={borrowerIndex} data-field="selfEmployment" onchange={handleBorrowerChange} /></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Veterans Benefits</td>
+                                                <td>Monthly Amount</td>
+                                                <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={borrower.veteransBenefits} data-index={borrowerIndex} data-field="veteransBenefits" onchange={handleBorrowerChange} /></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Rental Income</td>
+                                                <td>Monthly Amount</td>
+                                                <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={borrower.rentalIncome} data-index={borrowerIndex} data-field="rentalIncome" onchange={handleBorrowerChange} /></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Earned Income Tax Credit</td>
+                                                <td>Annual Amount</td>
+                                                <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={borrower.earnedIncomeTaxCredit} data-index={borrowerIndex} data-field="earnedIncomeTaxCredit" onchange={handleBorrowerChange} /></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Alimony</td>
+                                                <td>Monthly Amount</td>
+                                                <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={borrower.alimonyChildSupport} data-index={borrowerIndex} data-field="alimonyChildSupport" onchange={handleBorrowerChange} /></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Child Support</td>
+                                                <td>Monthly Amount</td>
+                                                <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={borrower.childSupport} data-index={borrowerIndex} data-field="childSupport" onchange={handleBorrowerChange} /></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Investment Income</td>
+                                                <td>Monthly Amount</td>
+                                                <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={borrower.investmentIncome} data-index={borrowerIndex} data-field="investmentIncome" onchange={handleBorrowerChange} /></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Interest Income</td>
+                                                <td>Monthly Amount</td>
+                                                <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={borrower.interestIncome} data-index={borrowerIndex} data-field="interestIncome" onchange={handleBorrowerChange} /></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Social Services/Public Assistance</td>
+                                                <td>Monthly Amount</td>
+                                                <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={borrower.publicAssistance} data-index={borrowerIndex} data-field="publicAssistance" onchange={handleBorrowerChange} /></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Other</td>
+                                                <td>Monthly Amount</td>
+                                                <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={borrower.otherIncome} data-index={borrowerIndex} data-field="otherIncome" onchange={handleBorrowerChange} /></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="subsection-header">
+                                    <h4>Assets</h4>
+                                </div>
+                                <p class="section-note table-note">Income and asset information must be listed for all members of the household. If more than one type of account exists, use the matching account type rows as needed.</p>
+                                <div class="responsive-table-wrap">
+                                    <table class="form-table" cellspacing="0" cellpadding="0">
+                                        <thead>
+                                            <tr>
+                                                <th>Account Type</th>
+                                                <th>Account Number</th>
+                                                <th>Interest Rate</th>
+                                                <th>Institution Name</th>
+                                                <th>Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template for:each={borrower.assets} for:item="asset" for:index="assetIndex">
+                                                <tr key={asset.id}>
+                                                    <td class="readonly-cell">{asset.accountType}</td>
+                                                    <td><input type="text" value={asset.accountNumber} data-index={borrowerIndex} data-asset-index={assetIndex} data-field="accountNumber" onchange={handleAssetChange} /></td>
+                                                    <td><input type="text" value={asset.interestRate} data-index={borrowerIndex} data-asset-index={assetIndex} data-field="interestRate" onchange={handleAssetChange} /></td>
+                                                    <td><input type="text" value={asset.institutionName} data-index={borrowerIndex} data-asset-index={assetIndex} data-field="institutionName" onchange={handleAssetChange} /></td>
+                                                    <td><input type="text" inputmode="decimal" data-amount="true" value={asset.amount} data-index={borrowerIndex} data-asset-index={assetIndex} data-field="amount" onchange={handleAssetChange} /></td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </template>
+                    </section>
+
+                    <section class="form-section">
+                        <h2>Household Monthly Debt</h2>
+                        <p class="section-note">Please list your household's current monthly debts, i.e. mortgage payment, car payment, credit card bills, electric, medical bills, cell phone, cable, etc.</p>
+                        <div class="field-grid">
+                            <label class="form-field">
+                                <span>Current Household Monthly Debt Total</span>
+                                <span class="form-money-input"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={debtSummary.currentHouseholdMonthlyDebt} data-section="debtSummary" data-field="currentHouseholdMonthlyDebt" onchange={handleSectionChange} /></span>
+                            </label>
+                        </div>
+                        <div class="subsection-header">
+                            <h3>Debt Rows</h3>
+                            <button class="secondary-button" type="button" onclick={addDebtRow}>Add Debt Row</button>
+                        </div>
+                        <div class="responsive-table-wrap">
+                            <table class="form-table" cellspacing="0" cellpadding="0">
+                                <thead>
+                                    <tr>
+                                        <th>Debt Type</th>
+                                        <th>Monthly Payment</th>
+                                        <th>Balance</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={debts} for:item="debt" for:index="debtIndex">
+                                        <tr key={debt.id}>
+                                            <td><input type="text" value={debt.debtType} data-index={debtIndex} data-field="debtType" onchange={handleDebtChange} /></td>
+                                            <td><input type="text" inputmode="decimal" data-amount="true" value={debt.monthlyPayment} data-index={debtIndex} data-field="monthlyPayment" onchange={handleDebtChange} /></td>
+                                            <td><input type="text" inputmode="decimal" data-amount="true" value={debt.balance} data-index={debtIndex} data-field="balance" onchange={handleDebtChange} /></td>
+                                            <td><button class="remove-row-button" type="button" data-index={debtIndex} onclick={removeDebtRow}>Remove</button></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h2>Household Financial Assessment</h2>
+                        <div class="responsive-table-wrap">
+                            <table class="form-table financial-assessment-table" cellspacing="0" cellpadding="0">
+                                <thead>
+                                    <tr>
+                                        <th colspan="3" class="assessment-group income-group">Income</th>
+                                    </tr>
+                                    <tr>
+                                        <th>Account Type</th>
+                                        <th>Current Amount</th>
+                                        <th>Budgeted Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Salary</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.salaryWages} data-section="financialAssessment" data-field="salaryWages" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Other Household Salary</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.otherHouseholdSalary} data-section="financialAssessment" data-field="otherHouseholdSalary" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Dividends</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.dividends} data-section="financialAssessment" data-field="dividends" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Interest</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.bankAndInvestmentInterest} data-section="financialAssessment" data-field="bankAndInvestmentInterest" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Investments</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.investments} data-section="financialAssessment" data-field="investments" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Reimbursements</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.reimbursements} data-section="financialAssessment" data-field="reimbursements" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Other</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.otherIncome} data-section="financialAssessment" data-field="otherIncome" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Total</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.totalMonthlyIncome} data-section="financialAssessment" data-field="totalMonthlyIncome" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <th colspan="3" class="assessment-group expense-group">Expenses</th>
+                                    </tr>
+                                    <tr>
+                                        <td>Mortgage/Rent</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.housingMortgageTaxesInsurance} data-section="financialAssessment" data-field="housingMortgageTaxesInsurance" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Car Loan</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.carLoan} data-section="financialAssessment" data-field="carLoan" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Car Insurance</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.carInsurance} data-section="financialAssessment" data-field="carInsurance" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>House Insurance</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.houseInsurance} data-section="financialAssessment" data-field="houseInsurance" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Life Insurance</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.lifeInsurance} data-section="financialAssessment" data-field="lifeInsurance" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Childcare</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.childcare} data-section="financialAssessment" data-field="childcare" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Charity</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.charity} data-section="financialAssessment" data-field="charity" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Gas/Electric</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.gasElectric} data-section="financialAssessment" data-field="gasElectric" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Telephone</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.telephone} data-section="financialAssessment" data-field="telephone" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Cable</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.cableSatelliteTv} data-section="financialAssessment" data-field="cableSatelliteTv" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Internet</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.internet} data-section="financialAssessment" data-field="internet" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Food</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.food} data-section="financialAssessment" data-field="food" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Entertainment</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.entertainment} data-section="financialAssessment" data-field="entertainment" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Gifts</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.gifts} data-section="financialAssessment" data-field="gifts" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Clothing</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.clothing} data-section="financialAssessment" data-field="clothing" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Pet Supplies</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.petSupplies} data-section="financialAssessment" data-field="petSupplies" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Health Insurance / Healthcare</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.healthInsurance} data-section="financialAssessment" data-field="healthInsurance" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Other Expense</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.otherExpense} data-section="financialAssessment" data-field="otherExpense" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Alimony / Child Support</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.alimonyChildSupport} data-section="financialAssessment" data-field="alimonyChildSupport" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Total Living Expenses</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.totalLivingExpenses} data-section="financialAssessment" data-field="totalLivingExpenses" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Difference</td>
+                                        <td class="amount-cell"><span>$</span><input type="text" inputmode="decimal" data-amount="true" value={financialAssessment.difference} data-section="financialAssessment" data-field="difference" onchange={handleSectionChange} /></td>
+                                        <td class="budgeted-cell"><span>$</span><span class="budgeted-line"></span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h2>Affirmation and Sworn Statement of True Information</h2>
+                        <p class="section-note affirmation-text">
+                            I affirm that all information given in this application for a Federal or State grant is true and correct, this includes all income, asset, homeowner and debt obligation information. False statements made by the applicant will result in rejection of the grant application. This application was made to obtain a grant, and I authorize you to communicate with any person, firm, or corporation necessary, and to obtain any information to establish eligibility status and income verification as you may need concerning the statements made in this application and agree that the application shall remain Galvan Housing Resources' property whether or not the grant herein requested is awarded.
+                        </p>
+                        <div class="signature-grid final-signature-grid">
+                            <div class="signature-section">
+                                <label class="signature-label">
+                                    Applicant Signature <span class="required-mark">*</span>
+                                </label>
+                                <div class="signature-container">
+                                    <template if:true={showApplicantSignatureImage}>
+                                        <img class="signature-image" src={applicantSignatureUrl} alt="Applicant Signature" />
+                                    </template>
+                                    <template if:false={showApplicantSignatureImage}>
+                                        <canvas
+                                            class="signature-pad"
+                                            data-signature-id="applicant"
+                                            data-readonly={isSubmitted}
+                                            onmousedown={handleMouseDown}
+                                            onmousemove={handleMouseMove}
+                                            onmouseup={handleMouseUp}
+                                            onmouseout={handleMouseUp}
+                                            ontouchstart={handleTouchStart}
+                                            ontouchmove={handleTouchMove}
+                                            ontouchend={handleTouchEnd}>
+                                        </canvas>
+                                    </template>
+                                </div>
+                                <template if:false={isSubmitted}>
+                                    <div class="signature-buttons">
+                                        <button class="clear-link" type="button" data-signature-id="applicant" onclick={clearSignature}>Clear Signature</button>
+                                    </div>
+                                </template>
+                                <div class="field-grid signature-meta-grid">
+                                    <label class="form-field">
+                                        <span>Applicant Date <span class="required-mark">*</span></span>
+                                        <input type="date" value={signatures.applicant.signDate} data-signature-id="applicant" data-field="signDate" onchange={handleSignatureInputChange} />
+                                    </label>
+                                    <label class="form-field">
+                                        <span>Applicant Print Name <span class="required-mark">*</span></span>
+                                        <input type="text" value={signatures.applicant.printName} data-signature-id="applicant" data-field="printName" onchange={handleSignatureInputChange} />
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="signature-section">
+                                <label class="signature-label">
+                                    Co-Applicant Signature <template if:true={coApplicantRequired}><span class="required-mark">*</span></template>
+                                </label>
+                                <div class="signature-container">
+                                    <template if:true={showCoApplicantSignatureImage}>
+                                        <img class="signature-image" src={coApplicantSignatureUrl} alt="Co-Applicant Signature" />
+                                    </template>
+                                    <template if:false={showCoApplicantSignatureImage}>
+                                        <canvas
+                                            class="signature-pad"
+                                            data-signature-id="coApplicant"
+                                            data-readonly={isSubmitted}
+                                            onmousedown={handleMouseDown}
+                                            onmousemove={handleMouseMove}
+                                            onmouseup={handleMouseUp}
+                                            onmouseout={handleMouseUp}
+                                            ontouchstart={handleTouchStart}
+                                            ontouchmove={handleTouchMove}
+                                            ontouchend={handleTouchEnd}>
+                                        </canvas>
+                                    </template>
+                                </div>
+                                <template if:false={isSubmitted}>
+                                    <div class="signature-buttons">
+                                        <button class="clear-link" type="button" data-signature-id="coApplicant" onclick={clearSignature}>Clear Signature</button>
+                                    </div>
+                                </template>
+                                <div class="field-grid signature-meta-grid">
+                                    <label class="form-field">
+                                        <span>Co-Applicant Date <template if:true={coApplicantRequired}><span class="required-mark">*</span></template></span>
+                                        <input type="date" value={signatures.coApplicant.signDate} data-signature-id="coApplicant" data-field="signDate" onchange={handleSignatureInputChange} />
+                                    </label>
+                                    <label class="form-field">
+                                        <span>Co-Applicant Print Name <template if:true={coApplicantRequired}><span class="required-mark">*</span></template></span>
+                                        <input type="text" value={signatures.coApplicant.printName} data-signature-id="coApplicant" data-field="printName" onchange={handleSignatureInputChange} />
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="final-note">Applications must be completed and signed by all owners of the property.</p>
+
+                        <template if:false={isSubmitted}>
+                            <div class="submit-row">
+                                <lightning-button
+                                    class="submit-button"
+                                    variant="brand"
+                                    label="Submit"
+                                    onclick={handleSubmit}
+                                    disabled={isSubmitDisabled}>
+                                </lightning-button>
+                            </div>
+                        </template>
+                        <template if:true={submitMessage}>
+                            <p class="submit-message">{submitMessage}</p>
+                        </template>
+                        <template if:true={submitError}>
+                            <p class="submit-error">{submitError}</p>
+                        </template>
+                    </section>
+                </div>
+            </article>
+        </div>
     </div>
 </template>

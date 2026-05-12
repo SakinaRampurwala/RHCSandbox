@@ -52,25 +52,16 @@ public without sharing class FinalInspectionFormCtrl {
         }
 
         try {
-            Map<String, Schema.SObjectField> fieldMap = buildertek__Project__c.SObjectType.getDescribe().fields.getMap();
-            List<String> queryFields = new List<String>{
-                'Id',
-                'buildertek__Address__c',
-                'buildertek__City_Text__c',
-                'buildertek__State__c',
-                'buildertek__Zip__c',
-                'buildertek__Country__c',
-                'buildertek__Customer__r.Name',
-                'buildertek__Customer__r.BillingStreet',
-                'buildertek__Customer__r.BillingCity',
-                'buildertek__Customer__r.BillingState',
-                'buildertek__Customer__r.BillingPostalCode',
-                'buildertek__Customer__r.BillingCountry'
-            };
+            Map<String, Schema.SObjectField> fieldMap = buildertek__Inspection__c.SObjectType.getDescribe().fields.getMap();
+            List<String> queryFields = new List<String>{ 'Id' };
 
             List<String> optionalFields = new List<String>{
-                'buildertek__Project_Completion_Date__c',
-                'Final_Inspection_Date__c',
+                'buildertek__Project__c',
+                'buildertek__Inspection_Date__c',
+                'buildertek__Property_Street__c',
+                'buildertek__Property_City__c',
+                'buildertek__Property_State__c',
+                'buildertek__Property_Zip__c',
                 'FI_Homeowner_Sign_Id__c',
                 'FI_Homeowner_Sign_Date__c',
                 'FI_Representative_Sign_Id__c',
@@ -83,10 +74,14 @@ public without sharing class FinalInspectionFormCtrl {
                 }
             }
 
-            String soql = 'SELECT ' + String.join(queryFields, ',') + ' FROM buildertek__Project__c WHERE Id = :recordId LIMIT 1';
+            String soql = 'SELECT ' + String.join(queryFields, ',') + ' FROM buildertek__Inspection__c WHERE Id = :recordId LIMIT 1';
             SObject recordSObj = Database.query(soql);
 
-            SObject customerRef = recordSObj.getSObject('buildertek__Customer__r');
+            Id projectId = fieldMap.containsKey('buildertek__Project__c')
+                ? (Id) recordSObj.get('buildertek__Project__c')
+                : null;
+            SObject projectRecord = getRelatedProjectRecord(projectId);
+            SObject customerRef = projectRecord != null ? projectRecord.getSObject('buildertek__Customer__r') : null;
             data.homeownerName = customerRef != null ? safe((String) customerRef.get('Name')) : '';
 
             String billingStreet = customerRef != null ? safe((String) customerRef.get('BillingStreet')) : '';
@@ -94,14 +89,13 @@ public without sharing class FinalInspectionFormCtrl {
             String billingState = customerRef != null ? safe((String) customerRef.get('BillingState')) : '';
             String billingPostal = customerRef != null ? safe((String) customerRef.get('BillingPostalCode')) : '';
             String billingCountry = customerRef != null ? safe((String) customerRef.get('BillingCountry')) : '';
-
             if (String.isBlank(billingStreet) && String.isBlank(billingCity) && String.isBlank(billingState)
                 && String.isBlank(billingPostal) && String.isBlank(billingCountry)) {
-                data.homeownerStreet = safe((String) recordSObj.get('buildertek__Address__c'));
-                data.homeownerCity = safe((String) recordSObj.get('buildertek__City_Text__c'));
-                data.homeownerState = safe((String) recordSObj.get('buildertek__State__c'));
-                data.homeownerPostal = safe((String) recordSObj.get('buildertek__Zip__c'));
-                data.homeownerCountry = safe((String) recordSObj.get('buildertek__Country__c'));
+                data.homeownerStreet = projectRecord != null ? safe((String) projectRecord.get('buildertek__Address__c')) : '';
+                data.homeownerCity = projectRecord != null ? safe((String) projectRecord.get('buildertek__City_Text__c')) : '';
+                data.homeownerState = projectRecord != null ? safe((String) projectRecord.get('buildertek__State__c')) : '';
+                data.homeownerPostal = projectRecord != null ? safe((String) projectRecord.get('buildertek__Zip__c')) : '';
+                data.homeownerCountry = projectRecord != null ? safe((String) projectRecord.get('buildertek__Country__c')) : '';
             } else {
                 data.homeownerStreet = billingStreet;
                 data.homeownerCity = billingCity;
@@ -110,10 +104,9 @@ public without sharing class FinalInspectionFormCtrl {
                 data.homeownerCountry = billingCountry;
             }
 
-            Object inspectionDate = firstAvailableObject(recordSObj, new List<String>{
-                'Final_Inspection_Date__c',
-                'buildertek__Project_Completion_Date__c'
-            });
+            Object inspectionDate = fieldMap.containsKey('buildertek__Inspection_Date__c')
+                ? recordSObj.get('buildertek__Inspection_Date__c')
+                : null;
             data.finalInspectionDate = formatDateValue(inspectionDate);
 
             String homeownerSignId = fieldMap.containsKey('FI_Homeowner_Sign_Id__c')
@@ -266,32 +259,30 @@ public without sharing class FinalInspectionFormCtrl {
             pdfCdl.Visibility = 'AllUsers';
             insert pdfCdl;
 
-            cleanupSignatureFile(resolved.homeownerSignatureId);
-            cleanupSignatureFile(resolved.representativeSignatureId);
             return 'Success';
         } catch (Exception e) {
             throw new AuraHandledException(e.getMessage());
         }
     }
 
-    private class SignatureBundle {
+    public class SignatureBundle {
         public String homeownerImgUrl { get; set; }
         public String representativeImgUrl { get; set; }
         public String homeownerSignatureId { get; set; }
         public String representativeSignatureId { get; set; }
     }
 
-    private class SignatureInfo {
+    public class SignatureInfo {
         public String contentVersionId { get; set; }
         public String imgUrl { get; set; }
     }
 
-    private class SignatureFieldValues {
+    public class SignatureFieldValues {
         public String homeownerSignId { get; set; }
         public String representativeSignId { get; set; }
     }
 
-    private static SignatureBundle resolveSignatureBundle(
+    public static SignatureBundle resolveSignatureBundle(
         Id recordId,
         String homeownerImgUrl,
         String representativeImgUrl,
@@ -336,13 +327,13 @@ public without sharing class FinalInspectionFormCtrl {
         return bundle;
     }
 
-    private static SignatureFieldValues getSignatureFieldValues(Id recordId) {
+    public static SignatureFieldValues getSignatureFieldValues(Id recordId) {
         SignatureFieldValues values = new SignatureFieldValues();
         if (recordId == null) {
             return values;
         }
 
-        Map<String, Schema.SObjectField> fieldMap = buildertek__Project__c.SObjectType.getDescribe().fields.getMap();
+        Map<String, Schema.SObjectField> fieldMap = buildertek__Inspection__c.SObjectType.getDescribe().fields.getMap();
         List<String> queryFields = new List<String>{ 'Id' };
         if (fieldMap.containsKey('FI_Homeowner_Sign_Id__c')) {
             queryFields.add('FI_Homeowner_Sign_Id__c');
@@ -356,7 +347,7 @@ public without sharing class FinalInspectionFormCtrl {
         }
 
         SObject recordSObj = Database.query(
-            'SELECT ' + String.join(queryFields, ',') + ' FROM buildertek__Project__c WHERE Id = :recordId LIMIT 1'
+            'SELECT ' + String.join(queryFields, ',') + ' FROM buildertek__Inspection__c WHERE Id = :recordId LIMIT 1'
         );
         values.homeownerSignId = fieldMap.containsKey('FI_Homeowner_Sign_Id__c')
             ? (String) recordSObj.get('FI_Homeowner_Sign_Id__c')
@@ -367,7 +358,7 @@ public without sharing class FinalInspectionFormCtrl {
         return values;
     }
 
-    private static Map<String, SignatureInfo> getFinalInspectionSignatures(Id recordId) {
+    public static Map<String, SignatureInfo> getFinalInspectionSignatures(Id recordId) {
         Map<String, SignatureInfo> results = new Map<String, SignatureInfo>();
         if (recordId == null) {
             return results;
@@ -444,7 +435,7 @@ public without sharing class FinalInspectionFormCtrl {
         return results;
     }
 
-    private static String getOrCreateDistributionUrl(Id contentVersionId) {
+    public static String getOrCreateDistributionUrl(Id contentVersionId) {
         if (contentVersionId == null) {
             return '';
         }
@@ -481,7 +472,7 @@ public without sharing class FinalInspectionFormCtrl {
         return fallbackUrl;
     }
 
-    private static String buildVersionDownloadUrl(Id contentVersionId) {
+    public static String buildVersionDownloadUrl(Id contentVersionId) {
         if (contentVersionId == null) {
             return '';
         }
@@ -492,7 +483,7 @@ public without sharing class FinalInspectionFormCtrl {
         return baseUrl + '/sfc/servlet.shepherd/version/download/' + contentVersionId;
     }
 
-    private static String resolveContentVersionId(String idVal) {
+    public static String resolveContentVersionId(String idVal) {
         if (String.isBlank(idVal) || !isValidIdFormat(idVal)) {
             return null;
         }
@@ -521,7 +512,7 @@ public without sharing class FinalInspectionFormCtrl {
         return null;
     }
 
-    private static Boolean isFinalInspectionAlreadySubmitted(Id recordId) {
+    public static Boolean isFinalInspectionAlreadySubmitted(Id recordId) {
         if (recordId == null) {
             return false;
         }
@@ -529,7 +520,7 @@ public without sharing class FinalInspectionFormCtrl {
         return isPdfAlreadySaved(recordId);
     }
 
-    private static Boolean isPdfAlreadySaved(Id recordId) {
+    public static Boolean isPdfAlreadySaved(Id recordId) {
         if (recordId == null) {
             return false;
         }
@@ -552,7 +543,7 @@ public without sharing class FinalInspectionFormCtrl {
         return false;
     }
 
-    private static void cleanupSignatureFile(String signatureId) {
+    public static void cleanupSignatureFile(String signatureId) {
         if (String.isBlank(signatureId)) {
             return;
         }
@@ -563,7 +554,7 @@ public without sharing class FinalInspectionFormCtrl {
         }
     }
 
-    private static Object firstAvailableObject(SObject source, List<String> candidates) {
+    public static Object firstAvailableObject(SObject source, List<String> candidates) {
         if (source == null || candidates == null) {
             return null;
         }
@@ -590,7 +581,40 @@ public without sharing class FinalInspectionFormCtrl {
         return null;
     }
 
-    private static Boolean isQueryableField(Map<String, Schema.SObjectField> fieldMap, String fieldPath) {
+    public static SObject getRelatedProjectRecord(Id projectId) {
+        if (projectId == null) {
+            return null;
+        }
+
+        Map<String, Schema.SObjectField> projectFieldMap = buildertek__Project__c.SObjectType.getDescribe().fields.getMap();
+        List<String> queryFields = new List<String>{ 'Id' };
+        List<String> candidateFields = new List<String>{
+            'buildertek__Address__c',
+            'buildertek__City_Text__c',
+            'buildertek__State__c',
+            'buildertek__Zip__c',
+            'buildertek__Country__c',
+            'buildertek__Customer__r.Name',
+            'buildertek__Customer__r.BillingStreet',
+            'buildertek__Customer__r.BillingCity',
+            'buildertek__Customer__r.BillingState',
+            'buildertek__Customer__r.BillingPostalCode',
+            'buildertek__Customer__r.BillingCountry'
+        };
+
+        for (String fieldPath : candidateFields) {
+            if (isQueryableField(projectFieldMap, fieldPath)) {
+                queryFields.add(fieldPath);
+            }
+        }
+
+        List<SObject> records = Database.query(
+            'SELECT ' + String.join(queryFields, ',') + ' FROM buildertek__Project__c WHERE Id = :projectId LIMIT 1'
+        );
+        return records.isEmpty() ? null : records[0];
+    }
+
+    public static Boolean isQueryableField(Map<String, Schema.SObjectField> fieldMap, String fieldPath) {
         if (String.isBlank(fieldPath)) {
             return false;
         }
@@ -612,13 +636,14 @@ public without sharing class FinalInspectionFormCtrl {
         return true;
     }
 
-    private static String formatDateValue(Object dateValue) {
+    public static String formatDateValue(Object dateValue) {
         if (dateValue == null) {
             return '';
         }
 
         if (dateValue instanceof Date) {
-            return ((Date) dateValue).format();
+            Date onlyDate = (Date) dateValue;
+            return DateTime.newInstance(onlyDate, Time.newInstance(0, 0, 0, 0)).format('MM-dd-yyyy');
         }
         if (dateValue instanceof Datetime) {
             return ((Datetime) dateValue).format('MM-dd-yyyy');
@@ -626,41 +651,41 @@ public without sharing class FinalInspectionFormCtrl {
         return String.valueOf(dateValue);
     }
 
-    private static String safe(String input) {
+    public static String safe(String input) {
         return input == null ? '' : input;
     }
 
-    private static void updateSignatureFields(Id recordId, String signatureLabel, Id contentVersionId) {
+    public static void updateSignatureFields(Id recordId, String signatureLabel, Id contentVersionId) {
         if (recordId == null || contentVersionId == null) {
             return;
         }
 
-        Map<String, Schema.SObjectField> fieldMap = buildertek__Project__c.SObjectType.getDescribe().fields.getMap();
-        buildertek__Project__c proj = new buildertek__Project__c(Id = recordId);
+        Map<String, Schema.SObjectField> fieldMap = buildertek__Inspection__c.SObjectType.getDescribe().fields.getMap();
+        buildertek__Inspection__c inspectionRecord = new buildertek__Inspection__c(Id = recordId);
         Boolean shouldUpdate = false;
 
         if (signatureLabel == 'Homeowner') {
             if (fieldMap.containsKey('FI_Homeowner_Sign_Id__c')) {
-                proj.put('FI_Homeowner_Sign_Id__c', contentVersionId);
+                inspectionRecord.put('FI_Homeowner_Sign_Id__c', contentVersionId);
                 shouldUpdate = true;
             }
             if (fieldMap.containsKey('FI_Homeowner_Sign_Date__c')) {
-                proj.put('FI_Homeowner_Sign_Date__c', Date.today());
+                inspectionRecord.put('FI_Homeowner_Sign_Date__c', Date.today());
                 shouldUpdate = true;
             }
         } else if (signatureLabel == 'Program Representative') {
             if (fieldMap.containsKey('FI_Representative_Sign_Id__c')) {
-                proj.put('FI_Representative_Sign_Id__c', contentVersionId);
+                inspectionRecord.put('FI_Representative_Sign_Id__c', contentVersionId);
                 shouldUpdate = true;
             }
             if (fieldMap.containsKey('FI_Representative_Sign_Date__c')) {
-                proj.put('FI_Representative_Sign_Date__c', Date.today());
+                inspectionRecord.put('FI_Representative_Sign_Date__c', Date.today());
                 shouldUpdate = true;
             }
         }
 
         if (shouldUpdate) {
-            update proj;
+            update inspectionRecord;
         }
     }
 
@@ -801,7 +826,7 @@ public without sharing class FinalInspectionFormCtrl {
         return 'Success';
     }
 
-    private static String buildFinalInspectionLink(Id recordId, String senderId, String sendDate, Boolean isPreview, Boolean isVendor, Boolean isCompany) {
+    public static String buildFinalInspectionLink(Id recordId, String senderId, String sendDate, Boolean isPreview, Boolean isVendor, Boolean isCompany) {
         String baseUrl = getConfirmationSiteUrl();
         String safeRecordId = recordId == null ? '' : String.valueOf(recordId);
         String link = baseUrl + '/apex/FinalInspectionForm?recordId=' + safeRecordId
@@ -817,7 +842,7 @@ public without sharing class FinalInspectionFormCtrl {
         return link;
     }
 
-    private static List<Messaging.EmailFileAttachment> buildAttachments(List<String> fileIds) {
+    public static List<Messaging.EmailFileAttachment> buildAttachments(List<String> fileIds) {
         List<Messaging.EmailFileAttachment> attachmentList = new List<Messaging.EmailFileAttachment>();
         if (fileIds == null || fileIds.isEmpty()) {
             return attachmentList;
@@ -850,13 +875,13 @@ public without sharing class FinalInspectionFormCtrl {
         return attachmentList;
     }
 
-    private static void applyOrgWideFromAddress(Messaging.SingleEmailMessage mail, String fromAddressId) {
+    public static void applyOrgWideFromAddress(Messaging.SingleEmailMessage mail, String fromAddressId) {
         if (String.isNotBlank(fromAddressId)) {
             mail.setOrgWideEmailAddressId(fromAddressId);
         }
     }
 
-    private static String applyContactName(String body, String contactName) {
+    public static String applyContactName(String body, String contactName) {
         if (String.isBlank(body) || String.isBlank(contactName)) {
             return body;
         }
@@ -866,7 +891,7 @@ public without sharing class FinalInspectionFormCtrl {
         return body;
     }
 
-    private static String getConfirmationSiteUrl() {
+    public static String getConfirmationSiteUrl() {
         buildertek__ConfirmationSiteURL__c settings = buildertek__ConfirmationSiteURL__c.getOrgDefaults();
         if (settings != null && String.isNotBlank(settings.buildertek__Sites_URL__c)) {
             return settings.buildertek__Sites_URL__c;
@@ -874,7 +899,7 @@ public without sharing class FinalInspectionFormCtrl {
         return URL.getOrgDomainUrl().toExternalForm();
     }
 
-    private static String applyOrganizationMergeFields(String body) {
+    public static String applyOrganizationMergeFields(String body) {
         if (String.isBlank(body)) {
             return body;
         }
@@ -896,7 +921,7 @@ public without sharing class FinalInspectionFormCtrl {
         return body;
     }
 
-    private static Boolean isValidIdFormat(String value) {
+    public static Boolean isValidIdFormat(String value) {
         if (String.isBlank(value)) {
             return false;
         }
@@ -928,36 +953,125 @@ public without sharing class FinalInspectionFormCtrl {
 
     public void initPdf() {
         vfRecordId = ApexPages.currentPage().getParameters().get('recordId');
+        if (String.isBlank(vfRecordId)) {
+            vfRecordId = ApexPages.currentPage().getParameters().get('Id');
+        }
+        if (String.isBlank(vfRecordId)) {
+            vfRecordId = recordId;
+        }
         vfHomeownerImgUrl = ApexPages.currentPage().getParameters().get('homeownerImgUrl');
         vfRepresentativeImgUrl = ApexPages.currentPage().getParameters().get('representativeImgUrl');
 
-        vfInspectionData = getFinalInspectionData((Id) vfRecordId, true);
+        Id currentInspectionId = isValidIdFormat(vfRecordId) ? (Id) vfRecordId : null;
+        vfInspectionData = getFinalInspectionData(currentInspectionId, true);
         if (vfInspectionData == null) {
             vfInspectionData = new FinalInspectionData();
         }
 
-        // Assemble the homeowner address string the same way the LWC JS formatAddress() does
-        String safeStreet = safe(vfInspectionData.homeownerStreet);
-        String safeCity   = safe(vfInspectionData.homeownerCity);
-        String safeState  = safe(vfInspectionData.homeownerState);
-        String safePostal = safe(vfInspectionData.homeownerPostal);
-        String safeCountry = safe(vfInspectionData.homeownerCountry);
+        SignatureBundle resolved = resolveSignatureBundle(
+            currentInspectionId,
+            vfHomeownerImgUrl,
+            vfRepresentativeImgUrl,
+            null,
+            null
+        );
+        if (String.isBlank(vfHomeownerImgUrl)) {
+            vfHomeownerImgUrl = resolved.homeownerImgUrl;
+        }
+        if (String.isBlank(vfRepresentativeImgUrl)) {
+            vfRepresentativeImgUrl = resolved.representativeImgUrl;
+        }
+
+        vfHomeownerAddress = buildDisplayAddress(
+            vfInspectionData.homeownerStreet,
+            vfInspectionData.homeownerCity,
+            vfInspectionData.homeownerState,
+            vfInspectionData.homeownerPostal,
+            vfInspectionData.homeownerCountry
+        );
+
+        logoUrl = getLogoUrl();
+        String pdfDateParam = ApexPages.currentPage().getParameters().get('sendDate');
+        if (String.isBlank(pdfDateParam)) {
+            pdfDateParam = sendDate;
+        }
+        currentRecordDate = String.isNotBlank(pdfDateParam)
+            ? formatDisplayDate(pdfDateParam)
+            : (String.isNotBlank(vfInspectionData.finalInspectionDate) ? vfInspectionData.finalInspectionDate : System.now().format('MM-dd-yyyy'));
+    }
+
+    public static String buildDisplayAddress(String street, String city, String state, String postal, String country) {
+        String safeStreet = safe(street);
+        String safeCity = safe(city);
+        String safeState = safe(state);
+        String safePostal = safe(postal);
+        String safeCountry = safe(country);
 
         List<String> cityStateParts = new List<String>();
-        if (String.isNotBlank(safeCity))  { cityStateParts.add(safeCity); }
-        if (String.isNotBlank(safeState)) { cityStateParts.add(safeState); }
+        if (String.isNotBlank(safeCity)) {
+            cityStateParts.add(safeCity);
+        }
+        if (String.isNotBlank(safeState)) {
+            cityStateParts.add(safeState);
+        }
         String cityState = String.join(cityStateParts, ' ');
 
         List<String> firstParts = new List<String>();
-        if (String.isNotBlank(safeStreet))  { firstParts.add(safeStreet); }
-        if (String.isNotBlank(cityState))   { firstParts.add(cityState); }
+        if (String.isNotBlank(safeStreet)) {
+            firstParts.add(safeStreet);
+        }
+        if (String.isNotBlank(cityState)) {
+            firstParts.add(cityState);
+        }
         String firstPart = String.join(firstParts, ', ');
 
-        String zipPart     = String.isNotBlank(safePostal)  ? ' - ' + safePostal  : '';
-        String countryPart = String.isNotBlank(safeCountry) ? ', ' + safeCountry  : '';
-        vfHomeownerAddress = (firstPart + zipPart + countryPart).trim();
+        String zipPart = String.isNotBlank(safePostal) ? ' - ' + safePostal : '';
+        String countryPart = String.isNotBlank(safeCountry) ? ', ' + safeCountry : '';
+        return (firstPart + zipPart + countryPart).trim();
+    }
 
-        logoUrl = getLogoUrl();
-        currentRecordDate = System.now().format('MM-dd-yyyy');
+    public static String formatDisplayDate(String rawDate) {
+        if (String.isBlank(rawDate)) {
+            return DateTime.now().format('MM-dd-yyyy');
+        }
+
+        String cleanedValue = rawDate.contains(' ') ? rawDate.substringBefore(' ') : rawDate;
+        try {
+            if (cleanedValue.contains('-')) {
+                List<String> dashParts = cleanedValue.split('-');
+                if (dashParts.size() == 3 && dashParts[0].length() == 4) {
+                    Date parsedIsoDate = Date.newInstance(
+                        Integer.valueOf(dashParts[0]),
+                        Integer.valueOf(dashParts[1]),
+                        Integer.valueOf(dashParts[2])
+                    );
+                    return DateTime.newInstance(parsedIsoDate, Time.newInstance(0, 0, 0, 0)).format('MM-dd-yyyy');
+                }
+                if (dashParts.size() == 3) {
+                    Date parsedDashDate = Date.newInstance(
+                        Integer.valueOf(dashParts[2]),
+                        Integer.valueOf(dashParts[0]),
+                        Integer.valueOf(dashParts[1])
+                    );
+                    return DateTime.newInstance(parsedDashDate, Time.newInstance(0, 0, 0, 0)).format('MM-dd-yyyy');
+                }
+            }
+
+            if (cleanedValue.contains('/')) {
+                List<String> slashParts = cleanedValue.split('/');
+                if (slashParts.size() == 3) {
+                    Date parsedSlashDate = Date.newInstance(
+                        Integer.valueOf(slashParts[2]),
+                        Integer.valueOf(slashParts[0]),
+                        Integer.valueOf(slashParts[1])
+                    );
+                    return DateTime.newInstance(parsedSlashDate, Time.newInstance(0, 0, 0, 0)).format('MM-dd-yyyy');
+                }
+            }
+        } catch (Exception e) {
+            return rawDate;
+        }
+
+        return rawDate;
     }
 }

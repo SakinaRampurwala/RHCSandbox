@@ -1,3 +1,3 @@
 <aura:application access="GLOBAL" extends="ltng:outApp" implements="ltng:allowGuestAccess">
-    <aura:dependency resource="c:hipApplicationLwc"/>
+    <aura:dependency resource="c:certificateOfInspectionLwc"/>
 </aura:application>

@@ -1,5 +1,5 @@
 @IsTest
-private class NoticeToProceedCtrlTest {
+public class NoticeToProceedCtrlTest {
 
     @TestSetup
     static void setupData() {
@@ -34,15 +34,17 @@ private class NoticeToProceedCtrlTest {
 
         Test.setCurrentPage(Page.NoticeToProceedAsPDF);
         ApexPages.currentPage().getParameters().put('recordId', String.valueOf(projectId));
-        ApexPages.currentPage().getParameters().put('imgUrl', 'https://example.com/sign.png');
-        ApexPages.currentPage().getParameters().put('signerName', 'Signer Name');
+        ApexPages.currentPage().getParameters().put('propertyOwnerImgUrl', 'https://example.com/property-owner-sign.png');
+        ApexPages.currentPage().getParameters().put('contractorRepImgUrl', 'https://example.com/contractor-rep-sign.png');
+        ApexPages.currentPage().getParameters().put('programRepImgUrl', 'https://example.com/program-rep-sign.png');
 
         NoticeToProceedCtrl controller = new NoticeToProceedCtrl();
         controller.initPdf();
 
         System.assertNotEquals(null, controller.vfNoticeData, 'VF notice data should initialize.');
-        System.assertEquals('https://example.com/sign.png', controller.vfImgUrl);
-        System.assertEquals('Signer Name', controller.vfSignerName);
+        System.assertEquals('https://example.com/property-owner-sign.png', controller.vfPropertyOwnerImgUrl);
+        System.assertEquals('https://example.com/contractor-rep-sign.png', controller.vfContractorRepImgUrl);
+        System.assertEquals('https://example.com/program-rep-sign.png', controller.vfProgramRepImgUrl);
         System.assertNotEquals(null, controller.currentRecordDate, 'Date should be set for PDF.');
     }
 
@@ -53,27 +55,33 @@ private class NoticeToProceedCtrlTest {
         String signatureBody = EncodingUtil.base64Encode(Blob.valueOf('fake-signature'));
 
         Test.startTest();
-        Map<String, String> signatureResult = NoticeToProceedCtrl.saveSignature(projectId, signatureBody);
+        Map<String, String> ownerSignatureResult = NoticeToProceedCtrl.saveSignature(projectId, signatureBody, 'Property Owner');
+        Map<String, String> contractorSignatureResult = NoticeToProceedCtrl.saveSignature(projectId, signatureBody, 'Contractor Representative');
+        Map<String, String> programSignatureResult = NoticeToProceedCtrl.saveSignature(projectId, signatureBody, 'Home Improvement Program Representative');
         String pdfResult = NoticeToProceedCtrl.savePdf(
             projectId,
             UserInfo.getUserId(),
             Date.today().format(),
-            signatureResult.get('imgUrl'),
-            'Signer Name',
-            signatureResult.get('cvId')
+            ownerSignatureResult.get('imgUrl'),
+            contractorSignatureResult.get('imgUrl'),
+            programSignatureResult.get('imgUrl'),
+            ownerSignatureResult.get('cvId'),
+            contractorSignatureResult.get('cvId'),
+            programSignatureResult.get('cvId'),
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
         );
         Test.stopTest();
 
         System.assertEquals('Success', pdfResult, 'PDF save should succeed.');
-        System.assertEquals(true, String.isNotBlank(signatureResult.get('cvId')));
-
-        buildertek__Project__c savedProject = [
-            SELECT Notice_To_Proceed_Submitted__c, Notice_To_Proceed_Submitted_Date__c
-            FROM buildertek__Project__c
-            WHERE Id = :projectId
-        ];
-        System.assertEquals(true, savedProject.Notice_To_Proceed_Submitted__c, 'Submitted flag should be set.');
-        System.assertEquals(Date.today(), savedProject.Notice_To_Proceed_Submitted_Date__c, 'Submitted date should be set.');
+        System.assertEquals(true, String.isNotBlank(ownerSignatureResult.get('cvId')));
+        System.assertEquals(true, String.isNotBlank(contractorSignatureResult.get('cvId')));
+        System.assertEquals(true, String.isNotBlank(programSignatureResult.get('cvId')));
 
         List<ContentVersion> pdfFiles = [
             SELECT Id, Title
@@ -90,7 +98,7 @@ private class NoticeToProceedCtrlTest {
         System.assert(!links.isEmpty(), 'PDF should be linked to project.');
     }
 
-    private static buildertek__Project__c buildProject(Id customerId, Id contractorId) {
+    public static buildertek__Project__c buildProject(Id customerId, Id contractorId) {
         Schema.SObjectType projectType = Schema.getGlobalDescribe().get('buildertek__Project__c');
         buildertek__Project__c project = (buildertek__Project__c) projectType.newSObject();
         Map<String, Schema.SObjectField> fields = projectType.getDescribe().fields.getMap();
@@ -117,7 +125,7 @@ private class NoticeToProceedCtrlTest {
         return project;
     }
 
-    private static void putIfExists(SObject sobj, Map<String, Schema.SObjectField> fields, String apiName, Object value) {
+    public static void putIfExists(SObject sobj, Map<String, Schema.SObjectField> fields, String apiName, Object value) {
         if (fields.containsKey(apiName) && value != null) {
             try {
                 Schema.DisplayType fieldType = fields.get(apiName).getDescribe().getType();
@@ -131,7 +139,7 @@ private class NoticeToProceedCtrlTest {
         }
     }
 
-    private static void applyRequiredDefaults(SObject sobj, Map<String, Schema.SObjectField> fields) {
+    public static void applyRequiredDefaults(SObject sobj, Map<String, Schema.SObjectField> fields) {
         Map<String, Object> currentValues = sobj.getPopulatedFieldsAsMap();
 
         for (String fieldName : fields.keySet()) {

@@ -1,225 +1,856 @@
-<apex:page sidebar="false" showHeader="false" applyHtmlTag="false" applyBodyTag="false" standardStylesheets="false" renderAs="pdf" controller="HIPApplicationCtrl">
+<apex:page controller="HIPApplicationCtrl" renderAs="pdf" sidebar="false" showHeader="false" applyHtmlTag="false" applyBodyTag="false" standardStylesheets="false">
     <html>
     <head>
         <style type="text/css">
             @page {
-                margin: 0.65in;
+                margin: 0.45in;
                 size: letter;
             }
             body {
+                margin: 0;
+                padding: 0;
+                color: #112a46;
                 font-family: "Times New Roman", Times, serif;
-                font-size: 13.5pt;
-                color: #222;
-                line-height: 1.34;
+                font-size: 13px;
+                line-height: 1.35;
+            }
+            .page-shell {
+                border: 1px solid #d8e1eb;
+                padding: 14px;
+                margin-bottom: 20px;
             }
             .header {
-                min-height: 80px;
-                margin-bottom: 12px;
+                text-align: center;
+                margin-bottom: 10px;
             }
             .logo {
-                width: 96px;
+                width: 240px;
                 height: auto;
             }
-            p {
-                margin: 0 0 14px;
-            }
-            .salutation {
+            .doc-title {
+                margin: 6px 0 20px;
+                padding-bottom: 10px;
+                border-bottom: 1px solid #c9d4e3;
+                color: #112a46;
+                font-size: 22px;
                 font-weight: bold;
+                text-align: center;
+                text-transform: uppercase;
             }
             .section-title {
-                margin: 8px 0 10px;
-                font-size: 17pt;
+                margin: 20px 0 10px;
+                color: #102a43;
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 16px;
                 font-weight: bold;
             }
-            .income-title {
-                margin: 12px 0 16px;
-                text-align: center;
-                text-decoration: underline;
-                font-size: 16pt;
+            .section-box-title {
+                margin: 0 0 10px;
+                color: #102a43;
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 16px;
                 font-weight: bold;
             }
-            .income-grid {
-                width: 100%;
-                margin: 0 0 16px;
-            }
-            .income-grid td {
-                width: 33%;
-                vertical-align: top;
-                font-weight: bold;
-                padding-bottom: 6px;
+            p {
+                margin: 0 0 8px;
+                color: #173a5e;
             }
             ul {
-                margin: 0 0 14px 22px;
+                margin: 0 0 8px 18px;
+                padding: 0;
+                color: #173a5e;
             }
-            ul li {
-                margin: 0 0 6px;
+            li {
+                margin-bottom: 4px;
             }
-            .center-address {
-                margin-top: 90px;
-                text-align: center;
-                font-size: 18pt;
+            .address-block {
+                margin: 12px 0;
+                padding: 12px;
+                border: 1px solid #bddbd4;
+                background: #edf7f5;
+                color: #17334a;
+                font-size: 16px;
                 font-weight: bold;
+                line-height: 1.35;
+                text-align: center;
+            }
+            .income-table,
+            .field-table,
+            .grid-table,
+            .asset-table,
+            .signature-table {
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0;
+                border-top: 1px solid #c9d4e3;
+                border-left: 1px solid #c9d4e3;
+                -fs-table-paginate: paginate;
+            }
+            .income-table td {
+                width: 33%;
+                padding: 8px 12px;
+                border-right: 1px solid #9fb2c6;
+                border-bottom: 1px solid #9fb2c6;
+                background: #ffffff;
+                color: #173a5e;
+                font-weight: bold;
+                vertical-align: top;
+            }
+            .income-table {
+                border-top: 1px solid #9fb2c6;
+                border-left: 1px solid #9fb2c6;
+                margin-bottom: 10px;
+            }
+            .field-table td,
+            .grid-table td,
+            .asset-table th,
+            .asset-table td,
+            .signature-table td {
+                border-right: 1px solid #c9d4e3;
+                border-bottom: 1px solid #c9d4e3;
+                padding: 5px 6px;
+                vertical-align: top;
+            }
+            .asset-table th {
+                background: #f4f8fc;
+                color: #102a43;
+                font-weight: bold;
+                text-align: left;
+            }
+            .income-table tr,
+            .field-table tr,
+            .grid-table tr,
+            .asset-table tr,
+            .signature-table tr,
+            .pdf-document-table tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+            .pdf-asset-table {
+                table-layout: fixed;
+                margin-bottom: 10px;
+            }
+            .pdf-asset-table th,
+            .pdf-asset-table td {
+                word-wrap: break-word;
+            }
+
+            .household-member-table {
+                table-layout: fixed;
+                width: 100%;
+                font-size: 11px;
+            }
+            .household-member-table th,
+            .household-member-table td {
+                word-wrap: break-word;
+                word-break: break-all;
+            }
+
+            .household-info-table {
+                border-collapse: collapse;
+                table-layout: fixed;
+            }
+            .household-info-table td {
+                width: 50%;
+                padding: 7px 8px;
+            }
+            .household-info-table .label {
+                margin-bottom: 4px;
+            }
+            .household-info-table .blank {
+                min-height: 14px;
+                padding-bottom: 2px;
+                font-size: 13px;
                 line-height: 1.25;
             }
-            .center-note {
-                margin-top: 170px;
+            .characteristics-table {
+                table-layout: fixed;
+            }
+            .characteristics-label {
+                width: 45%;
+            }
+            .characteristics-value {
+                width: 55%;
+            }
+            .pdf-document-table {
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0;
+                border-top: 1px solid #c9d4e3;
+                border-left: 1px solid #c9d4e3;
+                -fs-table-paginate: paginate;
+                color: #173a5e;
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 12px;
+            }
+            .pdf-document-table th,
+            .pdf-document-table td {
+                border-right: 1px solid #c9d4e3;
+                border-bottom: 1px solid #c9d4e3;
+                padding: 5px 6px;
+                vertical-align: middle;
+            }
+            .pdf-document-table th {
+                background: #f4f8fc;
+                color: #102a43;
+                font-weight: bold;
+                text-align: left;
+            }
+            .pdf-adult-heading {
+                margin: 20px 0 6px;
+                color: #102a43;
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 14px;
+            }
+            .pdf-adult-heading span {
+                margin-right: 22px;
+            }
+            .pdf-adult-name {
+                margin: 0 0 4px;
+                color: #173a5e;
+                font-family: "Times New Roman", Times, serif;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            .pdf-adult-name .blank {
+                display: inline-block;
+                width: 250px;
+                min-height: 10px;
+                margin-left: 6px;
+            }
+            .pdf-money-cell {
+                white-space: nowrap;
+            }
+            .pdf-money-cell .blank,
+            .pdf-budget-cell .blank {
+                display: inline-block;
+                width: 82%;
+                min-height: 10px;
+                margin-left: 4px;
+            }
+            .pdf-income-assets-table {
+                table-layout: fixed;
+            }
+            .pdf-income-assets-table .pdf-money-cell {
+                white-space: normal;
+            }
+            .pdf-income-money-line {
+                width: 100%;
+                border-collapse: collapse;
+                table-layout: fixed;
+            }
+            .pdf-document-table .pdf-income-money-line td {
+                border: 0;
+                padding: 0;
+                vertical-align: bottom;
+            }
+            .pdf-income-money-symbol {
+                width: 14px;
+            }
+            .pdf-income-money-value {
+                width: 100%;
+            }
+            .pdf-income-assets-table .pdf-income-money-value .blank {
+                display: block;
+                width: 100%;
+                margin-left: 0;
+            }
+            .pdf-assessment-title {
+                margin: 20px 0 8px;
+                color: #102a43;
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 17px;
+                font-weight: bold;
+            }
+            .debt-table {
+                margin-top: 8px;
+            }
+            .pdf-debt-total-value .blank {
+                display: inline-block;
+                width: 94%;
+                margin-left: 4px;
+            }
+            .pdf-income-label {
+                color: #10a846;
+                font-size: 17px;
+            }
+            .pdf-expense-label {
+                color: #f00;
+                font-size: 17px;
+            }
+            .pdf-document-table th.pdf-income-label,
+            .pdf-document-table th.pdf-expense-label {
                 text-align: center;
+            }
+            .label {
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 11px;
+                font-weight: bold;
+                color: #173a5e;
+            }
+            .blank {
+                display: block;
+                min-height: 13px;
+                padding-bottom: 2px;
+                border-bottom: 1px solid #6f8194;
+            }
+            .long-blank {
+                min-height: 32px;
+            }
+            .doc-line-block {
+                margin: 10px 0 0;
+                font-family: "Times New Roman", Times, serif;
+                font-size: 13px;
+                line-height: 1.45;
+                color: #102a43;
+            }
+            .doc-line-block + .doc-line-block {
+                margin-top: 8px;
+            }
+            .doc-line-block-after-table {
+                margin-top: 18px;
+            }
+            .doc-line {
+                margin: 0 0 8px;
+            }
+            .yes-no-group {
+                display: inline-block;
+                margin-left: 8px;
+                white-space: nowrap;
+            }
+            .yes-no-option {
+                display: inline-block;
+                white-space: nowrap;
+            }
+            .doc-line .inline-blank {
+                display: inline-block;
+                min-width: 115px;
+                border-bottom: 1px solid #444;
+                line-height: 14px;
+            }
+            .doc-line .wide-inline-blank {
+                min-width: 300px;
+            }
+            .doc-line .short-inline-blank {
+                min-width: 65px;
+            }
+            .doc-line .pdf-check {
+                display: inline-block;
+                width: 13px;
+                height: 13px;
+                margin: 0 20px 0 5px;
+                border: 1px solid #444;
+                font-family: "Arial Unicode MS", Arial, Helvetica, sans-serif;
+                font-size: 11px;
+                font-weight: bold;
+                line-height: 13px;
+                text-align: center;
+                vertical-align: -1px;
+            }
+            .doc-line .pdf-check-checked {
+                border-color: #444;
+                background: #ffffff;
+                color: #000000;
+                font-family: "Arial Unicode MS", Arial, Helvetica, sans-serif;
+                font-size: 12px;
+                font-weight: bold;
+                line-height: 13px;
+            }
+            .doc-line .money-space {
+                display: inline-block;
+                width: 12px;
             }
             .check-list {
                 list-style: none;
-                margin: 0 0 14px;
-                padding: 0;
+                margin-left: 0;
             }
             .check-list li {
-                margin: 0 0 7px;
-                padding-left: 22px;
-                position: relative;
+                margin-bottom: 6px;
+                padding: 0;
             }
-            .check-list li:before {
-                content: "";
-                position: absolute;
-                left: 0;
-                top: 6px;
-                width: 10px;
-                height: 10px;
-                border: 1.5px solid #666;
-            }
-            .red-note {
-                text-align: center;
-                color: #c5261b;
+            .check-list .pdf-check {
+                display: inline-block;
+                width: 12px;
+                height: 12px;
+                margin: 0 6px 0 0;
+                border: 1px solid #d8dde6;
+                font-family: "Arial Unicode MS", Arial, Helvetica, sans-serif;
+                font-size: 11px;
                 font-weight: bold;
-                margin: 10px 0 16px;
-            }
-            .final-note {
-                margin-top: 90px;
+                line-height: 12px;
                 text-align: center;
+                vertical-align: -1px;
+            }
+            .pdf-check-checked {
+                border-color: #444;
+                background: #ffffff;
+                color: #000000;
+                font-family: "Arial Unicode MS", Arial, Helvetica, sans-serif;
+                font-size: 11px;
+                font-weight: bold;
+            }
+            .note {
+                margin: 12px 0;
+                padding: 8px;
+                border: 1px solid #f3c6c6;
+                background: #fff5f5;
+                color: #8a1f2d;
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 12px;
+                font-weight: bold;
+                text-align: center;
+            }
+            .check-note {
+                margin: 15px 0 10px;
+                color: #ba1b1b;
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 12px;
+                font-weight: bold;
+                text-align: center;
+            }
+            .small-text {
+                font-size: 11px;
+            }
+            .body-note {
+                margin: 4px 0 8px;
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 11px;
+                font-weight: bold;
+                color: #173a5e;
+            }
+            .warning-copy {
+                margin: 3px 0 8px;
+                padding: 7px 9px;
+                border: 1px solid #f5c542;
+                background: #fff8db;
+                color: #6f4b00;
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 11px;
                 font-weight: bold;
             }
             .page-break {
                 page-break-before: always;
             }
+            .avoid-break {
+                page-break-inside: avoid;
+            }
+            .signature-box {
+                height: 135px;
+                max-height: 135px;
+                width: 100%;
+                border: 1px dashed #5c728a;
+                background: #fff;
+                overflow: hidden;
+                line-height: 0;
+            }
+            .signature-box img {
+                display: block;
+                max-width: 100%;
+                width: auto;
+                height: 100%;
+                margin: 0 auto;
+            }
+            .signature-title {
+                margin-bottom: 5px;
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 12px;
+                font-weight: bold;
+                text-transform: uppercase;
+            }
         </style>
     </head>
     <body>
-        <div class="header">
-            <apex:image value="{!logoUrl}" rendered="{!logoUrl != null}" styleClass="logo"/>
+        <div class="page-shell">
+            <div class="header">
+                <apex:image value="{!logoUrl}" rendered="{!logoUrl != null}" styleClass="logo"/>
+            </div>
+            <div class="doc-title">Home Improvement Program Application</div>
+
+            <p><b>Dear Homeowner,</b></p>
+            <p>
+                Thank you for your interest in Galvan Housing Resources' Home Improvement Program.
+                GHR provides matching grants for project costs to assist low to moderate-income homeowners
+                in completing necessary health and safety-related repairs and improvements to their homes.
+                Pre-qualified contractors will complete improvements after an open and competitive bidding process.
+            </p>
+            <p>
+                The primary threshold requirements for participation are that the recipient household must own
+                the subject property and maintain it as their principal place of residence at the time of application.
+                Further, the participant household must earn no more than 80% of the Columbia County median income
+                adjusted by family size according to the most recently published U.S. Department of Housing and
+                Urban Development (HUD) median income data.
+            </p>
+
+            <div class="section-title">2025 Income Limits (by family size)</div>
+            <table class="income-table">
+                <tr>
+                    <td>1 Person: $63,150</td>
+                    <td>4 Person: $90,150</td>
+                    <td>7 Person: $111,800</td>
+                </tr>
+                <tr>
+                    <td>2 Person: $72,150</td>
+                    <td>5 Person: $97,400</td>
+                    <td>8 Person: $119,000</td>
+                </tr>
+                <tr>
+                    <td>3 Person: $81,150</td>
+                    <td>6 Person: $104,600</td>
+                    <td>&nbsp;</td>
+                </tr>
+            </table>
+
+            <p>
+                Examples of work that can be done on a home to bring a structure into compliance with
+                applicable laws and regulations include, but are not limited to:
+            </p>
+            <ul>
+                <li>Installation, replacement or repair of heating, plumbing, electrical, and related systems</li>
+                <li>Work to improve habitability or prolong the useful life of the home</li>
+                <li>Roof repairs</li>
+                <li>Elimination of all hazardous materials and violations</li>
+                <li>General structural repairs</li>
+            </ul>
+            <p>
+                The Home Improvement Program Grant is a matching grant. Galvan Housing Resources has executed
+                an agreement with Columbia Opportunities Inc. to provide matching services under their
+                Weatherization program.
+            </p>
+            <p>
+                Please complete, sign, and date the enclosed application and return it to address below.
+                Once received, we will contact you to set up a time to review the information.
+            </p>
+
+            <p class="address-block">
+                Galvan Housing Resources,<br/>
+                64 Green Street,<br/>
+                Hudson, NY 12534<br/>
+                Attn: Susan Petersen
+            </p>
+
+            <div class="section-title">Recapture/Compliance Requirements</div>
+            <p>
+                Certain occupancy restrictions, secured by a subordinate mortgage, apply to recipients of Home
+                Improvement Program (HIP) grants. These grant funds will be secured by a note and mortgage for
+                2-15 years, depending on the amount of funds, with no required repayment as long as you remain
+                in and are the owner of the house for the required length of time.
+            </p>
+
+            <div class="section-title">The following information MUST be attached to the application:</div>
+            <ul class="check-list">
+                <li><span class="pdf-check {!pdfApplicationHomeOwnershipClass}"><apex:outputText value="{!pdfApplicationHomeOwnershipMark}" escape="false"/></span>Proof of Home ownership (legible copy of recorded deed)</li>
+                <li><span class="pdf-check {!pdfApplicationHomeownersInsuranceClass}"><apex:outputText value="{!pdfApplicationHomeownersInsuranceMark}" escape="false"/></span>Proof of Homeowner's insurance (recent declaration page/recent certificate from agent)</li>
+                <li><span class="pdf-check {!pdfApplicationTaxReceiptClass}"><apex:outputText value="{!pdfApplicationTaxReceiptMark}" escape="false"/></span>Copies of most recent paid Property, Town and Village AND School tax receipt</li>
+                <li><span class="pdf-check {!pdfApplicationMortgageStatementClass}"><apex:outputText value="{!pdfApplicationMortgageStatementMark}" escape="false"/></span>Most recent mortgage statement, if applicable. The mortgage must be paid up to date.</li>
+            </ul>
+            <p class="check-note">Please use boxes to check off items once attached</p>
+
+            <div class="section-title">Plus: For EACH household member 18 years and older:</div>
+            <ul class="check-list">
+                <li><span class="pdf-check {!pdfAdultIncomeProofClass}"><apex:outputText value="{!pdfAdultIncomeProofMark}" escape="false"/></span>Proof of income from all sources - 2 months of current and consecutive pay stubs, statements from SS, SSD, SSI, child support, alimony, DSS assistance, etc.</li>
+                <li><span class="pdf-check {!pdfAdultFederalTaxReturnsClass}"><apex:outputText value="{!pdfAdultFederalTaxReturnsMark}" escape="false"/></span>Completed, signed and dated copies of the most recent FEDERAL tax returns and W2's (2024 and 2025) OR a notarized statement of non-filing of tax returns, if applicable</li>
+                <li><span class="pdf-check {!pdfAdultBankStatementsClass}"><apex:outputText value="{!pdfAdultBankStatementsMark}" escape="false"/></span>Three most recent bank statements for each bank account per household member</li>
+                <li><span class="pdf-check {!pdfAdultLifeInsuranceClass}"><apex:outputText value="{!pdfAdultLifeInsuranceMark}" escape="false"/></span>Recent whole life insurance policy (if applicable) statement showing the cash surrender value (term life policies are excluded)</li>
+                <li><span class="pdf-check {!pdfAdultPaymentAppsClass}"><apex:outputText value="{!pdfAdultPaymentAppsMark}" escape="false"/></span>Recent statements showing your name and your balance of ALL peer-to-peer payment apps including but not limited to: VenMo, Zelle, CashApp, Paypal, etc.</li>
+                <li><span class="pdf-check {!pdfAdultUtilityBillsClass}"><apex:outputText value="{!pdfAdultUtilityBillsMark}" escape="false"/></span>Copies of most recent utility bills and monthly debt obligations, i.e., electric, phone, etc.</li>
+                <li><span class="pdf-check {!pdfAdultFinancialAssessmentClass}"><apex:outputText value="{!pdfAdultFinancialAssessmentMark}" escape="false"/></span>Completed Financial Assessment (page 9)</li>
+            </ul>
+            <p class="note">Incomplete applications will not be accepted</p>
         </div>
-
-        <p class="salutation">Dear Homeowner,</p>
-
-        <p>
-            Thank you for your interest in Galvan Housing Resources' Home Improvement Program.
-            GHR provides matching grants for project costs to assist low to moderate-income
-            homeowners in completing necessary health and safety-related repairs and improvements
-            to their homes. Pre-qualified contractors will complete improvements after an open and
-            competitive bidding process.
-        </p>
-
-        <p>
-            The primary threshold requirements for participation are that the recipient household
-            must own the subject property and maintain it as their principal place of residence at
-            the time of application. Further, the participant household must earn no more than 80%
-            of the Columbia County median income adjusted by family size according to the most
-            recently published U.S. Department of Housing and Urban Development (HUD) median
-            income data:
-        </p>
-
-        <div class="income-title">*2025 Income Limits (by family size)</div>
-
-        <table class="income-grid" cellspacing="0" cellpadding="0">
-            <tr>
-                <td>1 Person: $63,150</td>
-                <td>4 Person: $90,150</td>
-                <td>7 Person: $111,800</td>
-            </tr>
-            <tr>
-                <td>2 Person: $72,150</td>
-                <td>5 Person: $97,400</td>
-                <td>8 Person: $119,000</td>
-            </tr>
-            <tr>
-                <td>3 Person: $81,150</td>
-                <td>6 Person: $104,600</td>
-                <td></td>
-            </tr>
-        </table>
-
-        <p>
-            Examples of work that can be done on a home to bring a structure into compliance with
-            applicable laws and regulations, include but are not limited to the following:
-        </p>
-
-        <ul>
-            <li>Installation, replacement or repair of heating, plumbing, electrical, and related systems</li>
-            <li>Work to improve habitability or prolong the useful life of the home</li>
-            <li>Roof repairs</li>
-            <li>Elimination of all hazardous materials and violations</li>
-            <li>General structural repairs</li>
-        </ul>
-
-        <p>
-            The Home Improvement Program Grant is a matching grant. Galvan Housing Resources has
-            executed an agreement with Columbia Opportunities Inc. to provide matching services under
-            their Weatherization program.
-        </p>
-
-        <p>
-            Please complete, sign, and date the enclosed application and return it to address below.
-            Once received, we will contact you to set up a time to review the information.
-        </p>
 
         <div class="page-break"></div>
-        <div class="header">
-            <apex:image value="{!logoUrl}" rendered="{!logoUrl != null}" styleClass="logo"/>
+        <div class="page-shell">
+            <div class="section-box-title">Household Member Information</div>
+            <table class="field-table household-info-table">
+                <tr>
+                    <td width="50%"><div class="label">Applicant Name</div><span class="blank">{!pdfApplicantName}</span></td>
+                    <td width="50%"><div class="label">Property Address</div><span class="blank">{!pdfPropertyAddress}</span></td>
+                </tr>
+                <tr>
+                    <td><div class="label">Marital Status</div><span class="blank">{!pdfMaritalStatus}</span></td>
+                    <td><div class="label">Household Type</div><span class="blank">{!pdfHouseholdType}</span></td>
+                </tr>
+                <tr>
+                    <td><div class="label">Number of Units in Building</div><span class="blank">{!pdfNumberOfUnitsInBuilding}</span></td>
+                    <td><div class="label">Family / Household Size</div><span class="blank">{!pdfFamilyHouseholdSize}</span></td>
+                </tr>
+                <tr>
+                    <td width="50%"><div class="label">How Many Dependents?</div><span class="blank">{!pdfHowManyDependents}</span></td>
+                </tr>
+            </table>
+
+            <div class="section-title">List ALL household member's information below</div>
+            <table class="asset-table household-member-table">
+                <colgroup>
+                    <col style="width: 18%;" />
+                    <col style="width: 15%;" />
+                    <col style="width: 12%;" />
+                    <col style="width: 12%;" />
+                    <col style="width: 28%;" />
+                    <col style="width: 15%;" />
+                </colgroup>
+                <tr>
+                    <th>Name</th>
+                    <th>Social Security #</th>
+                    <th>Date of Birth</th>
+                    <th>Phone</th>
+                    <th>Email Address</th>
+                    <th>Relationship</th>
+                </tr>
+                <apex:repeat value="{!pdfBorrowers}" var="member">
+                    <tr>
+                        <td>{!member.name}</td>
+                        <td>&nbsp;</td>
+                        <td>{!member.dateOfBirth}</td>
+                        <td>&nbsp;</td>
+                        <td style="word-wrap: break-word; word-break: break-all;">{!member.emailAddress}</td>
+                        <td>{!member.relationship}</td>
+                    </tr>
+                </apex:repeat>
+            </table>
+
+            <div class="doc-line-block doc-line-block-after-table">
+                <div class="doc-line">Has your home ever received weatherization assistance? <span class="yes-no-group"><span class="yes-no-option">Yes:<span class="pdf-check {!pdfHomeWeatherizationYesClass}"><apex:outputText value="{!pdfHomeWeatherizationYesMark}" escape="false"/></span></span><span class="yes-no-option">No:<span class="pdf-check {!pdfHomeWeatherizationNoClass}"><apex:outputText value="{!pdfHomeWeatherizationNoMark}" escape="false"/></span></span></span></div>
+                <div class="doc-line">If Yes, Year received: <span class="inline-blank short-inline-blank">&nbsp;</span><span class="money-space"></span>Amount received: $<span class="inline-blank">&nbsp;</span></div>
+                <div class="doc-line">Do you have a Weatherization application pending? <span class="yes-no-group"><span class="yes-no-option">Yes:<span class="pdf-check"></span></span><span class="yes-no-option">No:<span class="pdf-check"></span></span></span></div>
+                <div class="doc-line">Have you received HEAP Assistance? <span class="yes-no-group"><span class="yes-no-option">Yes:<span class="pdf-check"></span></span><span class="yes-no-option">No:<span class="pdf-check"></span></span></span>If yes, Year: <span class="inline-blank short-inline-blank">&nbsp;</span></div>
+                <div class="doc-line">How much money are you able to make available, from any source, to pay for necessary repairs? $<span class="inline-blank">&nbsp;</span></div>
+            </div>
+
+            <div class="doc-line-block">
+                <div class="doc-line">Have you sold/disposed of any property in the last 2 years? <span class="yes-no-group"><span class="yes-no-option">Yes:<span class="pdf-check"></span></span><span class="yes-no-option">No:<span class="pdf-check"></span></span></span></div>
+                <div class="doc-line">IF YES, list <span class="inline-blank wide-inline-blank">&nbsp;</span></div>
+                <div class="doc-line">Have you disposed of any other assets in the last 2 years? (Example: give away money to relatives, set up Irrevocable Trust Accounts) <span class="yes-no-group"><span class="yes-no-option">Yes:<span class="pdf-check"></span></span><span class="yes-no-option">No:<span class="pdf-check"></span></span></span></div>
+                <div class="doc-line">IF YES, describe asset: <span class="inline-blank wide-inline-blank">&nbsp;</span></div>
+                <div class="doc-line">Whose name(s) are listed on the deed to your property? <span class="inline-blank wide-inline-blank">&nbsp;</span></div>
+                <div class="doc-line">When did you purchase the property? <span class="inline-blank wide-inline-blank">&nbsp;</span></div>
+            </div>
+
+            <div class="doc-line-block">
+                <div class="doc-line">Is there a mortgage on the property? <span class="yes-no-group"><span class="yes-no-option">Yes<span class="pdf-check"></span></span><span class="yes-no-option">No<span class="pdf-check"></span></span></span></div>
+                <div class="doc-line">If yes, outstanding mortgage balance due $<span class="inline-blank">&nbsp;</span></div>
+                <div class="doc-line">If yes, what are your monthly mortgage payments? $<span class="inline-blank">&nbsp;</span></div>
+                <div class="doc-line">Does that include escrow for taxes and insurance? <span class="yes-no-group"><span class="yes-no-option">Yes<span class="pdf-check"></span></span><span class="yes-no-option">No<span class="pdf-check"></span></span></span></div>
+                <div class="doc-line">Are you behind any mortgage payments? <span class="yes-no-group"><span class="yes-no-option">Yes<span class="pdf-check"></span></span><span class="yes-no-option">No<span class="pdf-check"></span></span></span></div>
+                <p class="warning-copy avoid-break">If YES- STOP- you must be up to date with all mortgage payments to qualify for this wait list. Please contact our Foreclosure prevention counselor services at 518-822-0707 extension 104.</p>
+                <div class="doc-line">Is your home covered by homeowner's insurance? <span class="yes-no-group"><span class="yes-no-option">Yes<span class="pdf-check"></span></span><span class="yes-no-option">No<span class="pdf-check"></span></span></span></div>
+                <p class="warning-copy avoid-break">If NO- STOP- all homes must be covered by homeowner's insurance.</p>
+                <div class="doc-line">Amount of annual insurance premium $<span class="inline-blank">&nbsp;</span></div>
+                <div class="doc-line">Is your home current on Property, Town &amp; Village AND School Taxes? <span class="yes-no-group"><span class="yes-no-option">Yes<span class="pdf-check"></span></span><span class="yes-no-option">No<span class="pdf-check"></span></span></span></div>
+                <p class="warning-copy avoid-break">If NO- STOP- all homes must be up to date on taxes.</p>
+                <div class="doc-line">Amount of annual taxes paid $<span class="inline-blank">&nbsp;</span></div>
+                <div class="doc-line">Are there any other liens against your property besides your primary mortgage? <span class="yes-no-group"><span class="yes-no-option">Yes<span class="pdf-check"></span></span><span class="yes-no-option">No<span class="pdf-check"></span></span></span></div>
+                <div class="doc-line">If you answered &quot;yes&quot;, please explain: <span class="inline-blank wide-inline-blank">&nbsp;</span></div>
+                <div class="doc-line">Appraised market value of property (as per most recent tax bill) $<span class="inline-blank">&nbsp;</span></div>
+                <div class="doc-line">Amount of most recent tax bill(s) $<span class="inline-blank">&nbsp;</span></div>
+                <div class="doc-line">Is it a single family house? <span class="yes-no-group"><span class="yes-no-option">Yes<span class="pdf-check"></span></span><span class="yes-no-option">No<span class="pdf-check"></span></span></span></div>
+                <div class="doc-line">Approximate age of your house <span class="inline-blank short-inline-blank">&nbsp;</span> How many bedrooms? <span class="inline-blank short-inline-blank">&nbsp;</span></div>
+                <div class="doc-line">If not, how many units are there? <span class="inline-blank short-inline-blank">&nbsp;</span> How many buildings are on property <span class="inline-blank short-inline-blank">&nbsp;</span></div>
+                <div class="doc-line">If more than one, what are the other buildings used for? <span class="inline-blank wide-inline-blank">&nbsp;</span></div>
+                <div class="doc-line">Please list what health and safety repairs and improvements your home needs:</div>
+                <div class="doc-line"><span class="inline-blank wide-inline-blank">&nbsp;</span></div>
+            </div>
         </div>
-        <div class="center-address">
-            <div>Galvan Housing Resources,</div>
-            <div>64 Green Street,</div>
-            <div>Hudson, NY 12534</div>
-            <div>Attn: Susan Petersen</div>
-        </div>
-        <p class="center-note">*income limits good until May 2026</p>
 
         <div class="page-break"></div>
-        <div class="header">
-            <apex:image value="{!logoUrl}" rendered="{!logoUrl != null}" styleClass="logo"/>
+        <div class="page-shell">
+            <div class="section-box-title">Household Characteristics</div>
+            <p class="body-note">The Federal Government for statistical information requests the following information. You are not required to furnish this information but are encouraged to do so. This information will not affect your participation in the program.</p>
+            <table class="field-table characteristics-table">
+                <tr>
+                    <td class="characteristics-label"><div class="label">Race / Ethnicity of Head of Household</div></td>
+                    <td class="characteristics-value"><span class="blank">{!pdfRaceEthnicityHead}</span></td>
+                </tr>
+                <tr>
+                    <td class="characteristics-label"><div class="label">Race / Ethnicity of Co-Applicant</div></td>
+                    <td class="characteristics-value"><span class="blank">{!pdfRaceEthnicityCoApplicant}</span></td>
+                </tr>
+                <tr>
+                    <td class="characteristics-label"><div class="label">Any Galvan Personal / Business / Family Ties in Last 12 Months?</div></td>
+                    <td class="characteristics-value"><span class="blank">{!pdfHasGalvanTies}</span></td>
+                </tr>
+                <tr>
+                    <td class="characteristics-label"><div class="label">Explanation if Yes</div></td>
+                    <td class="characteristics-value"><span class="blank long-blank">&nbsp;</span></td>
+                </tr>
+            </table>
+
+            <div class="section-title">Adult Income and Assets</div>
+            <apex:repeat value="{!pdfBorrowers}" var="borrower">
+                <div class="pdf-adult-heading"><span>{!borrower.roleLabel}</span><strong>List GROSS MONTHLY amounts</strong></div>
+                <div class="pdf-adult-name">Name of adult:<span class="blank">{!borrower.name}</span></div>
+                <table class="pdf-document-table pdf-income-assets-table">
+                    <colgroup>
+                        <col style="width: 42%;" />
+                        <col style="width: 35%;" />
+                        <col style="width: 23%;" />
+                    </colgroup>
+                    <tr><td>Employment</td><td>Gross Monthly Amount</td><td class="pdf-money-cell"><table class="pdf-income-money-line"><tr><td class="pdf-income-money-symbol">$</td><td class="pdf-income-money-value"><span class="blank">{!borrower.employmentGrossMonthlyAmount}</span></td></tr></table></td></tr>
+                    <tr><td>Employer</td><td colspan="2"><span class="blank">{!borrower.employer}</span></td></tr>
+                    <tr><td>Position held?</td><td colspan="2"><span class="blank">{!borrower.positionHeld}</span></td></tr>
+                    <tr><td>How long employed?</td><td colspan="2"><span class="blank">{!borrower.howLongEmployed}</span></td></tr>
+                    <tr><td>Pension</td><td>Gross Monthly Amount</td><td class="pdf-money-cell"><table class="pdf-income-money-line"><tr><td class="pdf-income-money-symbol">$</td><td class="pdf-income-money-value"><span class="blank">{!borrower.pension}</span></td></tr></table></td></tr>
+                    <tr><td>Source of Pension &amp; Address:</td><td colspan="2"><span class="blank">&nbsp;</span></td></tr>
+                    <tr><td>Social Security</td><td>Monthly Amount</td><td class="pdf-money-cell"><table class="pdf-income-money-line"><tr><td class="pdf-income-money-symbol">$</td><td class="pdf-income-money-value"><span class="blank">{!borrower.socialSecurityDisability}</span></td></tr></table></td></tr>
+                    <tr><td>SSI / SSD</td><td>Monthly Amount</td><td class="pdf-money-cell"><table class="pdf-income-money-line"><tr><td class="pdf-income-money-symbol">$</td><td class="pdf-income-money-value"><span class="blank">&nbsp;</span></td></tr></table></td></tr>
+                    <tr><td>Unemployment</td><td>Monthly Amount</td><td class="pdf-money-cell"><table class="pdf-income-money-line"><tr><td class="pdf-income-money-symbol">$</td><td class="pdf-income-money-value"><span class="blank">{!borrower.unemployment}</span></td></tr></table></td></tr>
+                    <tr><td>Self-Employment</td><td>Monthly Amount</td><td class="pdf-money-cell"><table class="pdf-income-money-line"><tr><td class="pdf-income-money-symbol">$</td><td class="pdf-income-money-value"><span class="blank">{!borrower.selfEmployment}</span></td></tr></table></td></tr>
+                    <tr><td>Veterans Benefits</td><td>Monthly Amount</td><td class="pdf-money-cell"><table class="pdf-income-money-line"><tr><td class="pdf-income-money-symbol">$</td><td class="pdf-income-money-value"><span class="blank">&nbsp;</span></td></tr></table></td></tr>
+                    <tr><td>Rental Income</td><td>Monthly Amount</td><td class="pdf-money-cell"><table class="pdf-income-money-line"><tr><td class="pdf-income-money-symbol">$</td><td class="pdf-income-money-value"><span class="blank">{!borrower.rentalIncome}</span></td></tr></table></td></tr>
+                    <tr><td>Earned Income Tax Credit</td><td>Annual Amount</td><td class="pdf-money-cell"><table class="pdf-income-money-line"><tr><td class="pdf-income-money-symbol">$</td><td class="pdf-income-money-value"><span class="blank">&nbsp;</span></td></tr></table></td></tr>
+                    <tr><td>Alimony</td><td>Monthly Amount</td><td class="pdf-money-cell"><table class="pdf-income-money-line"><tr><td class="pdf-income-money-symbol">$</td><td class="pdf-income-money-value"><span class="blank">{!borrower.alimonyChildSupport}</span></td></tr></table></td></tr>
+                    <tr><td>Child Support</td><td>Monthly Amount</td><td class="pdf-money-cell"><table class="pdf-income-money-line"><tr><td class="pdf-income-money-symbol">$</td><td class="pdf-income-money-value"><span class="blank">&nbsp;</span></td></tr></table></td></tr>
+                    <tr><td>Investment Income</td><td>Monthly Amount</td><td class="pdf-money-cell"><table class="pdf-income-money-line"><tr><td class="pdf-income-money-symbol">$</td><td class="pdf-income-money-value"><span class="blank">{!borrower.investmentIncome}</span></td></tr></table></td></tr>
+                    <tr><td>Interest Income</td><td>Monthly Amount</td><td class="pdf-money-cell"><table class="pdf-income-money-line"><tr><td class="pdf-income-money-symbol">$</td><td class="pdf-income-money-value"><span class="blank">{!borrower.interestIncome}</span></td></tr></table></td></tr>
+                    <tr><td>Social Services/Public Assistance</td><td>Monthly Amount</td><td class="pdf-money-cell"><table class="pdf-income-money-line"><tr><td class="pdf-income-money-symbol">$</td><td class="pdf-income-money-value"><span class="blank">{!borrower.publicAssistance}</span></td></tr></table></td></tr>
+                    <tr><td>Other</td><td>Monthly Amount</td><td class="pdf-money-cell"><table class="pdf-income-money-line"><tr><td class="pdf-income-money-symbol">$</td><td class="pdf-income-money-value"><span class="blank">{!borrower.otherIncome}</span></td></tr></table></td></tr>
+                </table>
+                <div class="pdf-adult-heading"><strong>Assets</strong></div>
+                <p class="body-note">Income and asset information must be listed for all members of the household. If more than one type of account exists, use the matching account type rows as needed.</p>
+                <table class="asset-table pdf-asset-table">
+                    <colgroup>
+                        <col style="width: 24%;" />
+                        <col style="width: 18%;" />
+                        <col style="width: 14%;" />
+                        <col style="width: 28%;" />
+                        <col style="width: 16%;" />
+                    </colgroup>
+                    <tr>
+                        <th>Account Type</th>
+                        <th>Account Number</th>
+                        <th>Interest Rate</th>
+                        <th>Institution Name</th>
+                        <th>Amount</th>
+                    </tr>
+                    <apex:repeat value="{!borrower.assets}" var="asset">
+                        <tr>
+                            <td>{!asset.accountType}</td>
+                            <td>{!asset.accountNumber}</td>
+                            <td>{!asset.interestRate}</td>
+                            <td>{!asset.institutionName}</td>
+                            <td>{!asset.amount}</td>
+                        </tr>
+                    </apex:repeat>
+                </table>
+            </apex:repeat>
         </div>
-        <div class="section-title">Recapture/Compliance Requirements:</div>
-        <p>
-            Certain occupancy restrictions, secured by a subordinate mortgage, apply to recipients
-            of Home Improvement Program (HIP) grants. These grant funds will be secured by a note and
-            mortgage for 2-15 years, depending on the amount of funds, with no required repayment as
-            long as you remain in and are the owner of the house for the required length of time.
-        </p>
 
-        <div class="section-title">The following information MUST be attached to the application:</div>
-        <ul class="check-list">
-            <li>Proof of Home ownership (legible copy of recorded deed)</li>
-            <li>Proof of Homeowner's insurance (recent declaration page/recent certificate from agent)</li>
-            <li>Copies of most recent paid Property, Town and Village AND School tax receipt</li>
-            <li>Most recent mortgage statement, if applicable. The mortgage must be paid up to date.</li>
-        </ul>
+        <div></div>
+        <div class="page-shell">
+            <div class="section-box-title">Household Monthly Debt</div>
+            <p class="body-note">Please list your household's current monthly debts, i.e. mortgage payment, car payment, credit card bills, electric, medical bills, cell phone, cable, etc.</p>
+            <table class="field-table">
+                <tr>
+                    <td width="50%"><div class="label">Current Household Monthly Debt Total</div></td>
+                    <td width="50%" class="pdf-debt-total-value">$<span class="blank">{!pdfCurrentHouseholdMonthlyDebt}</span></td>
+                </tr>
+            </table>
+            <table class="asset-table debt-table">
+                <tr>
+                    <th>Debt Type</th>
+                    <th>Monthly Payment</th>
+                    <th>Balance</th>
+                </tr>
+                <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+                <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+                <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+            </table>
 
-        <p class="red-note">Please use boxes to check off items once attached</p>
-
-        <div class="section-title">Plus: For EACH household member 18 years and older:</div>
-        <ul class="check-list">
-            <li>Proof of income from all sources - 2 months of current and consecutive pay stubs, statements from SS, SSD, SSI, child support, alimony, DSS assistance, etc.</li>
-            <li>Completed, signed and dated copies of the most recent FEDERAL tax returns and W2's (2024 and 2025) OR a notarized statement of non-filing of tax returns, if applicable</li>
-            <li>Three most recent bank statements for each bank account per household member</li>
-            <li>Recent whole life insurance policy (if applicable) statement showing the cash surrender value (term life policies are excluded)</li>
-        </ul>
-
-        <div class="page-break"></div>
-        <div class="header">
-            <apex:image value="{!logoUrl}" rendered="{!logoUrl != null}" styleClass="logo"/>
+            <div class="pdf-assessment-title">Household Financial Assessment</div>
+            <table class="pdf-document-table">
+                <tr><th colspan="3" class="pdf-income-label">Income</th></tr>
+                <tr><th>Account Type</th><th>Current Amount</th><th>Budgeted Amount</th></tr>
+                <tr><td>Salary</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.salaryWages}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>Other Household Salary</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.otherHouseholdSalary}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>Dividends</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.dividends}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>Interest</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.bankAndInvestmentInterest}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>Investments</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.investments}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>Reimbursements</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.reimbursements}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>Other</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.otherIncome}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>Total</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.totalMonthlyIncome}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><th colspan="3" class="pdf-expense-label">Expenses</th></tr>
+                <tr><td>Mortgage/Rent</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.housingMortgageTaxesInsurance}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>Car Loan</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.carLoan}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>Car Insurance</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.carInsurance}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>House Insurance</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.houseInsurance}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>Life Insurance</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.lifeInsurance}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>Childcare</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.childcare}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>Charity</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.charity}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>Gas/Electric</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.gasElectric}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>Telephone</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.telephone}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>Cable</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.cableSatelliteTv}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>Internet</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.internet}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>Food</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.food}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>Entertainment</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.entertainment}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>Gifts</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.gifts}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>Clothing</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.clothing}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>Pet Supplies</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.petSupplies}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>Health Insurance / Healthcare</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.healthInsurance}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>Other Expense</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.otherExpense}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>Alimony / Child Support</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.alimonyChildSupport}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>Total Living Expenses</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.totalLivingExpenses}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+                <tr><td>Difference</td><td class="pdf-money-cell">$<span class="blank">{!pdfFinancial.difference}</span></td><td class="pdf-budget-cell">$<span class="blank">&nbsp;</span></td></tr>
+            </table>
         </div>
-        <ul class="check-list">
-            <li>Recent statements showing your name and your balance of ALL peer-to-peer payment apps including but not limited to: VenMo, Zelle, CashApp, Paypal, etc.</li>
-            <li>Copies of most recent utility bills and monthly debt obligations, i.e., electric, phone, etc.</li>
-            <li>Completed Financial Assessment (page 9)</li>
-        </ul>
-        <p class="final-note">Incomplete applications will not be accepted</p>
+
+        <div class="page-shell">
+            <div class="avoid-break">
+                <div class="section-box-title">Affirmation and Sworn Statement of True Information</div>
+                <p>
+                    I affirm that all information given in this application for a Federal or State grant is true
+                    and correct, this includes all income, asset, homeowner and debt obligation information.
+                    False statements made by the applicant will result in rejection of the grant application.
+                    This application was made to obtain a grant, and I authorize you to communicate with any
+                    person, firm, or corporation necessary, and to obtain any information to establish eligibility
+                    status and income verification as you may need concerning the statements made in this
+                    application and agree that the application shall remain Galvan Housing Resources' property
+                    whether or not the grant herein requested is awarded.
+                </p>
+            </div>
+
+            <table class="signature-table">
+                <tr>
+                    <td width="70%">
+                        <div class="signature-title">Applicant Signature</div>
+                        <div class="signature-box">
+                            <apex:image value="{!vfApplicantSignatureUrl}" rendered="{!NOT(ISBLANK(vfApplicantSignatureUrl))}"/>
+                        </div>
+                    </td>
+                    <td width="30%">
+                        <div class="signature-title">Date</div>
+                        <span class="blank">{!IF(ISBLANK(vfApplicantSignDate), currentRecordDate, vfApplicantSignDate)}</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <div class="signature-title">Print Name</div>
+                        <span class="blank">{!vfApplicantPrintName}</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td width="70%">
+                        <div class="signature-title">Co-Applicant Signature</div>
+                        <div class="signature-box">
+                            <apex:image value="{!vfCoApplicantSignatureUrl}" rendered="{!NOT(ISBLANK(vfCoApplicantSignatureUrl))}"/>
+                        </div>
+                    </td>
+                    <td width="30%">
+                        <div class="signature-title">Date</div>
+                        <span class="blank">{!IF(ISBLANK(vfCoApplicantSignDate), currentRecordDate, vfCoApplicantSignDate)}</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <div class="signature-title">Print Name</div>
+                        <span class="blank">{!vfCoApplicantPrintName}</span>
+                    </td>
+                </tr>
+            </table>
+            <p class="note">Applications must be completed and signed by all owners of the property.</p>
+        </div>
     </body>
     </html>
 </apex:page>

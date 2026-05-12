@@ -3,111 +3,159 @@
     <head>
         <style type="text/css">
             @page {
-                margin: 0.5in;
+                margin: 0.35in;
                 size: letter;
             }
             body {
                 font-family: "Times New Roman", Times, serif;
-                font-size: 20px;
-                color: #000;
-                line-height: 1.6;
+                font-size: 12px;
+                color: #193247;
+                line-height: 1.55;
+                margin: 0;
+                padding: 0;
+            }
+            .page-shell {
+                background: #f3f5f8;
+                border: 1px solid #d7dfe8;
+                padding: 10px;
+            }
+            .document-card {
+                background: #ffffff;
+                border: 1px solid #d7dfe8;
+                padding: 18px 20px 24px;
+            }
+            .header {
+                text-align: center;
+                margin-bottom: 18px;
             }
             .header-logo {
-                width: 220px;
+                width: 200px;
                 max-width: 100%;
                 height: auto;
-                margin-bottom: 16px;
+                margin-bottom: 15px;
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
             }
             .doc-title {
                 text-align: center;
-                font-size: 20px;
+                font-size: 21px;
+                line-height: 1.35;
                 font-weight: bold;
-                margin: 6px 0 24px;
-                color: #000;
+                margin: 0;
+                color: #0d2b44;
+            }
+            .body-copy {
+                margin-top: 10px;
+            }
+            .body-copy p {
+                margin: 0 0 14px;
+                font-size: 18px;
+                line-height: 1.6;
+                color: #102435;
             }
             .signature-section {
-                margin-top: 28px;
+                margin-top: 12px;
+                background: #f7f9fb;
+                border: 1px solid #d9e1ea;
+                padding: 12px 14px 8px;
                 page-break-inside: avoid;
+                break-inside: avoid;
             }
             .signature-title {
-                font-size: 20px;
-                margin-bottom: 8px;
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 12px;
+                line-height: 1.2;
+                text-transform: uppercase;
+                font-weight: bold;
+                color: #26455e;
+                margin-bottom: 6px;
             }
             .signature-box {
-                height: 120px;
-                border: 1px solid #000;
+                height: 135px;
+                max-height: 135px;
+                width: 100%;
+                border: 1px solid #7590a8;
+                background: #fff;
+                overflow: hidden;
+                line-height: 0;
             }
             .signature-box img {
-                width: 100%;
+                display: block;
+                max-width: 100%;
+                width: auto;
                 height: 100%;
-                object-fit: contain;
+                margin: 0 auto;
             }
-            .name-row {
-                margin-top: 12px;
+            .signature-meta-table {
+                width: 100%;
+                margin-top: 6px;
+                border-collapse: collapse;
             }
-            .date-row {
-                margin-top: 8px;
-            }
-            .name-label {
+            .signature-meta-table td {
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 12px;
                 font-weight: bold;
-                margin-right: 10px;
-                font-size: 16px;
+                padding: 0;
+                vertical-align: top;
+                color: #193247;
             }
-            .name-value {
-                border-bottom: 1px solid #000;
-                display: inline-block;
-                min-width: 420px;
-                padding: 0 6px 2px;
-                font-size: 16px;
+            .signature-meta-name {
+                text-align: left;
+            }
+            .signature-meta-date {
+                text-align: right;
             }
         </style>
     </head>
     <body>
-        <apex:image value="{!logoUrl}" rendered="{!logoUrl != null}" styleClass="header-logo"/>
+        <div class="page-shell">
+            <div class="document-card">
+                <div class="header">
+                    <apex:image value="{!logoUrl}" rendered="{!logoUrl != null}" styleClass="header-logo"/>
 
-        <div class="doc-title">Home Improvement Program Photo Release</div>
+                    <div class="doc-title">Home Improvement Program Photo Release</div>
+                </div>
 
-        <div>
-           <p>
-                I/We, <span>{!vfCustomerName}</span> who reside at <span>{!vfProjectAddress}</span>,
-                grant <span>{!vfOrgName}</span> my permission to use any photographs taken in regards
-                to the Home Improvement Program for any legal use, including but not limited to:
-                publicity, promotion, advertising, social media, web content, etc.
-            </p>
+                <div class="body-copy">
+                   <p>
+                        I/We, <span>{!vfCustomerName}</span> who reside at <span>{!vfProjectAddress}</span>,
+                        grant <span>{!vfOrgName}</span> my permission to use any photographs taken in regards
+                        to the Home Improvement Program for any legal use, including but not limited to:
+                        publicity, promotion, advertising, social media, web content, etc.
+                    </p>
 
-            <p> 
-                Furthermore, I understand that no royalty, fee or compensation shall become
-                payable to me by reason of such use.
-            </p>
-        </div>
+                    <p>
+                        Furthermore, I understand that no royalty, fee or compensation shall become
+                        payable to me by reason of such use.
+                    </p>
+                </div>
 
-        <div class="signature-section">
-            <div class="signature-title">Home Owner Signature 1</div>
-            <div class="signature-box">
-                <apex:image value="{!vfImgUrl}" rendered="{!NOT(ISBLANK(vfImgUrl))}"/>
-            </div>
-            <div class="name-row">
-                <span class="name-label">NAME:</span>
-                <span class="name-value">{!vfSignerName}</span>
-            </div>
-            <div class="date-row">
-                <span class="name-label">DATE SIGNED:</span>
-                <span class="name-value">{!currentRecordDate}</span>
-            </div>
-        </div>
+                <div class="signature-section">
+                    <div class="signature-title">Home Owner Signature 1</div>
+                    <div class="signature-box">
+                        <apex:image value="{!vfImgUrl}" rendered="{!NOT(ISBLANK(vfImgUrl))}"/>
+                    </div>
+                    <table class="signature-meta-table">
+                        <tr>
+                            <td class="signature-meta-name">Name: {!vfSignerName}</td>
+                            <td class="signature-meta-date">Sign Date: {!currentRecordDate}</td>
+                        </tr>
+                    </table>
+                </div>
 
-        <div class="signature-section">
-            <div class="signature-title">Home Owner Signature 2</div>
-            <div class="signature-box">
-                <apex:image value="{!vfCoSignerImgUrl}" rendered="{!NOT(ISBLANK(vfCoSignerImgUrl))}"/>
-            </div>
-            <div class="name-row">
-                <span class="name-label">NAME:</span>
-                <span class="name-value">{!vfCoSignerName}</span>
-            </div>
-            <div class="date-row">
-                <span class="name-label">DATE SIGNED:</span>
-                <span class="name-value">{!currentRecordDate}</span>
+                <div class="signature-section">
+                    <div class="signature-title">Home Owner Signature 2</div>
+                    <div class="signature-box">
+                        <apex:image value="{!vfCoSignerImgUrl}" rendered="{!NOT(ISBLANK(vfCoSignerImgUrl))}"/>
+                    </div>
+                    <table class="signature-meta-table">
+                        <tr>
+                            <td class="signature-meta-name">Name: {!vfCoSignerName}</td>
+                            <td class="signature-meta-date">Sign Date: {!currentRecordDate}</td>
+                        </tr>
+                    </table>
+                </div>
             </div>
         </div>
     </body>

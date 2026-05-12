@@ -1,7 +1,7 @@
 <template>
     <template if:true={isLoading}>
-        <div class="slds-spinner_container" style="position:fixed;">
-            <div class="slds-spinner--brand slds-spinner slds-spinner--large slds-is-relative" role="alert">
+        <div class="slds-spinner_container spinner-shell" style="position:fixed;">
+            <div class="slds-spinner slds-spinner_brand slds-spinner_large slds-is-relative" role="alert">
                 <span class="slds-assistive-text">Loading</span>
                 <div class="slds-spinner__dot-a"></div>
                 <div class="slds-spinner__dot-b"></div>
@@ -9,34 +9,40 @@
         </div>
     </template>
 
+    <template if:true={showCustomToast}>
+        <div class={customToastClass} role="status">
+            <span>{customToastMessage}</span>
+            <button class="toast-close" onclick={handleCloseToast} aria-label="Close">x</button>
+        </div>
+    </template>
+
     <div class="main-wrapper">
         <div class="slds-container_large slds-container_center">
-            
-            <template if:true={showThankYouPage}>
-                <div class="content-inner success-container">
-                    <lightning-icon icon-name="action:approval" size="large" alternative-text="Success"></lightning-icon>
-                    <template if:false={isAlreadySubmitted}>
-                        <h2 class="slds-text-heading_large slds-m-top_medium">Thank You!</h2>
-                        <p class="slds-text-heading_small slds-m-top_medium">Your Home Improvement Program Photo Release Form has been successfully submitted.</p>
-                    </template>
-                    <template if:true={isAlreadySubmitted}>
-                        <h2 class="slds-text-heading_large slds-m-top_medium">Already Submitted</h2>
-                        <p class="slds-text-heading_small slds-m-top_medium">Home Improvement Program Photo Release Form has already been submitted for this record.</p>
-                    </template>
+            <template if:true={showSubmittedMessage}>
+                <div class="submitted-message">
+                    <lightning-icon icon-name="utility:success" size="x-small" alternative-text="Submitted"></lightning-icon>
+                    <span>{submittedMessage}</span>
                 </div>
             </template>
 
-            <template if:false={showThankYouPage}>
-                <div class="main-container">
-                    <div class="header-container slds-grid slds-wrap">
-                        <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-2 slds-text-align_left">
-                            <template if:true={logoURL}>
-                                <img class="header-logo" src={logoURL} alt="Logo" />
-                            </template>
-                        </div>
+            <div class="main-container">
+                <div class="header-container slds-grid slds-wrap">
+                    <div class="slds-col slds-size_1-of-1 slds-text-align_center">
+                        <template if:true={logoURL}>
+                            <img class="header-logo" src={logoURL} alt="Logo" />
+                        </template>
                     </div>
-                    <div class="doc-title">Home Improvement Program Photo Release</div>
-            
+                </div>
+
+                <div class="doc-title">Home Improvement Program Photo Release</div>
+
+                <div class="content-inner">
+                    <template if:true={submitError}>
+                        <div class="error-message" role="alert">
+                            <h2>{submitError}</h2>
+                        </div>
+                    </template>
+
                     <div class="letter-body">
                         <p class="slds-m-bottom_x-small">
                             I/We, <span>{customerName}</span> who reside at <span>{projectAddress}</span>,
@@ -45,15 +51,21 @@
                             publicity, promotion, advertising, social media, web content, etc.
                         </p>
 
-                        <p> 
+                        <p>
                             Furthermore, I understand that no royalty, fee or compensation shall become
                             payable to me by reason of such use.
                         </p>
+                    </div>
 
-                
-                        <div class="signature-section">
-                            <label class="signature-label">Home Owner Signature 1</label>
-                            <div class="signature-container">
+                    <div class="signature-section">
+                        <label class="signature-label">
+                            Home Owner Signature 1 <span class="required-mark">*</span>
+                        </label>
+                        <div class="signature-container">
+                            <template if:true={showPrimarySignatureImage}>
+                                <img class="signature-image" src={primarySignatureUrl} alt="Home Owner Signature 1" />
+                            </template>
+                            <template if:false={showPrimarySignatureImage}>
                                 <canvas class={signatureCanvasClass}
                                     data-signature-id="primary"
                                     onmousedown={handleMouseDown}
@@ -64,27 +76,38 @@
                                     ontouchmove={handleTouchMove}
                                     ontouchend={handleTouchEnd}>
                                 </canvas>
-                            </div>
+                            </template>
+                        </div>
+                        <template if:false={isReadOnly}>
                             <div class="signature-buttons">
-                                <button class="clear-link" data-signature-id="primary" onclick={clearSignature} disabled={isReadOnly}>Clear Signature</button>
+                                <button class="clear-link" data-signature-id="primary" onclick={clearSignature}>Clear Signature</button>
                             </div>
+                        </template>
 
-                            <div class="slds-m-top_xx-large">
-                                <div class="name-underline-container">
-                                    <span class="name-label-text">NAME</span>
-                                    <span class="name-label-text">:</span>
-                                    <input type="text" 
-                                        class="underline-input" 
-                                        value={signerName} 
-                                        oninput={handleNameChange}
-                                        disabled={isReadOnly} />
-                                </div>
+                        <div class="name-block">
+                            <div class="name-underline-container">
+                                <span class="name-label-text">NAME</span>
+                                <span class="required-mark">*</span>
+                                <span class="name-label-text">:</span>
+                                <input
+                                    type="text"
+                                    class="underline-input"
+                                    value={signerName}
+                                    oninput={handleNameChange}
+                                    disabled={isReadOnly} />
                             </div>
                         </div>
+                    </div>
 
-                        <div class="signature-section">
-                            <label class="signature-label">Home Owner Signature 2</label>
-                            <div class="signature-container">
+                    <div class="signature-section">
+                        <label class="signature-label">
+                            Home Owner Signature 2 <span class="required-mark">*</span>
+                        </label>
+                        <div class="signature-container">
+                            <template if:true={showSecondarySignatureImage}>
+                                <img class="signature-image" src={secondarySignatureUrl} alt="Home Owner Signature 2" />
+                            </template>
+                            <template if:false={showSecondarySignatureImage}>
                                 <canvas class={signatureCanvasClass}
                                     data-signature-id="secondary"
                                     onmousedown={handleMouseDown}
@@ -95,24 +118,30 @@
                                     ontouchmove={handleTouchMove}
                                     ontouchend={handleTouchEnd}>
                                 </canvas>
-                            </div>
+                            </template>
+                        </div>
+                        <template if:false={isReadOnly}>
                             <div class="signature-buttons">
-                                <button class="clear-link" data-signature-id="secondary" onclick={clearSignature} disabled={isReadOnly}>Clear Signature</button>
+                                <button class="clear-link" data-signature-id="secondary" onclick={clearSignature}>Clear Signature</button>
                             </div>
+                        </template>
 
-                            <div class="slds-m-top_xx-large">
-                                <div class="name-underline-container">
-                                    <span class="name-label-text">NAME</span>
-                                    <span class="name-label-text">:</span>
-                                    <input type="text" 
-                                        class="underline-input" 
-                                        value={coSignerName} 
-                                        oninput={handleCoSignerNameChange}
-                                        disabled={isReadOnly} />
-                                </div>
+                        <div class="name-block">
+                            <div class="name-underline-container">
+                                <span class="name-label-text">NAME</span>
+                                <span class="required-mark">*</span>
+                                <span class="name-label-text">:</span>
+                                <input
+                                    type="text"
+                                    class="underline-input"
+                                    value={coSignerName}
+                                    oninput={handleCoSignerNameChange}
+                                    disabled={isReadOnly} />
                             </div>
                         </div>
+                    </div>
 
+                    <template if:false={isReadOnly}>
                         <div class="submit-row">
                             <lightning-button
                                 class="submit-button"
@@ -122,9 +151,9 @@
                                 disabled={isSubmitDisabled}>
                             </lightning-button>
                         </div>
-                    </div>
+                    </template>
                 </div>
-            </template>
+            </div>
         </div>
     </div>
 </template>

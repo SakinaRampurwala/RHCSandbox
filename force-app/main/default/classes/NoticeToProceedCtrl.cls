@@ -18,7 +18,13 @@ public without sharing class NoticeToProceedCtrl {
         @AuraEnabled public String propertyOwnerSignatureUrl { get; set; }
         @AuraEnabled public String contractorRepSignatureUrl { get; set; }
         @AuraEnabled public String programRepSignatureUrl { get; set; }
+        @AuraEnabled public String propertyOwnerSignDate { get; set; }
+        @AuraEnabled public String contractorRepSignDate { get; set; }
+        @AuraEnabled public String programRepSignDate { get; set; }
         @AuraEnabled public Boolean isSubmitted { get; set; }
+        public String propertyOwnerSignatureId { get; set; }
+        public String contractorRepSignatureId { get; set; }
+        public String programRepSignatureId { get; set; }
     }
 
     @AuraEnabled(cacheable=true)
@@ -148,17 +154,11 @@ public without sharing class NoticeToProceedCtrl {
                 'General_Contractor__r.Name',
                 'buildertek__General_Contractor__r.Name',
                 'General_Contractor__c',
-                'buildertek__General_Contractor__c',
-                'Contractor__c',
-                'buildertek__Contractor__c'
+                'buildertek__General_Contractor__c'
             });
             data.telephone = firstAvailableValue(recordSObj, new List<String>{
                 'General_Contractor__r.Phone',
-                'buildertek__General_Contractor__r.Phone',
-                'General_Contractor_Phone__c',
-                'buildertek__General_Contractor_Phone__c',
-                'Contractor_Phone__c',
-                'buildertek__Contractor_Phone__c'
+                'buildertek__General_Contractor__r.Phone'
             });
 
             String billingStreet = firstAvailableValue(recordSObj, new List<String>{
@@ -195,9 +195,7 @@ public without sharing class NoticeToProceedCtrl {
                 });
 
             Object contractDate = firstAvailableObject(recordSObj, new List<String>{
-                'buildertek__Contract_Date__c',
-                'Contract_Dated__c',
-                'buildertek__Contract_Dated__c'
+                'buildertek__Contract_Date__c'
             });
             data.contractDated = formatDateValue(contractDate);
 
@@ -225,9 +223,18 @@ public without sharing class NoticeToProceedCtrl {
             String programSignId = fieldMap.containsKey('NTP_Program_Rep_Sign_Id__c')
                 ? (String) recordSObj.get('NTP_Program_Rep_Sign_Id__c') : null;
 
+            data.propertyOwnerSignatureId = ownerSignId;
+            data.contractorRepSignatureId = contractorSignId;
+            data.programRepSignatureId = programSignId;
             data.propertyOwnerSigned = String.isNotBlank(ownerSignId);
             data.contractorRepSigned = String.isNotBlank(contractorSignId);
             data.programRepSigned = String.isNotBlank(programSignId);
+            data.propertyOwnerSignDate = formatDateValue(fieldMap.containsKey('NTP_Property_Owner_Sign_Date__c')
+                ? recordSObj.get('NTP_Property_Owner_Sign_Date__c') : null);
+            data.contractorRepSignDate = formatDateValue(fieldMap.containsKey('NTP_Contractor_Rep_Sign_Date__c')
+                ? recordSObj.get('NTP_Contractor_Rep_Sign_Date__c') : null);
+            data.programRepSignDate = formatDateValue(fieldMap.containsKey('NTP_Program_Rep_Sign_Date__c')
+                ? recordSObj.get('NTP_Program_Rep_Sign_Date__c') : null);
 
             if (!skipSignatureDml) {
                 String ownerVersionId = resolveContentVersionId(ownerSignId);
@@ -390,9 +397,6 @@ public without sharing class NoticeToProceedCtrl {
             pdfCdl.Visibility = 'AllUsers';
             insert pdfCdl;
 
-            cleanupSignatureFile(propertyOwnerSignatureId);
-            cleanupSignatureFile(contractorRepSignatureId);
-            cleanupSignatureFile(programRepSignatureId);
             return 'Success';
         } catch (Exception e) {
             throw new AuraHandledException(e.getMessage());
@@ -404,7 +408,7 @@ public without sharing class NoticeToProceedCtrl {
      * Determines the next signer based on currentSignerRole and sends them the email.
      * This is fully server-side — no URL param chaining needed from LWC.
      */
-    private static void sendChainEmail(
+    public static void sendChainEmail(
         Id recordId,
         String senderId,
         String sendDate,
@@ -541,7 +545,7 @@ public without sharing class NoticeToProceedCtrl {
 
     // ── Private helpers ──────────────────────────────────────────────────────
 
-    private static String applyOrganizationMergeFieldsStatic(String body) {
+    public static String applyOrganizationMergeFieldsStatic(String body) {
         if (String.isBlank(body)) { return body; }
         try {
             Organization orgInfo = [SELECT Name, Street, City, State, PostalCode, Phone FROM Organization LIMIT 1];
@@ -558,11 +562,11 @@ public without sharing class NoticeToProceedCtrl {
         return body;
     }
 
-    private static String safeVal(String s) { return s == null ? '' : s; }
+    public static String safeVal(String s) { return s == null ? '' : s; }
 
 
 
-    private static String resolveImgUrl(String providedUrl, String providedSignId, String storedSignId) {
+    public static String resolveImgUrl(String providedUrl, String providedSignId, String storedSignId) {
         if (String.isNotBlank(providedUrl)) {
             return providedUrl;
         }
@@ -574,7 +578,7 @@ public without sharing class NoticeToProceedCtrl {
         return '';
     }
 
-    private static void updateSignatureFields(Id recordId, String signatureLabel, Id contentVersionId) {
+    public static void updateSignatureFields(Id recordId, String signatureLabel, Id contentVersionId) {
         if (recordId == null || contentVersionId == null) { return; }
         Map<String, Schema.SObjectField> fieldMap = buildertek__Project__c.SObjectType.getDescribe().fields.getMap();
         buildertek__Project__c proj = new buildertek__Project__c(Id = recordId);
@@ -612,7 +616,7 @@ public without sharing class NoticeToProceedCtrl {
         if (shouldUpdate) { update proj; }
     }
 
-    private static String getOrCreateDistributionUrl(Id contentVersionId) {
+    public static String getOrCreateDistributionUrl(Id contentVersionId) {
         if (contentVersionId == null) { return ''; }
         String fallbackUrl = buildVersionDownloadUrl(contentVersionId);
         List<ContentDistribution> existing = [
@@ -635,14 +639,14 @@ public without sharing class NoticeToProceedCtrl {
         return fallbackUrl;
     }
 
-    private static String buildVersionDownloadUrl(Id contentVersionId) {
+    public static String buildVersionDownloadUrl(Id contentVersionId) {
         if (contentVersionId == null) { return ''; }
         String baseUrl = getConfirmationSiteUrl();
         if (String.isBlank(baseUrl)) { baseUrl = URL.getOrgDomainUrl().toExternalForm(); }
         return baseUrl + '/sfc/servlet.shepherd/version/download/' + contentVersionId;
     }
 
-    private static String resolveContentVersionId(String idVal) {
+    public static String resolveContentVersionId(String idVal) {
         if (String.isBlank(idVal) || !isValidIdFormat(idVal)) { return null; }
         List<ContentVersion> byVersion = [SELECT Id FROM ContentVersion WHERE Id = :idVal LIMIT 1];
         if (!byVersion.isEmpty()) { return byVersion[0].Id; }
@@ -651,7 +655,7 @@ public without sharing class NoticeToProceedCtrl {
         return null;
     }
 
-    private static Boolean isPdfAlreadySaved(Id recordId) {
+    public static Boolean isPdfAlreadySaved(Id recordId) {
         if (recordId == null) { return false; }
         List<ContentDocumentLink> links = [
             SELECT ContentDocument.Title, ContentDocument.FileType
@@ -668,18 +672,12 @@ public without sharing class NoticeToProceedCtrl {
         return false;
     }
 
-    private static void cleanupSignatureFile(String signatureId) {
-        if (String.isBlank(signatureId)) { return; }
-        List<ContentVersion> versions = [SELECT ContentDocumentId FROM ContentVersion WHERE Id = :signatureId LIMIT 1];
-        if (!versions.isEmpty()) { Database.delete(versions[0].ContentDocumentId, false); }
-    }
-
-    private static String firstAvailableValue(SObject source, List<String> candidates) {
+    public static String firstAvailableValue(SObject source, List<String> candidates) {
         Object value = firstAvailableObject(source, candidates);
         return value == null ? '' : String.valueOf(value);
     }
 
-    private static Object firstAvailableObject(SObject source, List<String> candidates) {
+    public static Object firstAvailableObject(SObject source, List<String> candidates) {
         if (source == null || candidates == null) { return null; }
         Map<String, Object> values = source.getPopulatedFieldsAsMap();
         for (String apiName : candidates) {
@@ -699,7 +697,7 @@ public without sharing class NoticeToProceedCtrl {
         return null;
     }
 
-    private static Boolean isQueryableField(Map<String, Schema.SObjectField> fieldMap, String fieldPath) {
+    public static Boolean isQueryableField(Map<String, Schema.SObjectField> fieldMap, String fieldPath) {
         if (String.isBlank(fieldPath)) { return false; }
         if (!fieldPath.contains('.')) { return fieldMap.containsKey(fieldPath); }
         List<String> parts = fieldPath.split('\\.');
@@ -712,16 +710,19 @@ public without sharing class NoticeToProceedCtrl {
         return true;
     }
 
-    private static String formatDateValue(Object dateValue) {
+    public static String formatDateValue(Object dateValue) {
         if (dateValue == null) { return ''; }
-        if (dateValue instanceof Date) { return ((Date) dateValue).format(); }
+        if (dateValue instanceof Date) {
+            Date parsedDate = (Date) dateValue;
+            return Datetime.newInstance(parsedDate, Time.newInstance(0, 0, 0, 0)).format('MM-dd-yyyy');
+        }
         if (dateValue instanceof Datetime) { return ((Datetime) dateValue).format('MM-dd-yyyy'); }
         return String.valueOf(dateValue);
     }
 
-    private static String safe(String input) { return input == null ? '' : input; }
+    public static String safe(String input) { return input == null ? '' : input; }
 
-    private static String joinNonBlank(List<String> parts, String separator) {
+    public static String joinNonBlank(List<String> parts, String separator) {
         List<String> cleaned = new List<String>();
         for (String part : parts) {
             if (String.isNotBlank(part)) { cleaned.add(part); }
@@ -729,7 +730,7 @@ public without sharing class NoticeToProceedCtrl {
         return String.join(cleaned, separator);
     }
 
-    private static String getConfirmationSiteUrl() {
+    public static String getConfirmationSiteUrl() {
         buildertek__ConfirmationSiteURL__c settings = buildertek__ConfirmationSiteURL__c.getOrgDefaults();
         if (settings != null && String.isNotBlank(settings.buildertek__Sites_URL__c)) {
             return settings.buildertek__Sites_URL__c;
@@ -737,7 +738,7 @@ public without sharing class NoticeToProceedCtrl {
         return URL.getOrgDomainUrl().toExternalForm();
     }
 
-    private static Boolean isValidIdFormat(String value) {
+    public static Boolean isValidIdFormat(String value) {
         if (String.isBlank(value)) { return false; }
         return Pattern.matches('^[a-zA-Z0-9]{15}(?:[a-zA-Z0-9]{3})?$', value);
     }
@@ -935,7 +936,7 @@ public without sharing class NoticeToProceedCtrl {
         return 'Success';
     }
 
-    private static String replaceContactName(String body, String contactName) {
+    public static String replaceContactName(String body, String contactName) {
         if (String.isBlank(body) || String.isBlank(contactName)) { return body; }
         // Replace all common contact name tokens used in email templates
         body = body.replace('{!ContactName}', contactName);
@@ -944,7 +945,7 @@ public without sharing class NoticeToProceedCtrl {
         return body;
     }
 
-    private static String buildNtpLink(Id recordId, String senderId, String sendDate, Boolean isPreview, String roleParam) {
+    public static String buildNtpLink(Id recordId, String senderId, String sendDate, Boolean isPreview, String roleParam) {
         String baseUrl = getConfirmationSiteUrl();
         String link = baseUrl + '/apex/NoticeToProceed?recordId=' + String.valueOf(recordId)
             + '&isPreview=' + String.valueOf(isPreview);
@@ -954,7 +955,7 @@ public without sharing class NoticeToProceedCtrl {
         return link;
     }
 
-    private static List<Messaging.EmailFileAttachment> buildNtpAttachments(List<String> fileIds) {
+    public static List<Messaging.EmailFileAttachment> buildNtpAttachments(List<String> fileIds) {
         List<Messaging.EmailFileAttachment> attachmentList = new List<Messaging.EmailFileAttachment>();
         if (fileIds == null || fileIds.isEmpty()) { return attachmentList; }
         List<ContentVersion> files = [
@@ -975,7 +976,7 @@ public without sharing class NoticeToProceedCtrl {
         return attachmentList;
     }
 
-    private static String applyOrganizationMergeFields(String body) {
+    public static String applyOrganizationMergeFields(String body) {
         if (String.isBlank(body)) { return body; }
         Organization orgInfo = [SELECT Name, Street, City, State, PostalCode, Phone FROM Organization LIMIT 1];
         Map<String, String> values = new Map<String, String>{
@@ -1026,7 +1027,24 @@ public without sharing class NoticeToProceedCtrl {
         if (vfNoticeData == null) {
             vfNoticeData = new NoticeData();
         }
+        if (String.isBlank(vfPropertyOwnerImgUrl)) {
+            vfPropertyOwnerImgUrl = buildSignaturePdfUrl(vfNoticeData.propertyOwnerSignatureId);
+        }
+        if (String.isBlank(vfContractorRepImgUrl)) {
+            vfContractorRepImgUrl = buildSignaturePdfUrl(vfNoticeData.contractorRepSignatureId);
+        }
+        if (String.isBlank(vfProgramRepImgUrl)) {
+            vfProgramRepImgUrl = buildSignaturePdfUrl(vfNoticeData.programRepSignatureId);
+        }
         logoUrl = getLogoUrl();
-        currentRecordDate = System.now().format('MM-dd-yyyy');
+        currentRecordDate = formatDateValue(Date.today());
+    }
+
+    public static String buildSignaturePdfUrl(String signatureId) {
+        String versionId = resolveContentVersionId(signatureId);
+        if (String.isBlank(versionId) || !isValidIdFormat(versionId)) {
+            return '';
+        }
+        return buildVersionDownloadUrl((Id) versionId);
     }
 }

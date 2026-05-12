@@ -1,8 +1,8 @@
 public without sharing class RfqPreviewEmailCustomController {
 
-    private static final String CONTRACTOR_SELECTED_TEMPLATE_KEY = 'ContractorSelectedForm';
-    private static final String CONTRACTOR_SELECTED_TEMPLATE_NAME = 'ContractorSelectedFormTemplateBody';
-    private static final String CONTRACTOR_SELECTED_PAGE_NAME = 'ContractorSelectedForm';
+    public static final String CONTRACTOR_SELECTED_TEMPLATE_KEY = 'ContractorSelectedForm';
+    public static final String CONTRACTOR_SELECTED_TEMPLATE_NAME = 'ContractorSelectedFormTemplateBody';
+    public static final String CONTRACTOR_SELECTED_PAGE_NAME = 'ContractorSelectedForm';
 
     @AuraEnabled(cacheable=true)
     public static User getEmailSignature() {
@@ -132,10 +132,8 @@ public without sharing class RfqPreviewEmailCustomController {
         }
     }
 
-    private static List<String> validateEmailRequest(DataWrap data) {
+    public static List<String> validateEmailRequest(DataWrap data) {
         List<String> errors = new List<String>();
-        String representativeContactId = resolveProgramRepresentativeContactId(data);
-        String representativeEmail = resolveProgramRepresentativeEmail(data);
 
         if (data.toEmails == null || data.toEmails.isEmpty()) {
             errors.add('At least one homeowner recipient is required.');
@@ -153,12 +151,8 @@ public without sharing class RfqPreviewEmailCustomController {
             errors.add('A template selection is required.');
         }
 
-        if (String.isBlank(representativeContactId) || !isValidIdFormat(representativeContactId)) {
+        if (String.isBlank(data.programRepresentativeContactId) || !isValidIdFormat(data.programRepresentativeContactId)) {
             errors.add('A Program Representative contact is required.');
-        }
-
-        if (String.isBlank(representativeEmail)) {
-            errors.add('A Program Representative email snapshot is required.');
         }
 
         if (String.isBlank(data.recordId) || !isValidIdFormat(data.recordId)) {
@@ -168,46 +162,10 @@ public without sharing class RfqPreviewEmailCustomController {
         return errors;
     }
 
-    private static void persistLauncherSnapshot(DataWrap data) {
-        if (!isValidIdFormat(data.recordId)) {
-            return;
-        }
-
-        String representativeEmail = resolveProgramRepresentativeEmail(data);
-        buildertek__RFQ__c rfqUpdate = new buildertek__RFQ__c(
-            Id = (Id) data.recordId
-        );
-        rfqUpdate.Contractor_Selected_Program_Staff_User__c = null;
-        rfqUpdate.Contractor_Selected_Program_Staff_Email__c = representativeEmail;
-        rfqUpdate.Contractor_Selected_Homeowner_Req_Sent__c = System.now();
-        update rfqUpdate;
+    public static void persistLauncherSnapshot(DataWrap data) {
     }
 
-    private static String resolveProgramRepresentativeContactId(DataWrap data) {
-        if (data == null) {
-            return null;
-        }
-
-        if (String.isNotBlank(data.programRepresentativeContactId)) {
-            return data.programRepresentativeContactId;
-        }
-
-        return data.programStaffUserId;
-    }
-
-    private static String resolveProgramRepresentativeEmail(DataWrap data) {
-        if (data == null) {
-            return null;
-        }
-
-        if (String.isNotBlank(data.programRepresentativeEmail)) {
-            return data.programRepresentativeEmail;
-        }
-
-        return data.programStaffEmail;
-    }
-
-    private static String resolveTemplateDeveloperName(String templateKey) {
+    public static String resolveTemplateDeveloperName(String templateKey) {
         if (templateKey == CONTRACTOR_SELECTED_TEMPLATE_KEY || templateKey == CONTRACTOR_SELECTED_TEMPLATE_NAME) {
             return CONTRACTOR_SELECTED_TEMPLATE_NAME;
         }
@@ -215,7 +173,7 @@ public without sharing class RfqPreviewEmailCustomController {
         return null;
     }
 
-    private static String applyTemplateLink(String emailBody, String recordId, String templateKey, Boolean isPreview) {
+    public static String applyTemplateLink(String emailBody, String recordId, String templateKey, Boolean isPreview) {
         if (String.isBlank(emailBody) || !emailBody.contains('{!URL}')) {
             return emailBody;
         }
@@ -225,7 +183,7 @@ public without sharing class RfqPreviewEmailCustomController {
         return emailBody.replace('{!URL}', linkMarkup);
     }
 
-    private static String buildPageUrl(String recordId, String templateKey, Boolean isPreview) {
+    public static String buildPageUrl(String recordId, String templateKey, Boolean isPreview) {
         String pageName = resolveTemplatePageName(templateKey);
         String baseUrl = getConfirmationSiteUrl();
         String safeRecordId = String.isBlank(recordId) ? '' : EncodingUtil.urlEncode(recordId, 'UTF-8');
@@ -240,7 +198,7 @@ public without sharing class RfqPreviewEmailCustomController {
             + '&sendDate=' + safeSendDate;
     }
 
-    private static String resolveTemplatePageName(String templateKey) {
+    public static String resolveTemplatePageName(String templateKey) {
         if (templateKey == CONTRACTOR_SELECTED_TEMPLATE_KEY || templateKey == CONTRACTOR_SELECTED_TEMPLATE_NAME) {
             return CONTRACTOR_SELECTED_PAGE_NAME;
         }
@@ -248,7 +206,7 @@ public without sharing class RfqPreviewEmailCustomController {
         return CONTRACTOR_SELECTED_PAGE_NAME;
     }
 
-    private static String getConfirmationSiteUrl() {
+    public static String getConfirmationSiteUrl() {
         buildertek__ConfirmationSiteURL__c settings = buildertek__ConfirmationSiteURL__c.getOrgDefaults();
         if (settings != null && String.isNotBlank(settings.buildertek__Sites_URL__c)) {
             return normalizeBaseUrl(settings.buildertek__Sites_URL__c);
@@ -257,7 +215,7 @@ public without sharing class RfqPreviewEmailCustomController {
         return normalizeBaseUrl(URL.getOrgDomainUrl().toExternalForm());
     }
 
-    private static String normalizeBaseUrl(String baseUrl) {
+    public static String normalizeBaseUrl(String baseUrl) {
         if (String.isBlank(baseUrl)) {
             return '';
         }
@@ -270,7 +228,7 @@ public without sharing class RfqPreviewEmailCustomController {
         return normalizedUrl;
     }
 
-    private static String applyOrganizationMergeFields(String emailBody) {
+    public static String applyOrganizationMergeFields(String emailBody) {
         if (String.isBlank(emailBody)) {
             return emailBody;
         }
@@ -297,11 +255,11 @@ public without sharing class RfqPreviewEmailCustomController {
         return emailBody;
     }
 
-    private static String safeValue(String value) {
+    public static String safeValue(String value) {
         return value == null ? '' : value;
     }
 
-    private static String stripHtml(String value) {
+    public static String stripHtml(String value) {
         if (String.isBlank(value)) {
             return '';
         }
@@ -309,7 +267,7 @@ public without sharing class RfqPreviewEmailCustomController {
         return value.replaceAll('<[^>]+>', ' ').trim();
     }
 
-    private static Boolean isValidIdFormat(String value) {
+    public static Boolean isValidIdFormat(String value) {
         if (String.isBlank(value)) {
             return false;
         }
@@ -343,7 +301,5 @@ public without sharing class RfqPreviewEmailCustomController {
         public String programRepresentativeContactId;
         public String programRepresentativeName;
         public String programRepresentativeEmail;
-        public String programStaffUserId;
-        public String programStaffEmail;
     }
 }

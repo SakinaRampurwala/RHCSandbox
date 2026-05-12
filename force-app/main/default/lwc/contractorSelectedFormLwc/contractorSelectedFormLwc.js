@@ -1,5 +1,4 @@
 import { LightningElement, api } from 'lwc';
-import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import getLogoUrl from '@salesforce/apex/ContractorSelectedFormLwcCtrl.getLogoUrl';
 import getFormContext from '@salesforce/apex/ContractorSelectedFormLwcCtrl.getFormContext';
 import getContractorSelectedFormState from '@salesforce/apex/ContractorSelectedFormLwcCtrl.getContractorSelectedFormState';
@@ -26,14 +25,12 @@ export default class ContractorSelectedFormLwc extends LightningElement {
     canFinalize = false;
     selectedVendorId = '';
     homeownerInitials = '';
-    homeownerNotes = '';
     programStaffInitials = '';
     homeownerSignatureId = '';
     homeownerSignatureUrl = '';
     programStaffSignatureId = '';
     programStaffSignatureUrl = '';
     programStaffName = '';
-    submittedDate = '';
     fromAddressId = '';
     allowRepresentativeAccess = false;
     programRepresentativeName = '';
@@ -41,11 +38,15 @@ export default class ContractorSelectedFormLwc extends LightningElement {
     programRepresentativeContactId = '';
     primarySigned = false;
     secondarySigned = false;
+    showCustomToast = false;
+    customToastMessage = '';
+    customToastVariant = 'success';
 
     canvasElements = new Map();
     canvasContexts = new Map();
     isDrawing = false;
     activeSignatureKey;
+    toastTimeout;
 
     connectedCallback() {
         document.title = 'Contractor Selected Form';
@@ -75,40 +76,32 @@ export default class ContractorSelectedFormLwc extends LightningElement {
         return !this.isPreviewMode && this.stage === 'PROGRAM_STAFF' && this.canFinalize;
     }
 
-    get showHomeownerCompletePage() {
-        return !this.isPreviewMode && this.stage === 'HOMEOWNER_COMPLETE';
-    }
-
-    get showFormSurface() {
-        return !this.showHomeownerCompletePage;
+    disconnectedCallback() {
+        window.clearTimeout(this.toastTimeout);
     }
 
     get showPreviewBanner() {
         return this.isPreviewMode;
     }
 
-    get showCompletedBanner() {
-        return this.stage === 'COMPLETED';
-    }
-
     get showLockedBanner() {
         return this.stage === 'LOCKED';
     }
 
+    get showSubmittedMessage() {
+        return !this.isPreviewMode
+            && (this.stage === 'HOMEOWNER_COMPLETE' || this.stage === 'COMPLETED');
+    }
+
+    get submittedMessage() {
+        if (this.stage === 'COMPLETED') {
+            return 'Contractor Selected Form has been submitted successfully.';
+        }
+        return 'Your Contractor Selected Form has been submitted. The Program Representative has been notified.';
+    }
+
     get hasVendorRows() {
         return Array.isArray(this.vendorRows) && this.vendorRows.length > 0;
-    }
-
-    get hasHomeownerNotes() {
-        return Boolean(this.homeownerNotes && this.homeownerNotes.trim());
-    }
-
-    get showNotesInput() {
-        return this.isStage1Editable;
-    }
-
-    get showReadOnlyNotes() {
-        return !this.showNotesInput && this.hasHomeownerNotes;
     }
 
     get showProgramStaffSection() {
@@ -165,13 +158,8 @@ export default class ContractorSelectedFormLwc extends LightningElement {
         return this.formatDateString(this.sendDate);
     }
 
-    get selectedVendorLabel() {
-        const selectedRow = this.vendorRows.find(row => row.id === this.selectedVendorId);
-        return selectedRow ? selectedRow.bidLabel : 'No contractor selected';
-    }
-
-    get thankYouMessage() {
-        return 'Your Contractor Selected Form has been submitted.';
+    get customToastClass() {
+        return `custom-toast custom-toast_${this.customToastVariant}`;
     }
 
     get rowsForDisplay() {
@@ -210,7 +198,9 @@ export default class ContractorSelectedFormLwc extends LightningElement {
                 getContractorSelectedFormState({
                     recordId: this.recordId,
                     allowRepresentativeAccess: this.allowRepresentativeAccess,
-                    programRepresentativeName: this.programRepresentativeName
+                    programRepresentativeName: this.programRepresentativeName,
+                    programRepresentativeEmail: this.programRepresentativeEmail,
+                    programRepresentativeContactId: this.programRepresentativeContactId
                 }),
                 getRfqToVendors({ recordId: this.recordId })
             ]);
@@ -242,14 +232,12 @@ export default class ContractorSelectedFormLwc extends LightningElement {
             this.infoMessage = '';
             this.selectedVendorId = '';
             this.homeownerInitials = '';
-            this.homeownerNotes = '';
             this.programStaffInitials = '';
             this.homeownerSignatureId = '';
             this.homeownerSignatureUrl = '';
             this.programStaffSignatureId = '';
             this.programStaffSignatureUrl = '';
             this.programStaffName = '';
-            this.submittedDate = '';
             this.primarySigned = false;
             this.secondarySigned = false;
             return;
@@ -262,14 +250,12 @@ export default class ContractorSelectedFormLwc extends LightningElement {
         this.infoMessage = state.infoMessage || '';
         this.selectedVendorId = state.selectedVendorId || '';
         this.homeownerInitials = state.homeownerInitials || '';
-        this.homeownerNotes = state.homeownerNotes || '';
         this.programStaffInitials = state.programStaffInitials || '';
         this.homeownerSignatureId = state.homeownerSignatureId || '';
         this.homeownerSignatureUrl = state.homeownerSignatureUrl || '';
         this.programStaffSignatureId = state.programStaffSignatureId || '';
         this.programStaffSignatureUrl = state.programStaffSignatureUrl || '';
         this.programStaffName = state.programStaffName || '';
-        this.submittedDate = state.submittedDate || '';
         this.primarySigned = Boolean(this.homeownerSignatureUrl || this.homeownerSignatureId);
         this.secondarySigned = Boolean(this.programStaffSignatureUrl || this.programStaffSignatureId);
     }
@@ -290,7 +276,7 @@ export default class ContractorSelectedFormLwc extends LightningElement {
     }
 
     buildBidAmountDisplay(row) {
-        const quoteAmount = row?.buildertek__Vendor_Quote_Amount__c;
+        const quoteAmount = row?.buildertek__Quote_Amount__c;
         if (quoteAmount === null || quoteAmount === undefined) {
             return '';
         }
@@ -306,9 +292,15 @@ export default class ContractorSelectedFormLwc extends LightningElement {
     }
 
     formatDateString(rawValue) {
+        const formatDateParts = (month, day, year) => {
+            const paddedMonth = String(month).padStart(2, '0');
+            const paddedDay = String(day).padStart(2, '0');
+            return `${paddedMonth}-${paddedDay}-${year}`;
+        };
+
         if (!rawValue) {
             const today = new Date();
-            return `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
+            return formatDateParts(today.getMonth() + 1, today.getDate(), today.getFullYear());
         }
 
         const value = String(rawValue).trim();
@@ -316,9 +308,9 @@ export default class ContractorSelectedFormLwc extends LightningElement {
         const parts = dateOnly.split(/[-/]/);
         if (parts.length === 3) {
             if (dateOnly.includes('-') && parts[0].length === 4) {
-                return `${parts[1]}/${parts[2]}/${parts[0]}`;
+                return formatDateParts(parts[1], parts[2], parts[0]);
             }
-            return `${parts[0]}/${parts[1]}/${parts[2]}`;
+            return formatDateParts(parts[0], parts[1], parts[2]);
         }
 
         return value;
@@ -334,10 +326,6 @@ export default class ContractorSelectedFormLwc extends LightningElement {
 
     handleHomeownerInitialsChange(event) {
         this.homeownerInitials = event.target.value || '';
-    }
-
-    handleHomeownerNotesChange(event) {
-        this.homeownerNotes = event.target.value || '';
     }
 
     handleProgramStaffInitialsChange(event) {
@@ -538,7 +526,9 @@ export default class ContractorSelectedFormLwc extends LightningElement {
             recordId: this.recordId,
             signatureBody,
             signatureLabel: 'Homeowner',
-            allowRepresentativeAccess: this.allowRepresentativeAccess
+            allowRepresentativeAccess: this.allowRepresentativeAccess,
+            programRepresentativeEmail: this.programRepresentativeEmail,
+            programRepresentativeContactId: this.programRepresentativeContactId
         })
             .then(result => {
                 this.homeownerSignatureUrl = result?.imgUrl || '';
@@ -548,20 +538,20 @@ export default class ContractorSelectedFormLwc extends LightningElement {
                     recordId: this.recordId,
                     selectedVendorId: this.selectedVendorId,
                     homeownerInitials: this.homeownerInitials,
-                    homeownerNotes: '',
                     senderId: this.senderId,
                     sendDate: this.sendDate,
                     fromAddressId: this.fromAddressId,
-                    programRepresentativeName: this.programRepresentativeName
+                    programRepresentativeName: this.programRepresentativeName,
+                    programRepresentativeEmail: this.programRepresentativeEmail,
+                    programRepresentativeContactId: this.programRepresentativeContactId
                 });
             })
             .then(() => {
-                this.stage = 'HOMEOWNER_COMPLETE';
-                this.infoMessage = 'Your Contractor Selected Form has been submitted.';
-                this.showToast('Success', 'The Contractor Selected Form has been submitted.', 'success');
+                this.showToast('The Contractor Selected Form has been submitted.', 'success');
+                return this.loadForm();
             })
             .catch(error => {
-                this.showToast('Error', error?.body?.message || error?.message || 'An unexpected error occurred.', 'error');
+                this.showToast(error?.body?.message || error?.message || 'An unexpected error occurred.', 'error');
                 // eslint-disable-next-line no-console
                 console.error('Error submitting homeowner stage', error);
             })
@@ -587,7 +577,9 @@ export default class ContractorSelectedFormLwc extends LightningElement {
             recordId: this.recordId,
             signatureBody,
             signatureLabel: 'Program Staff',
-            allowRepresentativeAccess: this.allowRepresentativeAccess
+            allowRepresentativeAccess: this.allowRepresentativeAccess,
+            programRepresentativeEmail: this.programRepresentativeEmail,
+            programRepresentativeContactId: this.programRepresentativeContactId
         })
             .then(result => {
                 this.programStaffSignatureUrl = result?.imgUrl || '';
@@ -598,19 +590,21 @@ export default class ContractorSelectedFormLwc extends LightningElement {
                     programStaffInitials: this.programStaffInitials,
                     senderId: this.senderId,
                     sendDate: this.sendDate,
-                    allowRepresentativeAccess: this.allowRepresentativeAccess
+                    allowRepresentativeAccess: this.allowRepresentativeAccess,
+                    programRepresentativeEmail: this.programRepresentativeEmail,
+                    programRepresentativeContactId: this.programRepresentativeContactId
                 });
             })
             .then(result => {
                 if (result === 'Already Submitted') {
-                    this.showToast('Already Submitted', 'This Contractor Selected Form has already been finalized.', 'info');
+                    this.showToast('This Contractor Selected Form has already been finalized.', 'info');
                 } else {
-                    this.showToast('Success', 'The Contractor Selected Form has been finalized.', 'success');
+                    this.showToast('The Contractor Selected Form has been finalized.', 'success');
                 }
                 return this.loadForm();
             })
             .catch(error => {
-                this.showToast('Error', error?.body?.message || error?.message || 'An unexpected error occurred.', 'error');
+                this.showToast(error?.body?.message || error?.message || 'An unexpected error occurred.', 'error');
                 // eslint-disable-next-line no-console
                 console.error('Error finalizing program staff stage', error);
             })
@@ -619,11 +613,18 @@ export default class ContractorSelectedFormLwc extends LightningElement {
             });
     }
 
-    showToast(title, message, variant) {
-        this.dispatchEvent(new ShowToastEvent({
-            title,
-            message,
-            variant
-        }));
+    showToast(message, variant = 'success') {
+        window.clearTimeout(this.toastTimeout);
+        this.customToastMessage = message;
+        this.customToastVariant = variant;
+        this.showCustomToast = true;
+        this.toastTimeout = window.setTimeout(() => {
+            this.showCustomToast = false;
+        }, 4000);
+    }
+
+    handleCloseToast() {
+        window.clearTimeout(this.toastTimeout);
+        this.showCustomToast = false;
     }
 }

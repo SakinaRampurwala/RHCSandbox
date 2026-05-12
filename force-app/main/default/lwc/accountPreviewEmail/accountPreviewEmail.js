@@ -482,7 +482,8 @@ export default class AccountPreviewEmail extends LightningElement {
         if (!emailBody || !templateKey) {
             return emailBody;
         }
-        return emailBody.replace(/\/[^\/?]+(?=\?id=)/, `/${templateKey}`);
+        const updatedBody = emailBody.replace(/\/emailTemplateId(?=\?id=)/, `/${templateKey}`);
+        return updatedBody;
     }
 
     updateBodyPreview() {

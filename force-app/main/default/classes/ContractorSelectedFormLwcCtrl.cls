@@ -1,9 +1,9 @@
 public without sharing class ContractorSelectedFormLwcCtrl {
 
-    private static final String HOMEOWNER_SIGNATURE_LABEL = 'Homeowner';
-    private static final String PROGRAM_STAFF_SIGNATURE_LABEL = 'Program Staff';
-    private static final String PROGRAM_STAFF_TEMPLATE_NAME = 'ContractorSelectedFormProgramStaffTemplateBody';
-    private static final String PROGRAM_STAFF_TEMPLATE_FALLBACK_SUBJECT =
+    public static final String HOMEOWNER_SIGNATURE_LABEL = 'Homeowner';
+    public static final String PROGRAM_STAFF_SIGNATURE_LABEL = 'Program Staff';
+    public static final String PROGRAM_STAFF_TEMPLATE_NAME = 'ContractorSelectedFormProgramStaffTemplateBody';
+    public static final String PROGRAM_STAFF_TEMPLATE_FALLBACK_SUBJECT =
         'Contractor Selected Form - Program Representative Countersign Required';
 
     public String vfRecordId { get; set; }
@@ -18,9 +18,10 @@ public without sharing class ContractorSelectedFormLwcCtrl {
     public String ownerNames { get; set; }
     public String ownerPhone { get; set; }
     public String ownerEmail { get; set; }
-    public String ownerNotes { get; set; }
     public String homeownerSignatureUrl { get; set; }
     public String programStaffSignatureUrl { get; set; }
+    public String homeownerSignDate { get; set; }
+    public String programStaffSignDate { get; set; }
     public List<PdfVendorRow> pdfVendorRows { get; set; }
 
     public class FormContext {
@@ -39,16 +40,13 @@ public without sharing class ContractorSelectedFormLwcCtrl {
         @AuraEnabled public String stage;
         @AuraEnabled public String selectedVendorId;
         @AuraEnabled public String homeownerInitials;
-        @AuraEnabled public String homeownerNotes;
         @AuraEnabled public String programStaffInitials;
         @AuraEnabled public String homeownerSignatureId;
         @AuraEnabled public String homeownerSignatureUrl;
         @AuraEnabled public String programStaffSignatureId;
         @AuraEnabled public String programStaffSignatureUrl;
-        @AuraEnabled public String programStaffUserId;
         @AuraEnabled public String programStaffName;
         @AuraEnabled public String programStaffEmail;
-        @AuraEnabled public String submittedDate;
         @AuraEnabled public String infoMessage;
     }
 
@@ -94,7 +92,9 @@ public without sharing class ContractorSelectedFormLwcCtrl {
     public static ContractorSelectedFormState getContractorSelectedFormState(
         Id recordId,
         Boolean allowRepresentativeAccess,
-        String programRepresentativeName
+        String programRepresentativeName,
+        String programRepresentativeEmail,
+        String programRepresentativeContactId
     ) {
         ContractorSelectedFormState state = new ContractorSelectedFormState();
         state.stage = 'HOMEOWNER';
@@ -110,35 +110,32 @@ public without sharing class ContractorSelectedFormLwcCtrl {
         if (rfq == null) {
             return state;
         }
+        Contact representativeContact = getRepresentativeContact(programRepresentativeContactId);
 
         state.isSubmitted = rfq.Contractor_Selected_Form_Submitted__c;
         state.selectedVendorId = rfq.Contractor_Selected_RFQ_To_Vendor__c != null
             ? String.valueOf(rfq.Contractor_Selected_RFQ_To_Vendor__c)
             : '';
         state.homeownerInitials = rfq.Contractor_Selected_HomeOwner_Initials__c;
-        state.homeownerNotes = rfq.Contractor_Selected_Homeowner_Notes__c;
         state.programStaffInitials = rfq.Contractor_Selected_Prgm_Staff_Initials__c;
         state.homeownerSignatureId = rfq.Contractor_Selected_HomeOwner_SignID__c;
         state.programStaffSignatureId = rfq.Contractor_Selected_Prog_Staff_Sign_ID__c;
-        state.programStaffUserId = (String) rfq.Contractor_Selected_Program_Staff_User__c;
         state.programStaffName = String.isNotBlank(programRepresentativeName)
             ? programRepresentativeName
-            : (rfq.Contractor_Selected_Program_Staff_User__r != null
-                ? rfq.Contractor_Selected_Program_Staff_User__r.Name
-                : '');
-        state.programStaffEmail = String.isNotBlank(rfq.Contractor_Selected_Program_Staff_Email__c)
-            ? rfq.Contractor_Selected_Program_Staff_Email__c
-            : (rfq.Contractor_Selected_Program_Staff_User__r != null
-                ? rfq.Contractor_Selected_Program_Staff_User__r.Email
-                : '');
-        state.submittedDate = rfq.Contractor_Selected_Form_Submitted_Date__c != null
-            ? formatShortDate(rfq.Contractor_Selected_Form_Submitted_Date__c)
-            : '';
+            : (representativeContact != null ? safeValue(representativeContact.Name) : '');
+        state.programStaffEmail = representativeContact != null
+            ? safeValue(representativeContact.Email)
+            : safeValue(programRepresentativeEmail);
         state.homeownerSignatureUrl = resolveSignatureUrl(rfq.Contractor_Selected_HomeOwner_SignID__c);
         state.programStaffSignatureUrl = resolveSignatureUrl(rfq.Contractor_Selected_Prog_Staff_Sign_ID__c);
 
         Boolean homeownerStageComplete = isHomeownerStageComplete(rfq);
-        Boolean programStaffAuthorized = isProgramStaffAuthorized(rfq, allowRepresentativeAccess);
+        Boolean programStaffAuthorized = isProgramStaffAuthorized(
+            rfq,
+            allowRepresentativeAccess,
+            programRepresentativeEmail,
+            programRepresentativeContactId
+        );
         state.canFinalize = homeownerStageComplete && programStaffAuthorized && !state.isSubmitted;
 
         if (state.isSubmitted) {
@@ -181,7 +178,7 @@ public without sharing class ContractorSelectedFormLwcCtrl {
             SELECT Id,
                    Name,
                    buildertek__Vendor__r.Name,
-                   buildertek__Vendor_Quote_Amount__c
+                   buildertek__Quote_Amount__c
             FROM buildertek__RFQ_To_Vendor__c
             WHERE buildertek__RFQ__c = :recordId
             ORDER BY CreatedDate
@@ -193,7 +190,9 @@ public without sharing class ContractorSelectedFormLwcCtrl {
         Id recordId,
         String signatureBody,
         String signatureLabel,
-        Boolean allowRepresentativeAccess
+        Boolean allowRepresentativeAccess,
+        String programRepresentativeEmail,
+        String programRepresentativeContactId
     ) {
         if (recordId == null) {
             throw new AuraHandledException('A valid RFQ record id is required.');
@@ -206,7 +205,7 @@ public without sharing class ContractorSelectedFormLwcCtrl {
         String normalizedLabel = normalizeSignatureLabel(signatureLabel);
         if (normalizedLabel == PROGRAM_STAFF_SIGNATURE_LABEL) {
             buildertek__RFQ__c rfq = getRfqStageRecord(recordId);
-            if (!isProgramStaffAuthorized(rfq, allowRepresentativeAccess)) {
+            if (!isProgramStaffAuthorized(rfq, allowRepresentativeAccess, programRepresentativeEmail, programRepresentativeContactId)) {
                 throw new AuraHandledException('Only someone with the Program Representative link can submit this signature.');
             }
         }
@@ -256,18 +255,25 @@ public without sharing class ContractorSelectedFormLwcCtrl {
         Id recordId,
         Id selectedVendorId,
         String homeownerInitials,
-        String homeownerNotes,
         String senderId,
         String sendDate,
         String fromAddressId,
-        String programRepresentativeName
+        String programRepresentativeName,
+        String programRepresentativeEmail,
+        String programRepresentativeContactId
     ) {
         if (recordId == null) {
             throw new AuraHandledException('A valid RFQ record id is required.');
         }
 
         buildertek__RFQ__c rfq = getRfqStageRecord(recordId);
-        validateHomeownerStageInput(rfq, recordId, selectedVendorId, homeownerInitials);
+        Contact representativeContact = validateHomeownerStageInput(
+            rfq,
+            recordId,
+            selectedVendorId,
+            homeownerInitials,
+            programRepresentativeContactId
+        );
 
         Savepoint homeownerSavepoint = Database.setSavepoint();
         try {
@@ -277,10 +283,6 @@ public without sharing class ContractorSelectedFormLwcCtrl {
             buildertek__RFQ__c rfqUpdate = new buildertek__RFQ__c(Id = recordId);
             rfqUpdate.Contractor_Selected_RFQ_To_Vendor__c = selectedVendorId;
             rfqUpdate.Contractor_Selected_HomeOwner_Initials__c = normalizedHomeownerInitials;
-            rfqUpdate.Contractor_Selected_Homeowner_Notes__c = String.isBlank(homeownerNotes)
-                ? null
-                : homeownerNotes.trim();
-            rfqUpdate.Contractor_Selected_Prog_Staff_Req_Sent__c = System.now();
             update rfqUpdate;
 
             String sendResult = sendProgramStaffStageEmail(
@@ -288,7 +290,9 @@ public without sharing class ContractorSelectedFormLwcCtrl {
                 senderId,
                 sendDate,
                 fromAddressId,
-                programRepresentativeName
+                programRepresentativeName,
+                programRepresentativeEmail,
+                representativeContact
             );
             if (sendResult != 'Success') {
                 throw new AuraHandledException(sendResult);
@@ -310,7 +314,9 @@ public without sharing class ContractorSelectedFormLwcCtrl {
         String programStaffInitials,
         String senderId,
         String sendDate,
-        Boolean allowRepresentativeAccess
+        Boolean allowRepresentativeAccess,
+        String programRepresentativeEmail,
+        String programRepresentativeContactId
     ) {
         if (recordId == null) {
             throw new AuraHandledException('A valid RFQ record id is required.');
@@ -325,7 +331,7 @@ public without sharing class ContractorSelectedFormLwcCtrl {
             return 'Already Submitted';
         }
 
-        if (!isProgramStaffAuthorized(rfq, allowRepresentativeAccess)) {
+        if (!isProgramStaffAuthorized(rfq, allowRepresentativeAccess, programRepresentativeEmail, programRepresentativeContactId)) {
             throw new AuraHandledException('Only someone with the Program Representative link can finalize this form.');
         }
 
@@ -379,8 +385,7 @@ public without sharing class ContractorSelectedFormLwcCtrl {
             buildertek__RFQ__c rfqUpdate = new buildertek__RFQ__c(
                 Id = recordId,
                 Contractor_Selected_Prgm_Staff_Initials__c = normalizedProgramStaffInitials,
-                Contractor_Selected_Form_Submitted__c = true,
-                Contractor_Selected_Form_Submitted_Date__c = Date.today()
+                Contractor_Selected_Form_Submitted__c = true
             );
             update rfqUpdate;
 
@@ -406,9 +411,10 @@ public without sharing class ContractorSelectedFormLwcCtrl {
 
         displayDate = String.isNotBlank(vfSendDate) ? formatShortDate(vfSendDate) : formatShortDate(Date.today());
         pdfVendorRows = new List<PdfVendorRow>();
-        ownerNotes = '';
         homeownerSignatureUrl = '';
         programStaffSignatureUrl = '';
+        homeownerSignDate = displayDate;
+        programStaffSignDate = displayDate;
 
         if (isValidIdFormat(vfRecordId)) {
             Id recordId = (Id) vfRecordId;
@@ -421,13 +427,18 @@ public without sharing class ContractorSelectedFormLwcCtrl {
             ownerEmail = context != null ? context.email : '';
 
             buildertek__RFQ__c rfq = getRfqStageRecord(recordId);
-            ownerNotes = rfq != null ? rfq.Contractor_Selected_Homeowner_Notes__c : '';
             homeownerSignatureUrl = rfq != null
                 ? resolveSignatureUrl(rfq.Contractor_Selected_HomeOwner_SignID__c)
                 : '';
             programStaffSignatureUrl = rfq != null
                 ? resolveSignatureUrl(rfq.Contractor_Selected_Prog_Staff_Sign_ID__c)
                 : '';
+            homeownerSignDate = rfq != null && rfq.Contractor_Selected_HomeOwner_Sign_Date__c != null
+                ? formatShortDate(rfq.Contractor_Selected_HomeOwner_Sign_Date__c)
+                : displayDate;
+            programStaffSignDate = rfq != null && rfq.Contractor_Selected_Prog_Staff_Sign_Date__c != null
+                ? formatShortDate(rfq.Contractor_Selected_Prog_Staff_Sign_Date__c)
+                : displayDate;
 
             String programStaffInitials = String.isNotBlank(vfProgramStaffInitials)
                 ? vfProgramStaffInitials
@@ -457,10 +468,6 @@ public without sharing class ContractorSelectedFormLwcCtrl {
         return pdfVendorRows != null && !pdfVendorRows.isEmpty();
     }
 
-    public Boolean getHasOwnerNotes() {
-        return String.isNotBlank(ownerNotes);
-    }
-
     public Boolean getHasHomeownerSignature() {
         return String.isNotBlank(homeownerSignatureUrl);
     }
@@ -469,7 +476,7 @@ public without sharing class ContractorSelectedFormLwcCtrl {
         return String.isNotBlank(programStaffSignatureUrl);
     }
 
-    private static FormContext getFormContextInternal(Id recordId) {
+    public static FormContext getFormContextInternal(Id recordId) {
         if (recordId == null) {
             return null;
         }
@@ -481,13 +488,9 @@ public without sharing class ContractorSelectedFormLwcCtrl {
             'buildertek__Project__r.buildertek__City_Text__c',
             'buildertek__Project__r.buildertek__Zip__c',
             'buildertek__Project__r.buildertek__Customer__r.Name',
-            'buildertek__Project__r.buildertek__Customer__r.Phone'
+            'buildertek__Project__r.buildertek__Customer__r.Phone',
+            'buildertek__Project__r.buildertek__Customer__r.buildertek__Email_Address__c'
         };
-
-        Boolean hasPersonEmail = accountFieldMap.containsKey('PersonEmail');
-        if (hasPersonEmail) {
-            queryFields.add('buildertek__Project__r.buildertek__Customer__r.PersonEmail');
-        }
 
         SObject rfqRecord = Database.query(
             'SELECT ' + String.join(queryFields, ',')
@@ -509,11 +512,11 @@ public without sharing class ContractorSelectedFormLwcCtrl {
         context.zipCode = projectRecord != null ? (String) projectRecord.get('buildertek__Zip__c') : '';
         context.ownerNames = customerRecord != null ? (String) customerRecord.get('Name') : '';
         context.phone = customerRecord != null ? (String) customerRecord.get('Phone') : '';
-        context.email = hasPersonEmail && customerRecord != null ? (String) customerRecord.get('PersonEmail') : '';
+        context.email = customerRecord != null ? (String) customerRecord.get('buildertek__Email_Address__c') : '';
         return context;
     }
 
-    private static buildertek__RFQ__c getRfqStageRecord(Id recordId) {
+    public static buildertek__RFQ__c getRfqStageRecord(Id recordId) {
         if (recordId == null) {
             return null;
         }
@@ -521,20 +524,13 @@ public without sharing class ContractorSelectedFormLwcCtrl {
         List<buildertek__RFQ__c> rfqs = [
             SELECT Id,
                    Contractor_Selected_Form_Submitted__c,
-                   Contractor_Selected_Form_Submitted_Date__c,
                    Contractor_Selected_RFQ_To_Vendor__c,
                    Contractor_Selected_HomeOwner_Initials__c,
-                   Contractor_Selected_Homeowner_Notes__c,
                    Contractor_Selected_HomeOwner_SignID__c,
                    Contractor_Selected_HomeOwner_Sign_Date__c,
                    Contractor_Selected_Prgm_Staff_Initials__c,
                    Contractor_Selected_Prog_Staff_Sign_ID__c,
-                   Contractor_Selected_Prog_Staff_Sign_Date__c,
-                   Contractor_Selected_Prog_Staff_Req_Sent__c,
-                   Contractor_Selected_Program_Staff_User__c,
-                   Contractor_Selected_Program_Staff_User__r.Name,
-                   Contractor_Selected_Program_Staff_User__r.Email,
-                   Contractor_Selected_Program_Staff_Email__c
+                   Contractor_Selected_Prog_Staff_Sign_Date__c
             FROM buildertek__RFQ__c
             WHERE Id = :recordId
             LIMIT 1
@@ -543,11 +539,12 @@ public without sharing class ContractorSelectedFormLwcCtrl {
         return rfqs.isEmpty() ? null : rfqs[0];
     }
 
-    private static void validateHomeownerStageInput(
+    public static Contact validateHomeownerStageInput(
         buildertek__RFQ__c rfq,
         Id recordId,
         Id selectedVendorId,
-        String homeownerInitials
+        String homeownerInitials,
+        String programRepresentativeContactId
     ) {
         if (rfq == null) {
             throw new AuraHandledException('The RFQ could not be found.');
@@ -580,27 +577,30 @@ public without sharing class ContractorSelectedFormLwcCtrl {
             throw new AuraHandledException('Homeowner signature is required.');
         }
 
-        if (String.isBlank(rfq.Contractor_Selected_Program_Staff_Email__c)) {
+        Contact representativeContact = getRepresentativeContact(programRepresentativeContactId);
+        if (representativeContact == null || String.isBlank(representativeContact.Email)) {
             throw new AuraHandledException('A Program Representative contact must be selected before the homeowner stage can be submitted.');
         }
+
+        return representativeContact;
     }
 
-    private static String sendProgramStaffStageEmail(
+    public static String sendProgramStaffStageEmail(
         buildertek__RFQ__c rfq,
         String senderId,
         String sendDate,
         String fromAddressId,
-        String programRepresentativeName
+        String programRepresentativeName,
+        String programRepresentativeEmail,
+        Contact representativeContact
     ) {
         if (rfq == null) {
             return 'The RFQ could not be found.';
         }
 
-        String recipientEmail = String.isNotBlank(rfq.Contractor_Selected_Program_Staff_Email__c)
-            ? rfq.Contractor_Selected_Program_Staff_Email__c.trim()
-            : (rfq.Contractor_Selected_Program_Staff_User__r != null
-                ? safeValue(rfq.Contractor_Selected_Program_Staff_User__r.Email).trim()
-                : '');
+        String recipientEmail = representativeContact != null
+            ? safeValue(representativeContact.Email).trim()
+            : safeValue(programRepresentativeEmail).trim();
 
         if (String.isBlank(recipientEmail)) {
             return 'The selected Program Representative does not have an email address.';
@@ -634,15 +634,15 @@ public without sharing class ContractorSelectedFormLwcCtrl {
 
         String representativeDisplayName = String.isNotBlank(programRepresentativeName)
             ? programRepresentativeName.trim()
-            : (rfq.Contractor_Selected_Program_Staff_User__r != null
-                ? rfq.Contractor_Selected_Program_Staff_User__r.Name
-                : '');
+            : (representativeContact != null ? safeValue(representativeContact.Name) : '');
 
         String stage2Link = buildPublicPageUrl(
             rfq.Id,
-            String.isBlank(senderId) ? safeValue((String) rfq.Contractor_Selected_Program_Staff_User__c) : senderId,
+            safeValue(senderId),
             String.isBlank(sendDate) ? String.valueOf(Date.today()) : sendDate,
-            representativeDisplayName
+            representativeDisplayName,
+            recipientEmail,
+            representativeContact != null ? (String) representativeContact.Id : null
         );
         String linkMarkup = '<a href="' + stage2Link + '">Open Contractor Selected Form</a>';
         if (htmlBody.contains('{!URL}')) {
@@ -677,7 +677,7 @@ public without sharing class ContractorSelectedFormLwcCtrl {
         return 'Failed to send the Program Representative countersign email.';
     }
 
-    private static void updateSignatureFields(Id recordId, String signatureLabel, Id contentVersionId) {
+    public static void updateSignatureFields(Id recordId, String signatureLabel, Id contentVersionId) {
         if (recordId == null || contentVersionId == null) {
             return;
         }
@@ -700,7 +700,7 @@ public without sharing class ContractorSelectedFormLwcCtrl {
         }
     }
 
-    private static void linkContentToRfq(Id recordId, Id contentVersionId) {
+    public static void linkContentToRfq(Id recordId, Id contentVersionId) {
         if (recordId == null || contentVersionId == null) {
             return;
         }
@@ -728,7 +728,7 @@ public without sharing class ContractorSelectedFormLwcCtrl {
         }
     }
 
-    private static String resolveSignatureUrl(String storedId) {
+    public static String resolveSignatureUrl(String storedId) {
         String contentVersionId = resolveContentVersionId(storedId);
         if (String.isBlank(contentVersionId) || !isValidIdFormat(contentVersionId)) {
             return '';
@@ -749,11 +749,13 @@ public without sharing class ContractorSelectedFormLwcCtrl {
         return buildVersionDownloadUrl((Id) contentVersionId);
     }
 
-    private static String buildPublicPageUrl(
+    public static String buildPublicPageUrl(
         Id recordId,
         String senderId,
         String sendDate,
-        String programRepresentativeName
+        String programRepresentativeName,
+        String programRepresentativeEmail,
+        String programRepresentativeContactId
     ) {
         String link = getConfirmationSiteUrl() + '/apex/ContractorSelectedForm'
             + '?recordId=' + EncodingUtil.urlEncode(String.valueOf(recordId), 'UTF-8')
@@ -766,10 +768,18 @@ public without sharing class ContractorSelectedFormLwcCtrl {
             link += '&programRepresentativeName=' + EncodingUtil.urlEncode(programRepresentativeName, 'UTF-8');
         }
 
+        if (String.isNotBlank(programRepresentativeEmail)) {
+            link += '&programRepresentativeEmail=' + EncodingUtil.urlEncode(programRepresentativeEmail, 'UTF-8');
+        }
+
+        if (String.isNotBlank(programRepresentativeContactId)) {
+            link += '&programRepresentativeContactId=' + EncodingUtil.urlEncode(programRepresentativeContactId, 'UTF-8');
+        }
+
         return link;
     }
 
-    private static String getConfirmationSiteUrl() {
+    public static String getConfirmationSiteUrl() {
         buildertek__ConfirmationSiteURL__c settings = buildertek__ConfirmationSiteURL__c.getOrgDefaults();
         if (settings != null && String.isNotBlank(settings.buildertek__Sites_URL__c)) {
             return normalizeBaseUrl(settings.buildertek__Sites_URL__c);
@@ -778,7 +788,7 @@ public without sharing class ContractorSelectedFormLwcCtrl {
         return normalizeBaseUrl(URL.getOrgDomainUrl().toExternalForm());
     }
 
-    private static String applyOrganizationMergeFields(String emailBody) {
+    public static String applyOrganizationMergeFields(String emailBody) {
         if (String.isBlank(emailBody)) {
             return emailBody;
         }
@@ -805,7 +815,7 @@ public without sharing class ContractorSelectedFormLwcCtrl {
         return emailBody;
     }
 
-    private static String applyContactName(String emailBody, String contactName) {
+    public static String applyContactName(String emailBody, String contactName) {
         if (String.isBlank(emailBody) || String.isBlank(contactName)) {
             return emailBody;
         }
@@ -813,7 +823,7 @@ public without sharing class ContractorSelectedFormLwcCtrl {
         return emailBody.replace('{!ContactName}', contactName);
     }
 
-    private static List<PdfVendorRow> buildPdfVendorRows(
+    public static List<PdfVendorRow> buildPdfVendorRows(
         List<buildertek__RFQ_To_Vendor__c> rfqToVendors,
         String selectedVendorId,
         String homeownerInitials,
@@ -834,7 +844,7 @@ public without sharing class ContractorSelectedFormLwcCtrl {
         return rows;
     }
 
-    private static String buildBidLabel(buildertek__RFQ_To_Vendor__c rfqToVendor) {
+    public static String buildBidLabel(buildertek__RFQ_To_Vendor__c rfqToVendor) {
         String vendorName = buildVendorName(rfqToVendor);
         String bidAmount = buildBidAmount(rfqToVendor);
 
@@ -845,43 +855,54 @@ public without sharing class ContractorSelectedFormLwcCtrl {
         return vendorName + ' - ' + bidAmount;
     }
 
-    private static String buildVendorName(buildertek__RFQ_To_Vendor__c rfqToVendor) {
+    public static String buildVendorName(buildertek__RFQ_To_Vendor__c rfqToVendor) {
         return rfqToVendor.buildertek__Vendor__r != null
             ? rfqToVendor.buildertek__Vendor__r.Name
             : rfqToVendor.Name;
     }
 
-    private static String buildBidAmount(buildertek__RFQ_To_Vendor__c rfqToVendor) {
-        if (rfqToVendor.buildertek__Vendor_Quote_Amount__c == null) {
+    public static String buildBidAmount(buildertek__RFQ_To_Vendor__c rfqToVendor) {
+        if (rfqToVendor.buildertek__Quote_Amount__c == null) {
             return '';
         }
 
-        return rfqToVendor.buildertek__Vendor_Quote_Amount__c.format();
+        return rfqToVendor.buildertek__Quote_Amount__c.format();
     }
 
-    private static Boolean isHomeownerStageComplete(buildertek__RFQ__c rfq) {
+    public static Boolean isHomeownerStageComplete(buildertek__RFQ__c rfq) {
         return rfq != null
             && rfq.Contractor_Selected_RFQ_To_Vendor__c != null
             && String.isNotBlank(rfq.Contractor_Selected_HomeOwner_SignID__c);
     }
 
-    private static Boolean isProgramStaffAuthorized(buildertek__RFQ__c rfq, Boolean allowRepresentativeAccess) {
-        if (allowRepresentativeAccess == true) {
-            return true;
-        }
-
-        if (rfq == null || isGuestUser() || rfq.Contractor_Selected_Program_Staff_User__c == null) {
+    public static Boolean isProgramStaffAuthorized(
+        buildertek__RFQ__c rfq,
+        Boolean allowRepresentativeAccess,
+        String programRepresentativeEmail,
+        String programRepresentativeContactId
+    ) {
+        if (allowRepresentativeAccess != true || rfq == null) {
             return false;
         }
 
-        return String.valueOf(rfq.Contractor_Selected_Program_Staff_User__c) == UserInfo.getUserId();
+        Contact representativeContact = getRepresentativeContact(programRepresentativeContactId);
+        if (representativeContact == null || String.isBlank(representativeContact.Email)) {
+            return false;
+        }
+
+        String providedEmail = normalizeEmail(programRepresentativeEmail);
+        if (String.isBlank(providedEmail)) {
+            return true;
+        }
+
+        return providedEmail == normalizeEmail(representativeContact.Email);
     }
 
-    private static Boolean isGuestUser() {
+    public static Boolean isGuestUser() {
         return UserInfo.getUserType() == 'Guest';
     }
 
-    private static String normalizeSignatureLabel(String signatureLabel) {
+    public static String normalizeSignatureLabel(String signatureLabel) {
         String trimmedLabel = String.isBlank(signatureLabel) ? '' : signatureLabel.trim().toLowerCase();
         if (trimmedLabel == 'program staff' || trimmedLabel == 'programstaff') {
             return PROGRAM_STAFF_SIGNATURE_LABEL;
@@ -890,7 +911,7 @@ public without sharing class ContractorSelectedFormLwcCtrl {
         return HOMEOWNER_SIGNATURE_LABEL;
     }
 
-    private static String normalizeBaseUrl(String baseUrl) {
+    public static String normalizeBaseUrl(String baseUrl) {
         if (String.isBlank(baseUrl)) {
             return '';
         }
@@ -903,7 +924,7 @@ public without sharing class ContractorSelectedFormLwcCtrl {
         return normalizedUrl;
     }
 
-    private static String buildVersionDownloadUrl(Id contentVersionId) {
+    public static String buildVersionDownloadUrl(Id contentVersionId) {
         if (contentVersionId == null) {
             return '';
         }
@@ -915,7 +936,7 @@ public without sharing class ContractorSelectedFormLwcCtrl {
         return baseUrl + '/sfc/servlet.shepherd/version/download/' + contentVersionId;
     }
 
-    private static String resolveContentVersionId(String idValue) {
+    public static String resolveContentVersionId(String idValue) {
         if (String.isBlank(idValue) || !isValidIdFormat(idValue)) {
             return null;
         }
@@ -944,7 +965,7 @@ public without sharing class ContractorSelectedFormLwcCtrl {
         return null;
     }
 
-    private static String formatShortDate(String rawValue) {
+    public static String formatShortDate(String rawValue) {
         if (String.isBlank(rawValue)) {
             return formatShortDate(Date.today());
         }
@@ -974,17 +995,17 @@ public without sharing class ContractorSelectedFormLwcCtrl {
         return trimmed;
     }
 
-    private static String formatShortDate(Date value) {
+    public static String formatShortDate(Date value) {
         if (value == null) {
             return '';
         }
 
-        return String.valueOf(value.month()) + '/'
-            + String.valueOf(value.day()) + '/'
+        return String.valueOf(value.month()).leftPad(2, '0') + '-'
+            + String.valueOf(value.day()).leftPad(2, '0') + '-'
             + String.valueOf(value.year());
     }
 
-    private static Boolean isValidIdFormat(String value) {
+    public static Boolean isValidIdFormat(String value) {
         if (String.isBlank(value)) {
             return false;
         }
@@ -992,7 +1013,27 @@ public without sharing class ContractorSelectedFormLwcCtrl {
         return Pattern.matches('^[a-zA-Z0-9]{15}(?:[a-zA-Z0-9]{3})?$', value);
     }
 
-    private static String safeValue(String value) {
+    public static String safeValue(String value) {
         return value == null ? '' : value;
+    }
+
+    public static String normalizeEmail(String value) {
+        return String.isBlank(value) ? '' : value.trim().toLowerCase();
+    }
+
+    public static Contact getRepresentativeContact(String contactIdValue) {
+        if (String.isBlank(contactIdValue) || !isValidIdFormat(contactIdValue)) {
+            return null;
+        }
+
+        Id representativeContactId = (Id) contactIdValue;
+        List<Contact> contacts = [
+            SELECT Id, Name, Email
+            FROM Contact
+            WHERE Id = :representativeContactId
+            LIMIT 1
+        ];
+
+        return contacts.isEmpty() ? null : contacts[0];
     }
 }

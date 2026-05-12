@@ -3,144 +3,212 @@
     <head>
         <style type="text/css">
             @page {
-                margin: 0.6in;
+                margin: 0.35in;
                 size: letter;
             }
             body {
                 font-family: "Times New Roman", Times, serif;
-                font-size: 12pt;
-                color: #000;
-                line-height: 1.35;
+                font-size: 12px;
+                color: #193247;
+                line-height: 1.55;
+                margin: 0;
+                padding: 0;
+            }
+            .page-shell {
+                background: #f3f5f8;
+                border: 1px solid #d7dfe8;
+                padding: 10px;
+            }
+            .document-card {
+                background: #ffffff;
+                border: 1px solid #d7dfe8;
+                padding: 18px 20px 24px;
+            }
+            .header {
+                text-align: center;
+                margin-bottom: 18px;
             }
             .header-logo {
-                width: 190px;
+                width: 200px;
                 max-width: 100%;
                 height: auto;
-                margin-bottom: 10px;
+                margin-bottom: 15px;
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
             }
             .doc-title {
                 text-align: center;
-                font-size: 14pt;
+                font-size: 21px;
+                line-height: 1.35;
                 font-weight: bold;
-                margin: 4px 0 18px;
+                margin: 0;
                 text-transform: uppercase;
+                color: #0d2b44;
+            }
+            .info-block {
+                background: #edf7f5;
+                border: 1px solid #bddbd4;
+                padding: 14px 16px;
+                margin-bottom: 14px;
             }
             .info-row {
                 margin-bottom: 8px;
             }
-            .info-label {
-                font-weight: bold;
-                display: inline-block;
-                width: 180px;
+            .info-row:last-child {
+                margin-bottom: 0;
             }
-            .line {
+            .info-label {
                 display: inline-block;
-                border-bottom: 1px solid #000;
-                min-width: 260px;
-                padding-bottom: 1px;
+                width: 160px;
+                font-weight: bold;
+                color: #26455e;
             }
             .section-title {
+                font-size: 16px;
                 font-weight: bold;
-                margin: 16px 0 8px;
+                color: #17334a;
+                margin: 22px 0 10px;
+            }
+            .body-copy {
+                padding: 0;
+            }
+            .body-copy p {
+                margin: 0 0 12px;
+                font-size: 16px;
+                line-height: 1.4;
+                color: #1a1a1a;
             }
             .signature-wrap {
-                margin-top: 20px;
+                margin-top: 12px;
+                background: #f7f9fb;
+                border: 1px solid #d9e1ea;
+                padding: 12px 14px 8px;
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            .signature-title {
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 12px;
+                line-height: 1.2;
+                text-transform: uppercase;
+                font-weight: bold;
+                color: #26455e;
+                margin-bottom: 6px;
             }
             .signature-image-area {
-                height: 110px;
+                height: 135px;
+                max-height: 135px;
                 width: 100%;
-                line-height: 0;
+                border: 1px solid #7590a8;
+                background: #fff;
                 overflow: hidden;
+                line-height: 0;
             }
             .signature-image {
-                width: 100%;
-                height: 110px;
                 display: block;
-                object-fit: contain;
-                object-position: left center;
-            }
-            .signature-underline {
-                border: none;
-                border-top: 1px solid #000;
-                margin: 4px 0 4px 0;
+                max-width: 100%;
+                width: auto;
+                height: 100%;
+                margin: 0 auto;
             }
             .signature-footer {
                 width: 100%;
-                display: table;
-                table-layout: fixed;
+                border-collapse: collapse;
+                margin-top: 6px;
             }
             .sig-label {
-                display: table-cell;
                 text-align: left;
-                font-size: 11pt;
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 12px;
+                font-weight: bold;
+                color: #193247;
             }
             .sig-date {
-                display: table-cell;
                 text-align: right;
-                font-size: 11pt;
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 12px;
+                font-weight: bold;
+                color: #193247;
             }
             .footer-note {
-                margin-top: 14px;
-                font-size: 10pt;
+                margin-top: 18px;
+                font-size: 11px;
+                color: #4b647b;
             }
         </style>
     </head>
     <body>
-        <apex:image value="{!logoUrl}" rendered="{!logoUrl != null}" styleClass="header-logo"/>
+        <div class="page-shell">
+            <div class="document-card">
+                <div class="header">
+                    <apex:image value="{!logoUrl}" rendered="{!logoUrl != null}" styleClass="header-logo"/>
+                    <div class="doc-title">CERTIFICATION OF COMPLETION/FINAL INSPECTION</div>
+                </div>
 
-        <div class="doc-title">CERTIFICATION OF COMPLETION/FINAL INSPECTION</div>
+                <div class="info-block">
+                    <div class="info-row">
+                        <span class="info-label">Homeowner Name:</span>
+                        <span><b>{!vfInspectionData.homeownerName}</b></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Homeowner Address:</span>
+                        <span><b>{!vfHomeownerAddress}</b></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Final Inspection Date:</span>
+                        <span><b>{!vfInspectionData.finalInspectionDate}</b></span>
+                    </div>
+                </div>
 
-        <div class="info-row">
-            <span class="info-label">Homeowner Name:</span>
-            <span class="line">{!vfInspectionData.homeownerName}</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Homeowner Address:</span>
-            <span class="line" style="min-width: 340px;">{!vfHomeownerAddress}</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Final Inspection Date:</span>
-            <span class="line">{!vfInspectionData.finalInspectionDate}</span>
-        </div>
+                <div class="section-title">HOMEOWNER'S CERTIFICATION</div>
+                <div class="body-copy">
+                    <p>
+                        I understand that the warranty lasts one year from today and that it only covers
+                        materials and work performed under this contract. Construction work for my
+                        property has been satisfactorily completed in accordance with my contract.
+                    </p>
+                </div>
 
-        <div class="section-title">HOMEOWNER'S CERTIFICATION</div>
-        <div>
-            I understand that the warranty lasts one year from today and that it only covers
-            materials and work performed under this contract. Construction work for my
-            property has been satisfactorily completed in accordance with my contract.
-        </div>
+                <div class="signature-wrap">
+                    <div class="signature-title">Homeowner Signature</div>
+                    <div class="signature-image-area">
+                        <apex:image value="{!vfHomeownerImgUrl}" rendered="{!NOT(ISBLANK(vfHomeownerImgUrl))}" styleClass="signature-image"/>
+                    </div>
+                    <table class="signature-footer">
+                        <tr>
+                            <td class="sig-label">Homeowner</td>
+                            <td class="sig-date">Sign Date: {!currentRecordDate}</td>
+                        </tr>
+                    </table>
+                </div>
 
-        <div class="signature-wrap">
-            <div class="signature-image-area">
-                <apex:image value="{!vfHomeownerImgUrl}" rendered="{!NOT(ISBLANK(vfHomeownerImgUrl))}" styleClass="signature-image"/>
+                <div class="section-title">CERTIFICATION OF FINAL INSPECTION</div>
+                <div class="body-copy">
+                    <p>
+                        The final inspection has been made by the PROGRAM Rehabilitation Specialist of
+                        the property identified above. The construction work has been completed in
+                        accordance with the scope of work and contract*.
+                    </p>
+                </div>
+
+                <div class="signature-wrap">
+                    <div class="signature-title">Program Representative Signature</div>
+                    <div class="signature-image-area">
+                        <apex:image value="{!vfRepresentativeImgUrl}" rendered="{!NOT(ISBLANK(vfRepresentativeImgUrl))}" styleClass="signature-image"/>
+                    </div>
+                    <table class="signature-footer">
+                        <tr>
+                            <td class="sig-label">Program Representative</td>
+                            <td class="sig-date">Sign Date: {!currentRecordDate}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="footer-note">
+                    *Building permit inspections are the responsibility of the issuing municipal entity and cannot be approved by the Rehabilitation Specialist.
+                </div>
             </div>
-            <hr class="signature-underline"/>
-            <div class="signature-footer">
-                <span class="sig-label">Homeowner</span>
-                <span class="sig-date">Date: {!currentRecordDate}</span>
-            </div>
-        </div>
-
-        <div class="section-title">CERTIFICATION OF FINAL INSPECTION</div>
-        <div>
-            The final inspection has been made by the PROGRAM Rehabilitation Specialist of
-            the property identified above. The construction work has been completed in
-            accordance with the scope of work and contract*.
-        </div>
-
-        <div class="signature-wrap">
-            <div class="signature-image-area">
-                <apex:image value="{!vfRepresentativeImgUrl}" rendered="{!NOT(ISBLANK(vfRepresentativeImgUrl))}" styleClass="signature-image"/>
-            </div>
-            <hr class="signature-underline"/>
-            <div class="signature-footer">
-                <span class="sig-label">Program Representative</span>
-                <span class="sig-date">Date: {!currentRecordDate}</span>
-            </div>
-        </div>
-
-        <div class="footer-note">
-            *Building permit inspections are the responsibility of the issuing municipal entity and cannot be approved by the Rehabilitation Specialist.
         </div>
     </body>
     </html>
